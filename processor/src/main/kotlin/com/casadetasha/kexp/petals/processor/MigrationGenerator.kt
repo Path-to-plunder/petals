@@ -7,21 +7,31 @@ import com.casadetasha.kexp.petals.annotations.Petal
 import com.squareup.kotlinpoet.*
 import java.io.File
 
-object MigrationGenerator {
+class MigrationGenerator {
 
-    fun createMigrationForPetal(petalClass: KotlinContainer.KotlinClass) {
-        val fileSpec = FileSpec.builder(
-            packageName = petalClass.packageName,
-            fileName = "${petalClass.classSimpleName}Migration"
+    private lateinit var classBuilder: TypeSpec.Builder
+
+    fun createMigrationForTable(tableVersionMap: Map<Int, KotlinContainer.KotlinClass>) {
+        val petalInfo: Petal = tableVersionMap[1]!!.getAnnotation(Petal::class)
+            ?: printThenThrowError("All tables must start with version 1")
+        val className = "TableMigrations\$${petalInfo.tableName}"
+
+        val fileSpecBuilder = FileSpec.builder(
+            packageName = tableVersionMap[1]!!.packageName,
+            fileName = className
         )
-            .addType(buildClassSpec(petalClass))
-            .build()
 
-        fileSpec.writeTo(File(AnnotationParser.kaptKotlinGeneratedDir))
+        classBuilder = TypeSpec.classBuilder(className)
+
+        tableVersionMap.toSortedMap().forEach {
+            classBuilder.addTextSpec("migrateV${it.key}", buildClassSpec(it.value, it.key))
+        }
+
+        fileSpecBuilder.addType(classBuilder.build())
+        fileSpecBuilder.build().writeTo(File(AnnotationParser.kaptKotlinGeneratedDir))
     }
 
-    private fun buildClassSpec(kotlinClass: KotlinContainer.KotlinClass): TypeSpec {
-        val specBuilder = TypeSpec.classBuilder("${kotlinClass.classSimpleName}Migration")
+    private fun buildClassSpec(kotlinClass: KotlinContainer.KotlinClass, version: Int): String {
         val petalAnnotation: Petal = kotlinClass.getAnnotation(Petal::class) as Petal
 
         var tableCreationSql = "CREATE TABLE ${petalAnnotation.tableName} ( "
@@ -35,15 +45,12 @@ object MigrationGenerator {
         }
         tableCreationSql = tableCreationSql.removeSuffix(", ")
         tableCreationSql += " )"
-
-        specBuilder.addTextSpec(tableCreationSql)
-
-        return specBuilder.build()
+        return tableCreationSql
     }
 }
 
-private fun TypeSpec.Builder.addTextSpec(migrationSql: String) {
-    addFunction(FunSpec.builder("migrate")
+private fun TypeSpec.Builder.addTextSpec(methodName: String, migrationSql: String) {
+    addFunction(FunSpec.builder(methodName)
         .returns(String::class)
         .addCode(
             CodeBlock.builder()

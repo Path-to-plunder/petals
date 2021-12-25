@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.casadetasha.kexp.annotationparser.AnnotationParser.getClassesAnnotatedWith
+import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.google.auto.service.AutoService
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
@@ -33,8 +34,17 @@ class PetalProcessor : AbstractProcessor() {
 
     private fun generateClasses() {
         val classes = getClassesAnnotatedWith(Petal::class)
+        val tableMap = HashMap<String, MutableMap<Int, KotlinClass>>()
+
         classes.forEach {
-            MigrationGenerator.createMigrationForPetal(it)
+            val petalAnnotation: Petal = it.getAnnotation(Petal::class)!!
+            val table = petalAnnotation.tableName
+            if (tableMap[table] == null) tableMap[table] = HashMap()
+            tableMap[table]!![petalAnnotation.version] = it
+        }
+
+        tableMap.values.forEach {
+            MigrationGenerator().createMigrationForTable(it)
         }
     }
 }
