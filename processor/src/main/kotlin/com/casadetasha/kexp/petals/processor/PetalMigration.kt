@@ -5,6 +5,10 @@ import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
+import java.util.*
+import kotlin.collections.HashSet
+import kotlin.reflect.KClass
 
 data class PetalMigration(val tableName: String, val version: Int, val columns: Set<PetalColumn>) {
 
@@ -36,12 +40,30 @@ data class PetalMigration(val tableName: String, val version: Int, val columns: 
 data class PetalColumn(val name: String, val typeName: TypeName) {
 
     companion object {
+        private val SUPPORTED_TYPES = listOf<KClass<*>>(
+            String::class,
+            Int::class,
+            Long::class,
+            UUID::class
+        ).map { it.asTypeName() }
+
         fun parseFromProperty(kotlinProperty: KotlinProperty): PetalColumn {
             return PetalColumn(
                 name = kotlinProperty.simpleName,
                 typeName = kotlinProperty.typeName
-            )
+            ).apply {
+                checkTypeValidity(typeName)
+            }
         }
+
+        private fun checkTypeValidity(typeName: TypeName) {
+            if (!SUPPORTED_TYPES.contains(typeName)) {
+                printThenThrowError(
+                    "$typeName is not a valid column type. Only the following types are supported as columns:" +
+                            " ${SUPPORTED_TYPES.joinToString()}")
+            }
+        }
+
     }
 
     override fun equals(other: Any?): Boolean {

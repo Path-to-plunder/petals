@@ -4,6 +4,7 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.squareup.kotlinpoet.*
 import java.io.File
+import java.util.*
 
 class MigrationGenerator {
 
@@ -48,14 +49,11 @@ class MigrationGenerator {
         var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} ( "
 
         petalMigration.columns.forEach{
-            tableCreationSql += when (it.typeName) {
-                String::class.asTypeName() -> "${it.name} TEXT, "
-                Int::class.asTypeName() -> "${it.name} INT, "
-                else -> printThenThrowError("Only String and Int types are currently supported.")
-            }
+            tableCreationSql += "${parseNewColumnSql(it)}, "
         }
         tableCreationSql = tableCreationSql.removeSuffix(", ")
         tableCreationSql += " )"
+
         return tableCreationSql
     }
 
@@ -64,24 +62,28 @@ class MigrationGenerator {
         val droppedColumns = previousMigration.columns.filter { !currentMigration.columns.contains(it) }
         var tableCreationSql = "ALTER TABLE ${currentMigration.tableName}\n"
 
-        addedColumns.forEach{
-            tableCreationSql += when (it.typeName) {
-                String::class.asTypeName() -> "  ADD COLUMN ${it.name} TEXT,\n"
-                Int::class.asTypeName() -> "  ADD COLUMN ${it.name} INT,\n"
-                else -> printThenThrowError("Only String and Int types are currently supported.")
-            }
-        }
-
         droppedColumns.forEach{
-            tableCreationSql += when (it.typeName) {
-                String::class.asTypeName() -> "  DROP COLUMN ${it.name},\n"
-                Int::class.asTypeName() -> "  DROP COLUMN ${it.name},\n"
-                else -> printThenThrowError("Only String and Int types are currently supported.")
-            }
+            tableCreationSql += "  DROP COLUMN ${it.name},\n"
+        }
+        addedColumns.forEach{
+            tableCreationSql += "  ADD COLUMN ${parseNewColumnSql(it)},\n"
+        }
+        tableCreationSql = tableCreationSql.removeSuffix(",\n") + "\n"
+
+        return tableCreationSql
+    }
+
+    private fun parseNewColumnSql(column: PetalColumn): String {
+        val columnSql = when (column.typeName) {
+            String::class.asTypeName() -> "${column.name} TEXT"
+            Int::class.asTypeName() -> "${column.name} INT"
+            Long::class.asTypeName() -> "${column.name} BIGINT"
+            UUID::class.asTypeName() -> "${column.name} UUID"
+            else -> printThenThrowError(
+                "Type ${column.typeName} was left out of new column sql generation block.")
         }
 
-        tableCreationSql = tableCreationSql.removeSuffix(",\n") + "\n"
-        return tableCreationSql
+        return columnSql
     }
 }
 
