@@ -2,6 +2,7 @@ package com.casadetasha.kexp.petals.processor.post
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import kotlin.test.Test
 
 class BasicPetalSchemaTest {
@@ -15,6 +16,7 @@ class BasicPetalSchemaTest {
     @Test
     fun `Creates trailing version migrations`() {
         assertThat(`TableMigrations$basic_petal`().migrateV2())
-            .isEqualTo("CREATE TABLE basic_petal ( newCount INT, newName TEXT )")
+            .isEqualTo(
+                "CREATE TABLE basic_petal ( secondName TEXT, count INT, secondCount INT, name TEXT )")
     }
 }

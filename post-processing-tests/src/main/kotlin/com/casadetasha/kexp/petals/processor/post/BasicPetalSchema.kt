@@ -12,6 +12,9 @@ interface BasicPetalSchemaV1 {
 
 @Petal(tableName = "basic_petal", version = 2)
 interface BasicPetalSchemaV2 {
-    val newName: String
-    val newCount: Int
+    val name: String
+    val count: Int
+
+    val secondName: String
+    val secondCount: Int
 }
