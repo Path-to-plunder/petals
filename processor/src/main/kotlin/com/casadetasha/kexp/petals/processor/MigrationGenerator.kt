@@ -62,26 +62,25 @@ class MigrationGenerator {
     private fun buildMigrateTableSpec(currentMigration: PetalMigration, previousMigration: PetalMigration): String {
         val addedColumns = currentMigration.columns.filter { !previousMigration.columns.contains(it) }
         val droppedColumns = previousMigration.columns.filter { !currentMigration.columns.contains(it) }
-        var tableCreationSql = "MIGRATE TABLE ${currentMigration.tableName} ( "
+        var tableCreationSql = "ALTER TABLE ${currentMigration.tableName}\n"
 
         addedColumns.forEach{
             tableCreationSql += when (it.typeName) {
-                String::class.asTypeName() -> "ADD COLUMN ${it.name} TEXT, "
-                Int::class.asTypeName() -> "ADD COLUMN ${it.name} INT, "
+                String::class.asTypeName() -> "  ADD COLUMN ${it.name} TEXT,\n"
+                Int::class.asTypeName() -> "  ADD COLUMN ${it.name} INT,\n"
                 else -> printThenThrowError("Only String and Int types are currently supported.")
             }
         }
 
         droppedColumns.forEach{
             tableCreationSql += when (it.typeName) {
-                String::class.asTypeName() -> "DROP COLUMN ${it.name}, "
-                Int::class.asTypeName() -> "DROP COLUMN ${it.name}, "
+                String::class.asTypeName() -> "  DROP COLUMN ${it.name},\n"
+                Int::class.asTypeName() -> "  DROP COLUMN ${it.name},\n"
                 else -> printThenThrowError("Only String and Int types are currently supported.")
             }
         }
 
-        tableCreationSql = tableCreationSql.removeSuffix(", ")
-        tableCreationSql += " )"
+        tableCreationSql = tableCreationSql.removeSuffix(",\n") + "\n"
         return tableCreationSql
     }
 }

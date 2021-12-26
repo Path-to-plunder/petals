@@ -16,7 +16,10 @@ class BasicPetalSchemaTest {
     @Test
     fun `Creates trailing version migrations`() {
         assertThat(`TableMigrations$basic_petal`().migrateV2())
-            .isEqualTo(
-                "MIGRATE TABLE basic_petal ( ADD COLUMN color TEXT, DROP COLUMN count )")
+            .isEqualTo("""
+              |ALTER TABLE basic_petal
+              |  ADD COLUMN color TEXT,
+              |  DROP COLUMN count
+              |""".trimMargin())
     }
 }
