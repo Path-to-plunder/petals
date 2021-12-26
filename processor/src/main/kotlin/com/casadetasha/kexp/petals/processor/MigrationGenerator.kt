@@ -24,17 +24,44 @@ class MigrationGenerator {
         )
 
         classBuilder = TypeSpec.classBuilder(className)
-
-        tableVersionMap.toSortedMap().forEach {
-            classBuilder.addTextSpec("migrateV${it.key}", buildClassSpec(it.value))
-        }
+        addMigrationSpecs(tableVersionMap)
 
         fileSpecBuilder.addType(classBuilder.build())
         fileSpecBuilder.build().writeTo(File(AnnotationParser.kaptKotlinGeneratedDir))
     }
 
-    private fun buildClassSpec(petalMigration: PetalMigration): String {
+    private fun addMigrationSpecs(tableVersionMap: MutableMap<Int, PetalMigration>) {
+        var previousMigration: PetalMigration? = null
+        tableVersionMap.toSortedMap().forEach {
+            val currentMigration = it.value
+
+            val sqlSpec = when (previousMigration) {
+                null -> buildCreateTableSpec(currentMigration)
+                else -> buildMigrateTableSpec(currentMigration, previousMigration!!)
+            }
+            classBuilder.addTextSpec("migrateV${it.key}", sqlSpec)
+            previousMigration = currentMigration
+        }
+    }
+
+    private fun buildCreateTableSpec(petalMigration: PetalMigration): String {
         var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} ( "
+
+        petalMigration.columns.forEach{
+            tableCreationSql += when (it.typeName) {
+                String::class.asTypeName() -> "${it.name} TEXT, "
+                Int::class.asTypeName() -> "${it.name} INT, "
+                else -> printThenThrowError("Only String and Int types are currently supported.")
+            }
+        }
+        tableCreationSql = tableCreationSql.removeSuffix(", ")
+        tableCreationSql += " )"
+        return tableCreationSql
+    }
+
+
+    private fun buildMigrateTableSpec(petalMigration: PetalMigration, previousMigration: PetalMigration): String {
+        var tableCreationSql = "MIGRATE TABLE ${petalMigration.tableName} ( "
 
         petalMigration.columns.forEach{
             tableCreationSql += when (it.typeName) {
