@@ -16,7 +16,7 @@ class MigrationGenerator {
 
     fun createMigrationForTable(tableVersionMap: MutableMap<Int, PetalMigration>) {
         val petalMigration: PetalMigration = tableVersionMap[1]
-            ?: printThenThrowError("All tables must start with version 1")
+            ?: printThenThrowError("All tables must contain a version 1")
         val className = "TableMigrations\$${petalMigration.tableName}"
 
         val fileSpecBuilder = FileSpec.builder(
@@ -58,10 +58,19 @@ class MigrationGenerator {
     }
 
     private fun buildMigrateTableSpec(currentMigration: PetalMigration, previousMigration: PetalMigration): String {
-        val addedColumns = currentMigration.columns.filter { !previousMigration.columns.contains(it) }
-        val droppedColumns = previousMigration.columns.filter { !currentMigration.columns.contains(it) }
-        var tableCreationSql = "ALTER TABLE ${currentMigration.tableName}\n"
+        val alteredColumns = currentMigration.columns.filter { it.isAlteration }
+        val addedColumns = currentMigration.columns.filter {
+            !it.isAlteration && !previousMigration.columns.contains(it)
+        }
+        val droppedColumns = previousMigration.columns.filter {
+            if (currentMigration.columns.contains(it)) return@filter false
+            return@filter !alteredColumns.map { column -> column.previousName }.contains(it.name)
+        }
 
+        var tableCreationSql = "ALTER TABLE ${currentMigration.tableName}\n"
+        alteredColumns.forEach{
+            tableCreationSql += "  RENAME COLUMN ${it.previousName} TO ${it.name},\n"
+        }
         droppedColumns.forEach{
             tableCreationSql += "  DROP COLUMN ${it.name},\n"
         }

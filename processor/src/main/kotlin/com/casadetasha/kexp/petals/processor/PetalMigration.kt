@@ -3,7 +3,10 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
+import com.casadetasha.kexp.annotationparser.kxt.getParameterValueAsString
+import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
@@ -37,7 +40,10 @@ data class PetalMigration(val tableName: String, val version: Int, val columns: 
     }
 }
 
-data class PetalColumn(val name: String, val typeName: TypeName) {
+data class PetalColumn(val name: String,
+                       val typeName: TypeName,
+                       val alterationSpec: AnnotationSpec?,
+                       val kotlinProperty: KotlinProperty) {
 
     companion object {
         private val SUPPORTED_TYPES = listOf<KClass<*>>(
@@ -50,7 +56,9 @@ data class PetalColumn(val name: String, val typeName: TypeName) {
         fun parseFromProperty(kotlinProperty: KotlinProperty): PetalColumn {
             return PetalColumn(
                 name = kotlinProperty.simpleName,
-                typeName = kotlinProperty.typeName
+                typeName = kotlinProperty.typeName,
+                alterationSpec = kotlinProperty.getAnnotationSpec(AlterColumn::class),
+                kotlinProperty = kotlinProperty
             ).apply {
                 checkTypeValidity(typeName)
             }
@@ -59,11 +67,16 @@ data class PetalColumn(val name: String, val typeName: TypeName) {
         private fun checkTypeValidity(typeName: TypeName) {
             if (!SUPPORTED_TYPES.contains(typeName)) {
                 printThenThrowError(
-                    "$typeName is not a valid column type. Only the following types are supported as columns:" +
+                    "$typeName is not a valid column type. Only the following types are supported:" +
                             " ${SUPPORTED_TYPES.joinToString()}")
             }
         }
+    }
 
+    val isAlteration: Boolean by lazy { alterationSpec != null }
+    val previousName: String by lazy {
+        if (!isAlteration) printThenThrowError("Only AlterColumn annotated properties can have previousName")
+        return@lazy alterationSpec!!.getParameterValueAsString(AlterColumn::class.asTypeName(), "previousName")!!
     }
 
     override fun equals(other: Any?): Boolean {

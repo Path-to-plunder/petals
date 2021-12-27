@@ -15,7 +15,7 @@ class BasicPetalSchemaTest {
     }
 
     @Test
-    fun `Creates alter table migration with all supported types`() {
+    fun `Creates alter table migration with dropping and adding all supported types`() {
         assertThat(`TableMigrations$basic_petal`().migrateV2())
             .isEqualTo("""
               |ALTER TABLE basic_petal
@@ -27,6 +27,18 @@ class BasicPetalSchemaTest {
               |  ADD COLUMN uuid UUID,
               |  ADD COLUMN count INT,
               |  ADD COLUMN color TEXT
+              |""".trimMargin())
+    }
+
+    @Test
+    fun `Creates alter table migration with renaming of all supported types`() {
+        assertThat(`TableMigrations$basic_petal`().migrateV3())
+            .isEqualTo("""
+              |ALTER TABLE basic_petal
+              |  RENAME COLUMN sporeCount TO renamed_sporeCount,
+              |  RENAME COLUMN uuid TO renamed_uuid,
+              |  RENAME COLUMN count TO renamed_count,
+              |  RENAME COLUMN color TO renamed_color
               |""".trimMargin())
     }
 }
