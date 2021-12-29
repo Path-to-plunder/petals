@@ -48,7 +48,7 @@ class MigrationGenerator {
     private fun buildCreateTableSpec(petalMigration: PetalMigration): String {
         var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} ( "
 
-        petalMigration.columns.forEach{
+        petalMigration.columnMigrations.forEach{
             tableCreationSql += "${parseNewColumnSql(it)}, "
         }
         tableCreationSql = tableCreationSql.removeSuffix(", ")
@@ -58,12 +58,12 @@ class MigrationGenerator {
     }
 
     private fun buildMigrateTableSpec(currentMigration: PetalMigration, previousMigration: PetalMigration): String {
-        val alteredColumns = currentMigration.columns.filter { it.isAlteration }
-        val addedColumns = currentMigration.columns.filter {
-            !it.isAlteration && !previousMigration.columns.contains(it)
+        val alteredColumns = currentMigration.columnMigrations.filter { it.isAlteration }
+        val addedColumns = currentMigration.columnMigrations.filter {
+            !it.isAlteration && !previousMigration.columnMigrations.contains(it)
         }
-        val droppedColumns = previousMigration.columns.filter {
-            if (currentMigration.columns.contains(it)) return@filter false
+        val droppedColumns = previousMigration.columnMigrations.filter {
+            if (currentMigration.columnMigrations.contains(it)) return@filter false
             return@filter !alteredColumns.map { column -> column.previousName }.contains(it.name)
         }
 
@@ -82,7 +82,7 @@ class MigrationGenerator {
         return tableCreationSql
     }
 
-    private fun parseNewColumnSql(column: PetalColumn): String {
+    private fun parseNewColumnSql(column: PetalMigrationColumn): String {
         val columnSql = when (column.typeName) {
             String::class.asTypeName() -> "${column.name} TEXT"
             Int::class.asTypeName() -> "${column.name} INT"

@@ -3,17 +3,16 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
-import com.casadetasha.kexp.annotationparser.kxt.getParameterValueAsString
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
-import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
-import kotlin.collections.HashSet
 import kotlin.reflect.KClass
 
-data class PetalMigration(val tableName: String, val version: Int, val columns: Set<PetalColumn>) {
+data class PetalMigration(val tableName: String,
+                          val version: Int,
+                          val columnMigrations: Set<PetalMigrationColumn>) {
 
     companion object {
         fun parseFromClass(kotlinClass: KotlinClass): PetalMigration {
@@ -25,14 +24,14 @@ data class PetalMigration(val tableName: String, val version: Int, val columns: 
             return PetalMigration(
                 tableName = petalAnnotation.tableName,
                 version = petalAnnotation.version,
-                columns = parsePetalColumns(kotlinClass.kotlinProperties)
+                columnMigrations = parsePetalColumns(kotlinClass.kotlinProperties)
             )
         }
 
-        private fun parsePetalColumns(kotlinProperties: List<KotlinProperty>): Set<PetalColumn> {
-            val columnSet = HashSet<PetalColumn>()
+        private fun parsePetalColumns(kotlinProperties: List<KotlinProperty>): Set<PetalMigrationColumn> {
+            val columnSet = HashSet<PetalMigrationColumn>()
             kotlinProperties.forEach {
-                columnSet.add(PetalColumn.parseFromProperty(it))
+                columnSet.add(PetalMigrationColumn.parseFromProperty(it))
             }
 
             return columnSet
@@ -40,10 +39,9 @@ data class PetalMigration(val tableName: String, val version: Int, val columns: 
     }
 }
 
-data class PetalColumn(val name: String,
-                       val typeName: TypeName,
-                       val alterColumnAnnotation: AlterColumn?,
-                       val kotlinProperty: KotlinProperty) {
+data class PetalMigrationColumn(val name: String,
+                                val typeName: TypeName,
+                                val kotlinProperty: KotlinProperty) {
 
     companion object {
         private val SUPPORTED_TYPES = listOf<KClass<*>>(
@@ -53,11 +51,10 @@ data class PetalColumn(val name: String,
             UUID::class
         ).map { it.asTypeName() }
 
-        fun parseFromProperty(kotlinProperty: KotlinProperty): PetalColumn {
-            return PetalColumn(
+        fun parseFromProperty(kotlinProperty: KotlinProperty): PetalMigrationColumn {
+            return PetalMigrationColumn(
                 name = kotlinProperty.simpleName,
                 typeName = kotlinProperty.typeName,
-                alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java),
                 kotlinProperty = kotlinProperty
             ).apply {
                 checkTypeValidity(typeName)
@@ -73,7 +70,12 @@ data class PetalColumn(val name: String,
         }
     }
 
+    private val alterColumnAnnotation: AlterColumn? by lazy {
+        kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
+    }
+
     val isAlteration: Boolean by lazy { alterColumnAnnotation != null }
+
     val previousName: String by lazy {
         if (!isAlteration) printThenThrowError("Only AlterColumn annotated properties can have previousName")
         return@lazy alterColumnAnnotation!!.previousName
@@ -81,7 +83,7 @@ data class PetalColumn(val name: String,
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is PetalColumn) return false
+        if (other !is PetalMigrationColumn) return false
 
         if (name != other.name) return false
         if (typeName != other.typeName) return false
