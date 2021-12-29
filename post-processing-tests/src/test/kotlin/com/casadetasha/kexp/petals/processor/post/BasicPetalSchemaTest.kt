@@ -10,8 +10,14 @@ class BasicPetalSchemaTest {
     @Test
     fun `Creates table creation migration with all supported types`() {
         assertThat(`TableMigrations$basic_petal`().migrateV1())
-            .isEqualTo(
-                "CREATE TABLE basic_petal ( checkingLong BIGINT, checkingString TEXT, checkingUUID UUID, checkingInt INT )")
+            .isEqualTo("""
+              |CREATE TABLE basic_petal (
+              |  checkingLong BIGINT NOT NULL,
+              |  checkingString TEXT NOT NULL,
+              |  checkingUUID UUID NOT NULL,
+              |  checkingInt INT NOT NULL
+              |)
+              """.trimMargin())
     }
 
     @Test

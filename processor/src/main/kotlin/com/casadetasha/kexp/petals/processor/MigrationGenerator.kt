@@ -46,29 +46,33 @@ class MigrationGenerator {
     }
 
     private fun buildCreateTableSpec(petalMigration: PetalMigration): String {
-        var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} ( "
+        var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} (" + "\n"
 
         petalMigration.columnMigrations.forEach{
-            tableCreationSql += "${parseNewColumnSql(it)}, "
+            tableCreationSql += "  ${parseNewColumnSql(it)}"
+            tableCreationSql += when (it.isNullable) {
+                true -> ",\n"
+                false -> " NOT NULL,\n"
+            }
         }
-        tableCreationSql = tableCreationSql.removeSuffix(", ")
-        tableCreationSql += " )"
+        tableCreationSql = tableCreationSql.removeSuffix(",\n") + "\n)"
 
         return tableCreationSql
     }
 
     private fun buildMigrateTableSpec(currentMigration: PetalMigration, previousMigration: PetalMigration): String {
         val alteredColumns = currentMigration.columnMigrations.filter { it.isAlteration }
+            .associateBy { it.previousName }
         val addedColumns = currentMigration.columnMigrations.filter {
             !it.isAlteration && !previousMigration.columnMigrations.contains(it)
         }
         val droppedColumns = previousMigration.columnMigrations.filter {
-            if (currentMigration.columnMigrations.contains(it)) return@filter false
-            return@filter !alteredColumns.map { column -> column.previousName }.contains(it.name)
+            if (alteredColumns.containsKey(it.name)) return@filter false
+            return@filter !currentMigration.columnMigrations.contains(it)
         }
 
         var tableCreationSql = "ALTER TABLE ${currentMigration.tableName}\n"
-        alteredColumns.forEach{
+        alteredColumns.values.forEach{
             tableCreationSql += "  RENAME COLUMN ${it.previousName} TO ${it.name},\n"
         }
         droppedColumns.forEach{
@@ -83,7 +87,7 @@ class MigrationGenerator {
     }
 
     private fun parseNewColumnSql(column: PetalMigrationColumn): String {
-        val columnSql = when (column.typeName) {
+        val columnSql = when (column.typeName.copy(nullable = false)) {
             String::class.asTypeName() -> "${column.name} TEXT"
             Int::class.asTypeName() -> "${column.name} INT"
             Long::class.asTypeName() -> "${column.name} BIGINT"

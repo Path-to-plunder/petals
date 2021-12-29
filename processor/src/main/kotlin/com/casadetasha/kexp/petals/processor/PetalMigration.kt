@@ -62,13 +62,15 @@ data class PetalMigrationColumn(val name: String,
         }
 
         private fun checkTypeValidity(typeName: TypeName) {
-            if (!SUPPORTED_TYPES.contains(typeName)) {
+            if (!SUPPORTED_TYPES.contains(typeName.copy(nullable = false))) {
                 printThenThrowError(
                     "$typeName is not a valid column type. Only the following types are supported:" +
                             " ${SUPPORTED_TYPES.joinToString()}")
             }
         }
     }
+
+    val isNullable: Boolean by lazy { kotlinProperty.isNullable }
 
     private val alterColumnAnnotation: AlterColumn? by lazy {
         kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
