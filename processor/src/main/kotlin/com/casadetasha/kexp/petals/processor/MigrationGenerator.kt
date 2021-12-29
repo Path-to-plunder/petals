@@ -48,7 +48,7 @@ class MigrationGenerator {
     private fun buildCreateTableSpec(petalMigration: PetalMigration): String {
         var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} (" + "\n"
 
-        petalMigration.columnMigrations.forEach{
+        petalMigration.columnMigrations.values.forEach{
             tableCreationSql += "  ${parseNewColumnSql(it)}"
             tableCreationSql += when (it.isNullable) {
                 true -> ",\n"
@@ -61,19 +61,19 @@ class MigrationGenerator {
     }
 
     private fun buildMigrateTableSpec(currentMigration: PetalMigration, previousMigration: PetalMigration): String {
-        val alteredColumns = currentMigration.columnMigrations.filter { it.isAlteration }
-            .associateBy { it.previousName }
-        val addedColumns = currentMigration.columnMigrations.filter {
-            !it.isAlteration && !previousMigration.columnMigrations.contains(it)
+        val alteredColumns = currentMigration.columnMigrations.values.filter { it.isAlteration }
+            .map { AlterColumMigration(previousMigration.columnMigrations[it.previousName]!!, it) }
+            .associateBy { it.previousMigrationColumn.name }
+        val addedColumns = currentMigration.columnMigrations.values.filter {
+            !it.isAlteration && !previousMigration.columnMigrations.containsKey(it.name)
         }
-        val droppedColumns = previousMigration.columnMigrations.filter {
-            if (alteredColumns.containsKey(it.name)) return@filter false
-            return@filter !currentMigration.columnMigrations.contains(it)
+        val droppedColumns = previousMigration.columnMigrations.values.filter {
+            !alteredColumns.containsKey(it.name) && !currentMigration.columnMigrations.containsKey(it.name)
         }
 
         var tableCreationSql = "ALTER TABLE ${currentMigration.tableName}\n"
         alteredColumns.values.forEach{
-            tableCreationSql += "  RENAME COLUMN ${it.previousName} TO ${it.name},\n"
+            tableCreationSql += "  RENAME COLUMN ${it.previousMigrationColumn.name} TO ${it.newMigrationColumn.name},\n"
         }
         droppedColumns.forEach{
             tableCreationSql += "  DROP COLUMN ${it.name},\n"

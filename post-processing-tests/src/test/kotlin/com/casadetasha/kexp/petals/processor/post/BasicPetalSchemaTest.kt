@@ -12,10 +12,10 @@ class BasicPetalSchemaTest {
         assertThat(`TableMigrations$basic_petal`().migrateV1())
             .isEqualTo("""
               |CREATE TABLE basic_petal (
-              |  checkingLong BIGINT NOT NULL,
               |  checkingString TEXT NOT NULL,
+              |  checkingInt INT NOT NULL,
               |  checkingUUID UUID NOT NULL,
-              |  checkingInt INT NOT NULL
+              |  checkingLong BIGINT NOT NULL
               |)
               """.trimMargin())
     }
@@ -25,14 +25,14 @@ class BasicPetalSchemaTest {
         assertThat(`TableMigrations$basic_petal`().migrateV2())
             .isEqualTo("""
               |ALTER TABLE basic_petal
-              |  DROP COLUMN checkingLong,
               |  DROP COLUMN checkingString,
-              |  DROP COLUMN checkingUUID,
               |  DROP COLUMN checkingInt,
-              |  ADD COLUMN sporeCount BIGINT,
-              |  ADD COLUMN uuid UUID,
+              |  DROP COLUMN checkingUUID,
+              |  DROP COLUMN checkingLong,
+              |  ADD COLUMN color TEXT,
               |  ADD COLUMN count INT,
-              |  ADD COLUMN color TEXT
+              |  ADD COLUMN uuid UUID,
+              |  ADD COLUMN sporeCount BIGINT
               |""".trimMargin())
     }
 
@@ -41,9 +41,9 @@ class BasicPetalSchemaTest {
         assertThat(`TableMigrations$basic_petal`().migrateV3())
             .isEqualTo("""
               |ALTER TABLE basic_petal
+              |  RENAME COLUMN count TO renamed_count,
               |  RENAME COLUMN sporeCount TO renamed_sporeCount,
               |  RENAME COLUMN uuid TO renamed_uuid,
-              |  RENAME COLUMN count TO renamed_count,
               |  RENAME COLUMN color TO renamed_color
               |""".trimMargin())
     }

@@ -8,11 +8,12 @@ import com.casadetasha.kexp.petals.annotations.Petal
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 
 data class PetalMigration(val tableName: String,
                           val version: Int,
-                          val columnMigrations: Set<PetalMigrationColumn>) {
+                          val columnMigrations: HashMap<String, PetalMigrationColumn>) {
 
     companion object {
         fun parseFromClass(kotlinClass: KotlinClass): PetalMigration {
@@ -28,13 +29,13 @@ data class PetalMigration(val tableName: String,
             )
         }
 
-        private fun parsePetalColumns(kotlinProperties: List<KotlinProperty>): Set<PetalMigrationColumn> {
-            val columnSet = HashSet<PetalMigrationColumn>()
+        private fun parsePetalColumns(kotlinProperties: List<KotlinProperty>): HashMap<String, PetalMigrationColumn> {
+            val columnMap = HashMap<String, PetalMigrationColumn>()
             kotlinProperties.forEach {
-                columnSet.add(PetalMigrationColumn.parseFromProperty(it))
+                columnMap[it.simpleName] = PetalMigrationColumn.parseFromProperty(it)
             }
 
-            return columnSet
+            return columnMap
         }
     }
 }
