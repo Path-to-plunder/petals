@@ -63,7 +63,7 @@ class MigrationGenerator {
     private fun buildMigrateTableSpec(currentMigration: PetalMigration, previousMigration: PetalMigration): String {
         val alteredColumns = currentMigration.columnMigrations.values.filter { it.isAlteration }
             .map { AlterColumMigration(previousMigration.columnMigrations[it.previousName]!!, it) }
-            .associateBy { it.previousMigrationColumn.name }
+            .associateBy { it.previousColumnState.name }
         val addedColumns = currentMigration.columnMigrations.values.filter {
             !it.isAlteration && !previousMigration.columnMigrations.containsKey(it.name)
         }
@@ -73,7 +73,14 @@ class MigrationGenerator {
 
         var tableCreationSql = "ALTER TABLE ${currentMigration.tableName}\n"
         alteredColumns.values.forEach{
-            tableCreationSql += "  RENAME COLUMN ${it.previousMigrationColumn.name} TO ${it.newMigrationColumn.name},\n"
+            if (it.previousColumnState.name != it.updatedColumnState.name) {
+                tableCreationSql += "  RENAME COLUMN ${it.previousColumnState.name} TO ${it.updatedColumnState.name},\n"
+            }
+            if (it.previousColumnState.isNullable && !it.updatedColumnState.isNullable) {
+                tableCreationSql += "  ALTER COLUMN ${it.updatedColumnState.name} SET NOT NULL,\n"
+            } else if (!it.previousColumnState.isNullable && it.updatedColumnState.isNullable) {
+                tableCreationSql += "  ALTER COLUMN ${it.updatedColumnState.name} DROP NOT NULL,\n"
+            }
         }
         droppedColumns.forEach{
             tableCreationSql += "  DROP COLUMN ${it.name},\n"

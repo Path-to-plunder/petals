@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor
 
-class AlterColumMigration(val previousMigrationColumn: PetalMigrationColumn,
-                          val newMigrationColumn: PetalMigrationColumn) {
+class AlterColumMigration(val previousColumnState: PetalMigrationColumn,
+                          val updatedColumnState: PetalMigrationColumn) {
 
 }
