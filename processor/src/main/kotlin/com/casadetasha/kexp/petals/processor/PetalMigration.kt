@@ -42,7 +42,7 @@ data class PetalMigration(val tableName: String, val version: Int, val columns: 
 
 data class PetalColumn(val name: String,
                        val typeName: TypeName,
-                       val alterationSpec: AnnotationSpec?,
+                       val alterColumnAnnotation: AlterColumn?,
                        val kotlinProperty: KotlinProperty) {
 
     companion object {
@@ -57,7 +57,7 @@ data class PetalColumn(val name: String,
             return PetalColumn(
                 name = kotlinProperty.simpleName,
                 typeName = kotlinProperty.typeName,
-                alterationSpec = kotlinProperty.getAnnotationSpec(AlterColumn::class),
+                alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java),
                 kotlinProperty = kotlinProperty
             ).apply {
                 checkTypeValidity(typeName)
@@ -73,10 +73,10 @@ data class PetalColumn(val name: String,
         }
     }
 
-    val isAlteration: Boolean by lazy { alterationSpec != null }
+    val isAlteration: Boolean by lazy { alterColumnAnnotation != null }
     val previousName: String by lazy {
         if (!isAlteration) printThenThrowError("Only AlterColumn annotated properties can have previousName")
-        return@lazy alterationSpec!!.getParameterValueAsString(AlterColumn::class.asTypeName(), "previousName")!!
+        return@lazy alterColumnAnnotation!!.previousName
     }
 
     override fun equals(other: Any?): Boolean {

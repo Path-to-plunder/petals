@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val compileKotlin: KotlinCompile by tasks
 
 val kotlinpoetVersion: String by project
+val kotlinVersion: String by project
 val googleAutoServiceVersion: String by project
 
 plugins {
@@ -27,6 +28,10 @@ dependencies {
     implementation("com.squareup:kotlinpoet:$kotlinpoetVersion")
     implementation("com.squareup:kotlinpoet-metadata:$kotlinpoetVersion")
     implementation("com.squareup:kotlinpoet-metadata-specs:$kotlinpoetVersion")
+
+    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.4")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
 }
 
 tasks.withType<KotlinCompile> {
