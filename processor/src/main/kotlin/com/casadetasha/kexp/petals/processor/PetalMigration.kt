@@ -71,6 +71,18 @@ data class PetalMigrationColumn(val name: String,
         }
     }
 
+    val dataType: String by lazy {
+        when (typeName.copy(nullable = false)) {
+            String::class.asTypeName() -> "TEXT"
+            Int::class.asTypeName() -> "INT"
+            Long::class.asTypeName() -> "BIGINT"
+            UUID::class.asTypeName() -> "UUID"
+            else -> printThenThrowError(
+                "INTERNAL LIBRARY ERROR: Type $typeName was left out of new column sql generation block."
+            )
+        }
+    }
+
     val isNullable: Boolean by lazy { kotlinProperty.isNullable }
 
     private val alterColumnAnnotation: AlterColumn? by lazy {
@@ -80,7 +92,8 @@ data class PetalMigrationColumn(val name: String,
     val isAlteration: Boolean by lazy { alterColumnAnnotation != null }
 
     val previousName: String by lazy {
-        if (!isAlteration) printThenThrowError("Only AlterColumn annotated properties can have previousName")
+        if (!isAlteration) printThenThrowError(
+            "INTERNAL LIBRARY ERROR: Only AlterColumn annotated properties can have previousName")
         val annotationPreviousName = alterColumnAnnotation!!.previousName
         return@lazy when (annotationPreviousName.isBlank()) {
             true -> name
@@ -93,14 +106,17 @@ data class PetalMigrationColumn(val name: String,
         if (other !is PetalMigrationColumn) return false
 
         if (name != other.name) return false
-        if (typeName != other.typeName) return false
+        if (dataType != other.dataType) return false
+        if (isNullable != other.isNullable) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = name.hashCode()
-        result = 31 * result + typeName.hashCode()
+        result = 31 * result + dataType.hashCode()
+        result = 31 * result + isNullable.hashCode()
         return result
     }
+
 }

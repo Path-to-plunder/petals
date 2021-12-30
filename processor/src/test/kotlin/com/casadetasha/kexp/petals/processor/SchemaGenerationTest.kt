@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.processor
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.OK
+import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.*
 import com.tschuchort.compiletesting.SourceFile
 import kotlin.test.Test
 
@@ -52,6 +52,26 @@ class SchemaGenerationTest {
             }
         """.trimIndent()
         )
+
+        private val unAnnotatedAlteredColumnSource = SourceFile.kotlin(
+            "PetalSchema.kt", """
+            package com.casadetasha
+
+            import com.casadetasha.kexp.petals.annotations.AlterColumn
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import java.util.*
+
+            @Petal(tableName = "basic_petal", version = 1)
+            interface BasicPetalSchemaV1 {
+                val uuid: UUID
+            }
+
+            @Petal(tableName = "basic_petal", version = 2)
+            interface BasicPetalSchemaV2 {
+                val uuid: UUID?
+            }
+        """.trimIndent()
+        )
     }
 
     private lateinit var compilationResult: KotlinCompilation.Result
@@ -66,6 +86,12 @@ class SchemaGenerationTest {
     fun `compiling sourceV1 to sourceV2 migration finishes with exit code OK`() {
         compilationResult = compileSources(createAndRenameTableSource)
         assertThat(compilationResult.exitCode).isEqualTo(OK)
+    }
+
+    @Test
+    fun `compiling migration with updated column info and no AlterColumn annotation fails`() {
+        compilationResult = compileSources(unAnnotatedAlteredColumnSource)
+        assertThat(compilationResult.exitCode).isEqualTo(INTERNAL_ERROR)
     }
 
     private fun compileSources(vararg sourceFiles: SourceFile): KotlinCompilation.Result {

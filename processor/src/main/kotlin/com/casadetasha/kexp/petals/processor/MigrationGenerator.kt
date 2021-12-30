@@ -38,7 +38,7 @@ class MigrationGenerator {
 
             val sqlSpec = when (previousMigration) {
                 null -> buildCreateTableSql(currentMigration)
-                else -> buildMigrateTableSql(currentMigration, previousMigration!!)
+                else -> buildMigrateTableSql(previousMigration!!, currentMigration)
             }
             classBuilder.addTextSpec("migrateV${it.key}", sqlSpec)
             previousMigration = currentMigration
@@ -56,7 +56,8 @@ class MigrationGenerator {
         return tableCreationSql
     }
 
-    private fun buildMigrateTableSql(currentMigration: PetalMigration, previousMigration: PetalMigration): String {
+    private fun buildMigrateTableSql(previousMigration: PetalMigration, currentMigration: PetalMigration): String {
+        checkColumnConsistency(previousMigration.columnMigrations, currentMigration)
         val alteredColumns: Map<String, AlterColumMigration> = getAlteredColumns(previousMigration, currentMigration)
         val addedColumns: List<PetalMigrationColumn> = getAddedColumns(previousMigration, currentMigration)
         val droppedColumns: List<PetalMigrationColumn> =
@@ -71,6 +72,20 @@ class MigrationGenerator {
         tableMigrationSql = tableMigrationSql.removeSuffix(",\n") + "\n"
 
         return tableMigrationSql
+    }
+
+    private fun checkColumnConsistency(previousMigrationColumns: Map<String, PetalMigrationColumn>,
+                                       currentMigration: PetalMigration) {
+        currentMigration.columnMigrations.values.forEach {
+            val previousColumn = previousMigrationColumns[it.name]
+            if(previousColumn != null && !it.isAlteration && previousColumn != it) {
+                printThenThrowError(
+                    "Updated schema for ${it.name} in table ${currentMigration.tableName} version" +
+                            " ${currentMigration.version} does not match column from previous schema. If this schema" +
+                            " change is intentional, add the @AlterColumn annotation to the column.")
+            }
+        }
+
     }
 
     private fun getDroppedColumns(previousMigration: PetalMigration,
@@ -132,15 +147,8 @@ private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumM
 }
 
 private fun parseNewColumnSql(column: PetalMigrationColumn): String {
-    var sql = when (column.typeName.copy(nullable = false)) {
-        String::class.asTypeName() -> "${column.name} TEXT"
-        Int::class.asTypeName() -> "${column.name} INT"
-        Long::class.asTypeName() -> "${column.name} BIGINT"
-        UUID::class.asTypeName() -> "${column.name} UUID"
-        else -> printThenThrowError(
-            "Type ${column.typeName} was left out of new column sql generation block.")
-    }
 
+    var sql = "${column.name} ${column.dataType}"
     if (!column.isNullable) {
         sql += " NOT NULL"
     }
