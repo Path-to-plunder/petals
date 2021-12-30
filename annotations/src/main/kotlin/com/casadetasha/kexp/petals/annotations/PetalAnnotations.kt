@@ -6,4 +6,4 @@ annotation class Petal(val tableName: String, val version: Int)
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-annotation class AlterColumn(val previousName: String)
+annotation class AlterColumn(val previousName: String = "")

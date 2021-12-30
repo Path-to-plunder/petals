@@ -81,7 +81,11 @@ data class PetalMigrationColumn(val name: String,
 
     val previousName: String by lazy {
         if (!isAlteration) printThenThrowError("Only AlterColumn annotated properties can have previousName")
-        return@lazy alterColumnAnnotation!!.previousName
+        val annotationPreviousName = alterColumnAnnotation!!.previousName
+        return@lazy when (annotationPreviousName.isBlank()) {
+            true -> name
+            false -> alterColumnAnnotation!!.previousName
+        }
     }
 
     override fun equals(other: Any?): Boolean {
