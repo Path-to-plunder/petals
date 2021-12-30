@@ -29,10 +29,10 @@ class BasicPetalSchemaTest {
               |  DROP COLUMN checkingInt,
               |  DROP COLUMN checkingUUID,
               |  DROP COLUMN checkingLong,
-              |  ADD COLUMN color TEXT,
-              |  ADD COLUMN count INT,
-              |  ADD COLUMN uuid UUID,
-              |  ADD COLUMN sporeCount BIGINT
+              |  ADD COLUMN color TEXT NOT NULL,
+              |  ADD COLUMN count INT NOT NULL,
+              |  ADD COLUMN uuid UUID NOT NULL,
+              |  ADD COLUMN sporeCount BIGINT NOT NULL
               |""".trimMargin())
     }
 

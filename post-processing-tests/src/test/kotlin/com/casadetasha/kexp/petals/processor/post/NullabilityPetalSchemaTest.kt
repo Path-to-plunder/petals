@@ -28,6 +28,15 @@ class NullabilityPetalSchemaTest {
     }
 
     @Test
+    fun `Added nullable columns are added as nullable`() {
+        assertThat(`TableMigrations$starting_nullable_petal`().migrateV3())
+            .isEqualTo("""
+              |ALTER TABLE starting_nullable_petal
+              |  ADD COLUMN secondColor TEXT
+              |""".trimMargin())
+    }
+
+    @Test
     fun `Creates column as NOT NULL if schema property is not nullable`() {
         assertThat(`TableMigrations$starting_non_nullable_petal`().migrateV1())
             .isEqualTo("""
@@ -43,6 +52,15 @@ class NullabilityPetalSchemaTest {
             .isEqualTo("""
               |ALTER TABLE starting_non_nullable_petal
               |  ALTER COLUMN color DROP NOT NULL
+              |""".trimMargin())
+    }
+
+    @Test
+    fun `Added non nullable columns are added as non nullable`() {
+        assertThat(`TableMigrations$starting_non_nullable_petal`().migrateV3())
+            .isEqualTo("""
+              |ALTER TABLE starting_non_nullable_petal
+              |  ADD COLUMN secondColor TEXT NOT NULL
               |""".trimMargin())
     }
 }
