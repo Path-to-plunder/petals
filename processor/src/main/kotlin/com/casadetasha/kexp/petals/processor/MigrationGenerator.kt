@@ -50,14 +50,14 @@ class MigrationGenerator {
     }
 
     private fun buildCreateTableSql(petalMigration: PetalMigration): String {
-        var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} (" + "\n"
+        var tableCreationSql = "CREATE TABLE IF NOT EXISTS ${petalMigration.tableName} (" + "\n"
 
         tableCreationSql += when (petalMigration.primaryKeyType) {
             NONE -> ""
-            INT_AUTO_INCREMENT -> "  column id INT AUTO_INCREMENT NOT NULL,\n"
-            INT -> "  column id INT NOT NULL,\n"
-            TEXT -> "  column id TEXT NOT NULL,\n"
-            UUID -> "  column id uuid NOT NULL,\n"
+            INT_AUTO_INCREMENT -> "  id INT AUTO_INCREMENT NOT NULL,\n"
+            INT -> "  id INT NOT NULL,\n"
+            TEXT -> "  id TEXT NOT NULL,\n"
+            UUID -> "  id uuid NOT NULL,\n"
         }
 
         petalMigration.columnMigrations.values.forEach{

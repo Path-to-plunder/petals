@@ -11,7 +11,7 @@ class BasicPetalSchemaTest {
     fun `Creates table creation migration with all supported types`() {
         assertThat(`TableMigrations$basic_petal`().migrateV1())
             .isEqualTo("""
-              |CREATE TABLE basic_petal (
+              |CREATE TABLE IF NOT EXISTS basic_petal (
               |  checkingString TEXT NOT NULL,
               |  checkingInt INT NOT NULL,
               |  checkingUUID UUID NOT NULL,

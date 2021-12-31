@@ -12,7 +12,7 @@ class NullabilityPetalSchemaTest {
     fun `Creates column as nullable if schema property is nullable`() {
         assertThat(`TableMigrations$starting_nullable_petal`().migrateV1())
             .isEqualTo("""
-              |CREATE TABLE starting_nullable_petal (
+              |CREATE TABLE IF NOT EXISTS starting_nullable_petal (
               |  color TEXT
               |)
               """.trimMargin())
@@ -40,7 +40,7 @@ class NullabilityPetalSchemaTest {
     fun `Creates column as NOT NULL if schema property is not nullable`() {
         assertThat(`TableMigrations$starting_non_nullable_petal`().migrateV1())
             .isEqualTo("""
-              |CREATE TABLE starting_non_nullable_petal (
+              |CREATE TABLE IF NOT EXISTS starting_non_nullable_petal (
               |  color TEXT NOT NULL
               |)
               """.trimMargin())
