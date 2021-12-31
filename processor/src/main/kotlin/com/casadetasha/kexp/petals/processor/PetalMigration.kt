@@ -5,6 +5,7 @@ import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
@@ -13,18 +14,20 @@ import kotlin.reflect.KClass
 
 data class PetalMigration(val tableName: String,
                           val version: Int,
+                          val primaryKeyType: PetalPrimaryKey,
                           val columnMigrations: HashMap<String, PetalMigrationColumn>) {
 
     companion object {
         fun parseFromClass(kotlinClass: KotlinClass): PetalMigration {
             val petalAnnotation = kotlinClass.getAnnotation(Petal::class)
                 ?: printThenThrowError(
-                    "Cannot parse petal migration from class ${kotlinClass.className}:" +
+                    "INTERNAL LIBRARY ERROR: Cannot parse petal migration from class ${kotlinClass.className}:" +
                             " petal class must contain petal annotation ")
 
             return PetalMigration(
                 tableName = petalAnnotation.tableName,
                 version = petalAnnotation.version,
+                primaryKeyType = petalAnnotation.primaryKeyType,
                 columnMigrations = parsePetalColumns(kotlinClass.kotlinProperties)
             )
         }
@@ -40,9 +43,9 @@ data class PetalMigration(val tableName: String,
     }
 }
 
-data class PetalMigrationColumn(val name: String,
-                                val typeName: TypeName,
-                                val kotlinProperty: KotlinProperty) {
+class PetalMigrationColumn(val name: String,
+                           val typeName: TypeName,
+                           kotlinProperty: KotlinProperty) {
 
     companion object {
         private val SUPPORTED_TYPES = listOf<KClass<*>>(

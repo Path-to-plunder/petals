@@ -2,9 +2,13 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.NONE
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT_AUTO_INCREMENT
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.TEXT
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.UUID
 import com.squareup.kotlinpoet.*
 import java.io.File
-import java.util.*
 
 class MigrationGenerator {
 
@@ -48,10 +52,24 @@ class MigrationGenerator {
     private fun buildCreateTableSql(petalMigration: PetalMigration): String {
         var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} (" + "\n"
 
+        tableCreationSql += when (petalMigration.primaryKeyType) {
+            NONE -> ""
+            INT_AUTO_INCREMENT -> "  column id INT AUTO_INCREMENT NOT NULL,\n"
+            INT -> "  column id INT NOT NULL,\n"
+            TEXT -> "  column id TEXT NOT NULL,\n"
+            UUID -> "  column id uuid NOT NULL,\n"
+        }
+
         petalMigration.columnMigrations.values.forEach{
             tableCreationSql += "  ${parseNewColumnSql(it)},\n"
         }
-        tableCreationSql = tableCreationSql.removeSuffix(",\n") + "\n)"
+        tableCreationSql = tableCreationSql.removeSuffix(",\n") + "\n"
+
+        if (petalMigration.primaryKeyType != NONE) {
+            tableCreationSql += "  PRIMARY KEY (id)\n"
+        }
+
+        tableCreationSql += ")"
 
         return tableCreationSql
     }
