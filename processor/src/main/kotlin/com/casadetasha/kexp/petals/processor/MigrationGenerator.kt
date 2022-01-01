@@ -3,9 +3,8 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.NONE
-import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT_AUTO_INCREMENT
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT
-import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.TEXT
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.LONG
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.UUID
 import com.squareup.kotlinpoet.*
 import java.io.File
@@ -54,9 +53,8 @@ class MigrationGenerator {
 
         tableCreationSql += when (petalMigration.primaryKeyType) {
             NONE -> ""
-            INT_AUTO_INCREMENT -> "  id INT AUTO_INCREMENT NOT NULL,\n"
-            INT -> "  id INT NOT NULL,\n"
-            TEXT -> "  id TEXT NOT NULL,\n"
+            INT -> "  id SERIAL AUTO_INCREMENT NOT NULL,\n"
+            LONG -> "  id BIGSERIAL AUTO_INCREMENT NOT NULL,\n"
             UUID -> "  id uuid NOT NULL,\n"
         }
 

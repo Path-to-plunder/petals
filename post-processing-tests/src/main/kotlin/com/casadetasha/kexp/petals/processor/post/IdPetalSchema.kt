@@ -8,18 +8,13 @@ interface NoIdPetalSchema {
     val column: String
 }
 
-@Petal(tableName = "int_autoincrement_id_petal", primaryKeyType = PetalPrimaryKey.INT_AUTO_INCREMENT)
-interface IntAutoincrementIdPetalSchema {
-    val column: String
-}
-
 @Petal(tableName = "int_id_petal", primaryKeyType = PetalPrimaryKey.INT)
 interface IntIdPetalSchema {
     val column: String
 }
 
-@Petal(tableName = "text_id_petal", primaryKeyType = PetalPrimaryKey.TEXT)
-interface TextIdPetalSchema {
+@Petal(tableName = "long_id_petal", primaryKeyType = PetalPrimaryKey.LONG)
+interface LongIdPetalSchema {
     val column: String
 }
 

@@ -97,10 +97,10 @@ class PetalMigrationColumn(val name: String,
     val previousName: String by lazy {
         if (!isAlteration) printThenThrowError(
             "INTERNAL LIBRARY ERROR: Only AlterColumn annotated properties can have previousName")
-        val annotationPreviousName = alterColumnAnnotation!!.previousName
-        return@lazy when (annotationPreviousName.isBlank()) {
+        val renameFromColumn = alterColumnAnnotation!!.renameFrom
+        return@lazy when (renameFromColumn.isBlank()) {
             true -> name
-            false -> alterColumnAnnotation!!.previousName
+            false -> alterColumnAnnotation!!.renameFrom
         }
     }
 

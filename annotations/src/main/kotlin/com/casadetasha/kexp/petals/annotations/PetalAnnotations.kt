@@ -6,14 +6,13 @@ annotation class Petal(val tableName: String,
                        val version: Int = 1,
                        val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.NONE)
 
-enum class PetalPrimaryKey {
-    NONE,
-    INT_AUTO_INCREMENT,
-    INT,
-    TEXT,
-    UUID
-}
-
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-annotation class AlterColumn(val previousName: String = "")
+annotation class AlterColumn(val renameFrom: String = "")
+
+enum class PetalPrimaryKey {
+    NONE,
+    INT,
+    LONG,
+    UUID
+}

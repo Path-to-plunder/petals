@@ -24,8 +24,8 @@ interface BasicPetalSchemaV2 {
 
 @Petal(tableName = "basic_petal", version = 3)
 abstract class BasicPetalSchemaV3 {
-    @AlterColumn(previousName = "uuid") abstract val renamed_uuid: UUID
-    @AlterColumn(previousName = "color") abstract val renamed_color: String
-    @AlterColumn(previousName = "count") abstract val renamed_count: Int
-    @AlterColumn(previousName = "sporeCount") abstract val renamed_sporeCount: Long
+    @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
+    @AlterColumn(renameFrom = "color") abstract val renamed_color: String
+    @AlterColumn(renameFrom = "count") abstract val renamed_count: Int
+    @AlterColumn(renameFrom = "sporeCount") abstract val renamed_sporeCount: Long
 }
