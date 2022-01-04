@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.casadetasha.kexp.annotationparser.AnnotationParser.getClassesAnnotatedWith
+import com.casadetasha.kexp.kexportable.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.google.auto.service.AutoService
@@ -42,7 +43,7 @@ class PetalProcessor : AbstractProcessor() {
             val tableName = petalAnnotation.tableName
             val tableVersion = petalAnnotation.version
             if (tableMap[tableName] == null) tableMap[tableName] = PetalMigration(tableName)
-            tableMap[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigration.parseFromClass(it)
+            tableMap[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser.parseFromClass(it)
         }
 
         tableMap.values.forEach {

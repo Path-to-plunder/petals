@@ -8,6 +8,7 @@ import com.tschuchort.compiletesting.SourceFile
 import kotlin.test.Test
 
 class SchemaGenerationTest {
+
     companion object {
         private val createTableSource = SourceFile.kotlin(
             "PetalSchema.kt", """

@@ -2,6 +2,9 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
+import com.casadetasha.kexp.kexportable.annotations.PetalMigration
+import com.casadetasha.kexp.kexportable.annotations.PetalColumn
+import com.casadetasha.kexp.kexportable.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.NONE
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.LONG
@@ -84,9 +87,9 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
         val currentMigration = currentMigrationInfo.second
         checkColumnConsistency(previousMigration.columnMigrations, currentMigrationInfo)
 
-        val alteredColumns: Map<String, AlterColumMigration> = getAlteredColumns(previousMigration, currentMigration)
-        val addedColumns: List<PetalMigrationColumn> = getAddedColumns(previousMigration, currentMigration)
-        val droppedColumns: List<PetalMigrationColumn> =
+        val alteredColumns: Map<String, AlterColumnMigration> = getAlteredColumns(previousMigration, currentMigration)
+        val addedColumns: List<PetalColumn> = getAddedColumns(previousMigration, currentMigration)
+        val droppedColumns: List<PetalColumn> =
             getDroppedColumns(previousMigration, currentMigration, alteredColumns)
 
         var tableMigrationSql = "ALTER TABLE ${petalMigration.tableName}\n"
@@ -101,7 +104,7 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
     }
 
     private fun checkColumnConsistency(
-        previousMigrationColumns: Map<String, PetalMigrationColumn>,
+        previousMigrationColumns: Map<String, PetalColumn>,
         currentMigrationInfo: Pair<Int, PetalSchemaMigration>
     ) {
         val currentMigrationVersion = currentMigrationInfo.first
@@ -121,28 +124,28 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
 
     private fun getDroppedColumns(previousMigration: PetalSchemaMigration,
                                   currentMigration: PetalSchemaMigration,
-                                  alteredColumns: Map<String, AlterColumMigration>): List<PetalMigrationColumn> {
+                                  alteredColumns: Map<String, AlterColumnMigration>): List<PetalColumn> {
         return previousMigration.columnMigrations.values.filter {
             !alteredColumns.containsKey(it.name) && !currentMigration.columnMigrations.containsKey(it.name)
         }
     }
 
     private fun getAddedColumns(previousMigration: PetalSchemaMigration, currentMigration: PetalSchemaMigration):
-            List<PetalMigrationColumn> {
+            List<PetalColumn> {
         return currentMigration.columnMigrations.values.filter {
             !it.isAlteration!! && !previousMigration.columnMigrations.containsKey(it.name)
         }
     }
 
-    private fun getAlteredColumns(previousMigration: PetalSchemaMigration, currentMigration: PetalSchemaMigration): Map<String, AlterColumMigration> {
+    private fun getAlteredColumns(previousMigration: PetalSchemaMigration, currentMigration: PetalSchemaMigration): Map<String, AlterColumnMigration> {
         return currentMigration.columnMigrations.values.filter { it.isAlteration!! }
-            .map { AlterColumMigration(previousMigration.columnMigrations[it.previousName]!!, it) }
+            .map { AlterColumnMigration(previousMigration.columnMigrations[it.previousName]!!, it) }
             .associateBy { it.previousColumnState.name }
     }
 
 }
 
-private fun String.amendAddedColumnSql(addedColumns: List<PetalMigrationColumn>): String {
+private fun String.amendAddedColumnSql(addedColumns: List<PetalColumn>): String {
     var sql = ""
     addedColumns.forEach{ addedColumn ->
         sql += "  ADD COLUMN ${parseNewColumnSql(addedColumn)},\n"
@@ -151,7 +154,7 @@ private fun String.amendAddedColumnSql(addedColumns: List<PetalMigrationColumn>)
     return this + sql
 }
 
-private fun String.amendDroppedColumnSql(droppedColumns: List<PetalMigrationColumn>): String {
+private fun String.amendDroppedColumnSql(droppedColumns: List<PetalColumn>): String {
     var sql = ""
     droppedColumns.forEach{ droppedColumn ->
         sql += "  DROP COLUMN ${droppedColumn.name},\n"
@@ -160,7 +163,7 @@ private fun String.amendDroppedColumnSql(droppedColumns: List<PetalMigrationColu
     return this + sql
 }
 
-private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumMigration>): String {
+private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumnMigration>): String {
     var sql = ""
     alteredColumns.values.forEach{ alteredColumn ->
         if (alteredColumn.previousColumnState.name != alteredColumn.updatedColumnState.name) {
@@ -177,7 +180,7 @@ private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumM
     return this + sql
 }
 
-private fun parseNewColumnSql(column: PetalMigrationColumn): String {
+private fun parseNewColumnSql(column: PetalColumn): String {
 
     var sql = "${column.name} ${column.dataType}"
     if (!column.isNullable) {
