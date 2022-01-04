@@ -5,6 +5,7 @@ plugins {
     application
     kotlin("jvm")
     kotlin("kapt")
+    kotlin("plugin.serialization")
 }
 
 repositories {
@@ -15,6 +16,9 @@ dependencies {
     implementation(project(":kexp:petals:annotations"))
     kapt(project(":kexp:petals:processor"))
 
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+
+    testImplementation(project(":kexp:petals:processor"))
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")
     testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")

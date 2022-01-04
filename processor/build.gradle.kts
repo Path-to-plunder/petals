@@ -10,6 +10,7 @@ plugins {
     `java-library`
     kotlin("jvm")
     kotlin("kapt")
+    kotlin("plugin.serialization")
 }
 
 repositories {
@@ -28,6 +29,8 @@ dependencies {
     implementation("com.squareup:kotlinpoet:$kotlinpoetVersion")
     implementation("com.squareup:kotlinpoet-metadata:$kotlinpoetVersion")
     implementation("com.squareup:kotlinpoet-metadata-specs:$kotlinpoetVersion")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.4")
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")

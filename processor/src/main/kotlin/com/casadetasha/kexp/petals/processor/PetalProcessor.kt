@@ -35,17 +35,18 @@ class PetalProcessor : AbstractProcessor() {
         val classes = getClassesAnnotatedWith(Petal::class,
             propertyAnnotations = listOf(AlterColumn::class))
 
-        val tableMap = HashMap<String, MutableMap<Int, PetalMigration>>()
+        val tableMap = HashMap<String, PetalMigration>()
 
         classes.forEach {
             val petalAnnotation: Petal = it.getAnnotation(Petal::class)!!
-            val table = petalAnnotation.tableName
-            if (tableMap[table] == null) tableMap[table] = HashMap()
-            tableMap[table]!![petalAnnotation.version] = PetalMigration.parseFromClass(it)
+            val tableName = petalAnnotation.tableName
+            val tableVersion = petalAnnotation.version
+            if (tableMap[tableName] == null) tableMap[tableName] = PetalMigration(tableName)
+            tableMap[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigration.parseFromClass(it)
         }
 
         tableMap.values.forEach {
-            MigrationGenerator().createMigrationForTable(it)
+            MigrationGenerator(it).createMigrationForTable()
         }
     }
 }

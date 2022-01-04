@@ -45,10 +45,10 @@ class SchemaGenerationTest {
 
             @Petal(tableName = "basic_petal", version = 2)
             class BasicPetalSchemaV2 {
-                @AlterColumn(previousName = "uuid") val renamed_uuid: UUID = UUID.randomUUID()
-                @AlterColumn(previousName = "color") val renamed_color: String = ""
-                @AlterColumn(previousName = "count") val renamed_count: Int = 1
-                @AlterColumn(previousName = "sporeCount") val renamed_sporeCount: Long = 2
+                @AlterColumn(renameFrom = "uuid") val renamed_uuid: UUID = UUID.randomUUID()
+                @AlterColumn(renameFrom = "color") val renamed_color: String = ""
+                @AlterColumn(renameFrom = "count") val renamed_count: Int = 1
+                @AlterColumn(renameFrom = "sporeCount") val renamed_sporeCount: Long = 2
             }
         """.trimIndent()
         )
