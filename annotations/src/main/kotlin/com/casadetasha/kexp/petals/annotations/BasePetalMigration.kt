@@ -2,8 +2,10 @@ package com.casadetasha.kexp.petals.annotations
 
 import com.casadetasha.kexp.kexportable.annotations.PetalMigration
 import com.casadetasha.kexp.kexportable.annotations.PetalSchemaMigration
+import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
+import java.sql.Connection
 
 abstract class BasePetalMigration {
 
@@ -13,19 +15,15 @@ abstract class BasePetalMigration {
     private val petalMigration: PetalMigration by lazy { Json.decodeFromString(petalJson) }
     private val tableName: String by lazy { petalMigration.tableName }
     private val petalSchemaVersions: MutableMap<Int, PetalSchemaMigration> by lazy { petalMigration.schemaMigrations }
+    private lateinit var dataSource: HikariDataSource
 
-    init {
-        loadTableInfo()
-    }
+    fun migrateToLatest(dataSource: HikariDataSource) {
+        this.dataSource = dataSource
 
-    private fun loadTableInfo(): ExistingTableInfo? {
-        return null
-    }
-
-    fun migrateToLatest() {
+        existingTableInfo = MetaTableInfo.loadTableInfo(dataSource, tableName)
         when (existingTableInfo) {
             null -> createNewTable()
-            else -> migrateFrom(existingTableInfo!!.versionNumber)
+            else -> migrateFrom(existingTableInfo!!.versionNumber ?: 1)
         }
     }
 
@@ -54,7 +52,7 @@ abstract class BasePetalMigration {
                     " match. A @Petal annotated schema must be provided matching the current table."
         }
 
-        check(petalSchemaVersions[versionNumber] == existingTableInfo!!.schemaMigration) {
+        check(petalSchemaVersions[versionNumber]!!.columnMigrations == existingTableInfo!!.tableInfo!!.columns) {
             "Table $tableName version $versionNumber does not match the provided schema."
         }
     }
@@ -71,16 +69,20 @@ abstract class BasePetalMigration {
     }
 
     private fun performMigrationsStartingWithVersion(startingMigrationVersionNumber: Int) {
+        val connection = dataSource.connection
         petalSchemaVersions.filterKeys { it >= startingMigrationVersionNumber }
             .toSortedMap()
-            .forEach {
-                migrateSchema(it.value)
+            .forEach { (version, schema) ->
+                migrateSchema(connection, schema.migrationSql!!, version)
             }
+        connection.close()
     }
 
-    fun migrateSchema(schemaMigration: PetalSchemaMigration) {
-        println(schemaMigration.migrationSql)
+    private fun migrateSchema(connection: Connection, schemaMigration: String, tableVersion: Int) {
+        connection.createStatement().use { statement ->
+            statement.addBatch(schemaMigration)
+            statement.addBatch(MetaTableInfo.createUpdateTableVersionSql(tableName, tableVersion))
+            statement.executeBatch()
+        }
     }
 }
-
-class ExistingTableInfo(val versionNumber: Int, val schemaMigration: PetalSchemaMigration)
