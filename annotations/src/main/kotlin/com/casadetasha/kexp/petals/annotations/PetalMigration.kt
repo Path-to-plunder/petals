@@ -21,7 +21,9 @@ data class PetalColumn(@Transient val previousName: String? = null,
                        val name: String,
                        val dataType: String,
                        val isNullable: Boolean,
-                       @Transient val isAlteration: Boolean? = null) {
+                       @Transient val isAlteration: Boolean? = null,
+                       @Transient val isId: Boolean? = null
+) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

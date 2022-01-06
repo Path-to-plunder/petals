@@ -10,9 +10,9 @@ annotation class Petal(val tableName: String,
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 annotation class AlterColumn(val renameFrom: String = "")
 
-enum class PetalPrimaryKey {
-    NONE,
-    INT,
-    LONG,
-    UUID
+enum class PetalPrimaryKey(val dataType: String?) {
+    NONE(null),
+    INT("SERIAL"),
+    LONG("BIGSERIAL"),
+    UUID("uuid")
 }

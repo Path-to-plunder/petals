@@ -2,9 +2,9 @@ package com.casadetasha.kexp.petals.processor.post
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import com.casadetasha.kexp.kexportable.annotations.PetalMigration
 import com.casadetasha.kexp.petals.migration.`TableMigrations$starting_non_nullable_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$starting_nullable_petal`
-import com.casadetasha.kexp.petals.processor.PetalMigration
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test

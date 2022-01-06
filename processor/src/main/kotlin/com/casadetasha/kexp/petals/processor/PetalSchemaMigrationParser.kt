@@ -7,6 +7,7 @@ import com.casadetasha.kexp.kexportable.annotations.PetalColumn
 import com.casadetasha.kexp.kexportable.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
@@ -17,16 +18,29 @@ object PetalSchemaMigrationParser {
         val petalAnnotation = kotlinClass.getAnnotation(Petal::class)
             ?: printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Cannot parse petal migration from class ${kotlinClass.className}:" +
-                        " petal class must contain petal annotation ")
+                        " petal class must contain petal annotation "
+            )
 
         return PetalSchemaMigration(
             primaryKeyType = petalAnnotation.primaryKeyType,
-            columnMigrations = parsePetalColumns(kotlinClass.kotlinProperties)
+            columnMigrations = parsePetalColumns(kotlinClass, petalAnnotation.primaryKeyType)
         )
     }
 
-    private fun parsePetalColumns(kotlinProperties: List<KotlinProperty>): java.util.HashMap<String, PetalColumn> {
-        val columnMap = java.util.HashMap<String, PetalColumn>()
+    private fun parsePetalColumns(
+        kotlinClass: KotlinClass,
+        primaryKeyType: PetalPrimaryKey
+    ): HashMap<String, PetalColumn> {
+        val columns = parsePetalPropertyColumns(kotlinClass.kotlinProperties)
+        if (primaryKeyType != PetalPrimaryKey.NONE) {
+            columns["id"] = PetalMigrationColumnParser.parseIdColumn(primaryKeyType)
+        }
+
+        return columns
+    }
+
+    private fun parsePetalPropertyColumns(kotlinProperties: List<KotlinProperty>): HashMap<String, PetalColumn> {
+        val columnMap = HashMap<String, PetalColumn>()
         kotlinProperties.forEach {
             columnMap[it.simpleName] = PetalMigrationColumnParser.parseFromKotlinProperty(it)
         }
@@ -43,15 +57,31 @@ object PetalMigrationColumnParser {
         UUID::class
     ).map { it.asTypeName() }
 
+    fun parseIdColumn(primaryKeyType: PetalPrimaryKey): PetalColumn {
+        if (primaryKeyType == PetalPrimaryKey.NONE) {
+            printThenThrowError("INTERNAL LIBRARY ERROR: cannot parse id column for type NONE")
+        }
+
+        return PetalColumn(
+            previousName = "id",
+            name = "id",
+            dataType = primaryKeyType.dataType!!,
+            isNullable = false,
+            isAlteration = false,
+            isId = true
+        )
+    }
+
     fun parseFromKotlinProperty(kotlinProperty: KotlinProperty): PetalColumn {
         val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
         val name = kotlinProperty.simpleName
         return PetalColumn(
-            name = name,
             previousName = getPreviousName(name, alterColumnAnnotation),
+            name = name,
             dataType = getDataType(kotlinProperty.typeName),
             isNullable = kotlinProperty.isNullable,
-            isAlteration = alterColumnAnnotation?.renameFrom != null
+            isAlteration = alterColumnAnnotation?.renameFrom != null,
+            isId = false
         )
     }
 
@@ -61,7 +91,7 @@ object PetalMigrationColumnParser {
             String::class.asTypeName() -> "TEXT"
             Int::class.asTypeName() -> "INT"
             Long::class.asTypeName() -> "BIGINT"
-            UUID::class.asTypeName() -> "UUID"
+            UUID::class.asTypeName() -> "uuid"
             else -> printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Type $typeName was left out of new column sql generation block."
             )
@@ -72,7 +102,8 @@ object PetalMigrationColumnParser {
         if (!SUPPORTED_TYPES.contains(typeName.copy(nullable = false))) {
             printThenThrowError(
                 "$typeName is not a valid column type. Only the following types are supported:" +
-                        " ${SUPPORTED_TYPES.joinToString()}")
+                        " ${SUPPORTED_TYPES.joinToString()}"
+            )
         }
     }
 
@@ -85,4 +116,3 @@ object PetalMigrationColumnParser {
         }
     }
 }
-
