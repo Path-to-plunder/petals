@@ -102,9 +102,12 @@ object PetalMigrationColumnParser {
     }
 
     private fun getStringTypeName(annotatedElement: Element?): String {
-        return when (annotatedElement?.getAnnotation(VarChar::class.java)) {
+        return when (val varCharAnnotation = annotatedElement?.getAnnotation(VarChar::class.java)) {
             null -> "TEXT"
-            else -> "CHARACTER VARYING"
+            else -> {
+                if (varCharAnnotation.charLimit < 1) "CHARACTER VARYING"
+                else "CHARACTER VARYING(${varCharAnnotation.charLimit})"
+            }
         }
     }
 

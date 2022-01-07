@@ -24,6 +24,7 @@ class BasicPetalSchemaTest {
             .isEqualTo("""
               |CREATE TABLE IF NOT EXISTS basic_petal (
               |  checkingVarChar CHARACTER VARYING NOT NULL,
+              |  checkingCappedVarChar CHARACTER VARYING(10) NOT NULL,
               |  checkingString TEXT NOT NULL,
               |  checkingInt INT NOT NULL,
               |  checkingUUID uuid NOT NULL,
@@ -38,10 +39,12 @@ class BasicPetalSchemaTest {
             .isEqualTo("""
               |ALTER TABLE basic_petal
               |  DROP COLUMN checkingVarChar,
+              |  DROP COLUMN checkingCappedVarChar,
               |  DROP COLUMN checkingString,
               |  DROP COLUMN checkingInt,
               |  DROP COLUMN checkingUUID,
               |  DROP COLUMN checkingLong,
+              |  ADD COLUMN thirdColor CHARACTER VARYING(10) NOT NULL,
               |  ADD COLUMN color TEXT NOT NULL,
               |  ADD COLUMN count INT NOT NULL,
               |  ADD COLUMN secondColor CHARACTER VARYING NOT NULL,
@@ -59,6 +62,7 @@ class BasicPetalSchemaTest {
               |  RENAME COLUMN sporeCount TO renamed_sporeCount,
               |  RENAME COLUMN uuid TO renamed_uuid,
               |  RENAME COLUMN secondColor TO renamed_secondColor,
+              |  RENAME COLUMN thirdColor TO renamed_thirdColor,
               |  RENAME COLUMN color TO renamed_color
               |""".trimMargin())
     }

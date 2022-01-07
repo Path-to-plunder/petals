@@ -12,7 +12,7 @@ annotation class AlterColumn(val renameFrom: String = "")
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-annotation class VarChar()
+annotation class VarChar(val charLimit: Int = -1)
 
 enum class PetalPrimaryKey(val dataType: String?) {
     NONE(null),
