@@ -10,6 +10,10 @@ annotation class Petal(val tableName: String,
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 annotation class AlterColumn(val renameFrom: String = "")
 
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+annotation class VarChar()
+
 enum class PetalPrimaryKey(val dataType: String?) {
     NONE(null),
     INT("SERIAL"),

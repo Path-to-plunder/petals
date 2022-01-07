@@ -8,9 +8,11 @@ import com.casadetasha.kexp.kexportable.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
+import com.casadetasha.kexp.petals.annotations.VarChar
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
+import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
 object PetalSchemaMigrationParser {
@@ -78,23 +80,31 @@ object PetalMigrationColumnParser {
         return PetalColumn(
             previousName = getPreviousName(name, alterColumnAnnotation),
             name = name,
-            dataType = getDataType(kotlinProperty.typeName),
+            dataType = getDataType(kotlinProperty),
             isNullable = kotlinProperty.isNullable,
             isAlteration = alterColumnAnnotation?.renameFrom != null,
             isId = false
         )
     }
 
-    private fun getDataType(typeName: TypeName): String {
+    private fun getDataType(kotlinProperty: KotlinProperty): String {
+        val typeName = kotlinProperty.typeName
         checkTypeValidity(typeName)
         return when (typeName.copy(nullable = false)) {
-            String::class.asTypeName() -> "TEXT"
+            String::class.asTypeName() -> getStringTypeName(kotlinProperty.annotatedElement)
             Int::class.asTypeName() -> "INT"
             Long::class.asTypeName() -> "BIGINT"
             UUID::class.asTypeName() -> "uuid"
             else -> printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Type $typeName was left out of new column sql generation block."
             )
+        }
+    }
+
+    private fun getStringTypeName(annotatedElement: Element?): String {
+        return when (annotatedElement?.getAnnotation(VarChar::class.java)) {
+            null -> "TEXT"
+            else -> "CHARACTER VARYING"
         }
     }
 

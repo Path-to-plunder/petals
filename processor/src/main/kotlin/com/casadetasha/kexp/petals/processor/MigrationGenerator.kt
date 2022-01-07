@@ -196,7 +196,6 @@ private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumn
 }
 
 private fun parseNewColumnSql(column: PetalColumn): String {
-
     var sql = "${column.name} ${column.dataType}"
     if (!column.isNullable) {
         sql += " NOT NULL"

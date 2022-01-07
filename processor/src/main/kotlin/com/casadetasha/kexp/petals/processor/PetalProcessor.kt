@@ -6,6 +6,7 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser.getClassesAnnotate
 import com.casadetasha.kexp.kexportable.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
+import com.casadetasha.kexp.petals.annotations.VarChar
 import com.google.auto.service.AutoService
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -18,7 +19,8 @@ class PetalProcessor : AbstractProcessor() {
 
     override fun getSupportedAnnotationTypes() = mutableSetOf(
         Petal::class.java.canonicalName,
-        AlterColumn::class.java.canonicalName
+        AlterColumn::class.java.canonicalName,
+        VarChar::class.java.canonicalName
     )
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
@@ -34,7 +36,7 @@ class PetalProcessor : AbstractProcessor() {
 
     private fun generateClasses() {
         val classes = getClassesAnnotatedWith(Petal::class,
-            propertyAnnotations = listOf(AlterColumn::class))
+            propertyAnnotations = listOf(AlterColumn::class, VarChar::class))
 
         val tableMap = HashMap<String, PetalMigration>()
 
