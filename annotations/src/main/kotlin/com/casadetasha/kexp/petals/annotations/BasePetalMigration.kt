@@ -1,7 +1,5 @@
 package com.casadetasha.kexp.petals.annotations
 
-import com.casadetasha.kexp.kexportable.annotations.PetalMigration
-import com.casadetasha.kexp.kexportable.annotations.PetalSchemaMigration
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString

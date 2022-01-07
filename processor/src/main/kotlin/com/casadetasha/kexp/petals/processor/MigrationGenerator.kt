@@ -2,9 +2,9 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
-import com.casadetasha.kexp.kexportable.annotations.PetalColumn
-import com.casadetasha.kexp.kexportable.annotations.PetalMigration
-import com.casadetasha.kexp.kexportable.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.annotations.PetalMigration
+import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.*
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
@@ -126,6 +126,14 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
                         "Updated schema for ${it.name} in table ${petalMigration.tableName} version" +
                                 " $currentMigrationVersion does not match column from previous schema. If this schema" +
                                 " change is intentional, add the @AlterColumn annotation to the column."
+                    )
+                }
+                if (previousColumn != null && it.isAlteration!! && previousColumn.dataType != it.dataType) {
+                    printThenThrowError(
+                        "Updated schema for ${it.name} in table ${petalMigration.tableName} version" +
+                                " $currentMigrationVersion has changed the column data type from" +
+                                " ${previousColumn.dataType} to ${it.dataType}. Data type alterations are not" +
+                                " currently supported."
                     )
                 }
             }

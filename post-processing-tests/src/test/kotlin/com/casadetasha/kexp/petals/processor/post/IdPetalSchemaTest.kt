@@ -2,7 +2,7 @@ package com.casadetasha.kexp.petals.processor.post
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import com.casadetasha.kexp.kexportable.annotations.PetalMigration
+import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.migration.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json

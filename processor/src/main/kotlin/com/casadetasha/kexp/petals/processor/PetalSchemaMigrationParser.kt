@@ -3,8 +3,8 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
-import com.casadetasha.kexp.kexportable.annotations.PetalColumn
-import com.casadetasha.kexp.kexportable.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey

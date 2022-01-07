@@ -1,6 +1,5 @@
 package com.casadetasha.kexp.petals.annotations
 
-import com.casadetasha.kexp.kexportable.annotations.PetalColumn
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.Serializable
 import java.sql.Connection

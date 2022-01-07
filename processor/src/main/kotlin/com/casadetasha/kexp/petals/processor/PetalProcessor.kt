@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.casadetasha.kexp.annotationparser.AnnotationParser.getClassesAnnotatedWith
-import com.casadetasha.kexp.kexportable.annotations.PetalMigration
+import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.casadetasha.kexp.petals.annotations.VarChar

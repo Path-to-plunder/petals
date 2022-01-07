@@ -1,10 +1,7 @@
-package com.casadetasha.kexp.kexportable.annotations;
+package com.casadetasha.kexp.petals.annotations;
 
-import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import kotlinx.serialization.Serializable;
-import kotlinx.serialization.Transient;
-
-import java.util.HashMap;
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class PetalMigration(val tableName: String,
