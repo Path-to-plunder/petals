@@ -60,7 +60,7 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
     }
 
     private fun buildCreateTableSql(petalSchemaMigration: PetalSchemaMigration): String {
-        var tableCreationSql = "CREATE TABLE IF NOT EXISTS ${petalMigration.tableName} (" + "\n"
+        var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} (" + "\n"
 
         val primaryKeyType = petalSchemaMigration.primaryKeyType
         tableCreationSql += when (primaryKeyType) {

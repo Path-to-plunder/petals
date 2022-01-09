@@ -22,7 +22,7 @@ class BasicPetalSchemaTest {
     fun `Creates table creation migration with all supported types`() {
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
             .isEqualTo("""
-              |CREATE TABLE IF NOT EXISTS basic_petal (
+              |CREATE TABLE basic_petal (
               |  checkingVarChar CHARACTER VARYING NOT NULL,
               |  checkingCappedVarChar CHARACTER VARYING(10) NOT NULL,
               |  checkingString TEXT NOT NULL,

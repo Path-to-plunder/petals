@@ -17,7 +17,7 @@ class IdPetalSchemaTest {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$no_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
             .isEqualTo("""
-              |CREATE TABLE IF NOT EXISTS no_id_petal (
+              |CREATE TABLE no_id_petal (
               |  column TEXT NOT NULL
               |)
               """.trimMargin())
@@ -28,7 +28,7 @@ class IdPetalSchemaTest {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$int_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
             .isEqualTo("""
-              |CREATE TABLE IF NOT EXISTS int_id_petal (
+              |CREATE TABLE int_id_petal (
               |  id SERIAL AUTO_INCREMENT NOT NULL,
               |  column TEXT NOT NULL
               |  PRIMARY KEY (id)
@@ -40,7 +40,7 @@ class IdPetalSchemaTest {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$long_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
             .isEqualTo("""
-              |CREATE TABLE IF NOT EXISTS long_id_petal (
+              |CREATE TABLE long_id_petal (
               |  id BIGSERIAL AUTO_INCREMENT NOT NULL,
               |  column TEXT NOT NULL
               |  PRIMARY KEY (id)
@@ -54,7 +54,7 @@ class IdPetalSchemaTest {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$uuid_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
             .isEqualTo("""
-              |CREATE TABLE IF NOT EXISTS uuid_id_petal (
+              |CREATE TABLE uuid_id_petal (
               |  id uuid NOT NULL,
               |  column TEXT NOT NULL
               |  PRIMARY KEY (id)

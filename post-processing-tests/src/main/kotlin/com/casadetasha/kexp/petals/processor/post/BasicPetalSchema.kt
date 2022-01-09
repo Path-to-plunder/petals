@@ -7,6 +7,12 @@ import java.util.*
 
 import kotlin.Int
 
+@Petal(tableName = "kotlin_petal_table_meta_info")
+interface KotlinPetalTableMetaInfo {
+    val table_name: String
+    val version: Int
+}
+
 @Petal(tableName = "basic_petal", version = 1)
 interface BasicPetalSchemaV1 {
     val checkingInt: Int

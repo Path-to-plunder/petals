@@ -9,7 +9,7 @@ abstract class BasePetalMigration {
 
     abstract val petalJson: String
 
-    private var existingTableInfo: ExistingTableInfo? = null
+    private var existingTableInfo: DatabaseTableInfo? = null
     private val petalMigration: PetalMigration by lazy { Json.decodeFromString(petalJson) }
     private val tableName: String by lazy { petalMigration.tableName }
     private val petalSchemaVersions: MutableMap<Int, PetalSchemaMigration> by lazy { petalMigration.schemaMigrations }
@@ -21,7 +21,7 @@ abstract class BasePetalMigration {
         existingTableInfo = MetaTableInfo.loadTableInfo(dataSource, tableName)
         when (existingTableInfo) {
             null -> createNewTable()
-            else -> migrateFrom(existingTableInfo!!.versionNumber ?: 1)
+            else -> migrateFrom(existingTableInfo!!.version ?: 1)
         }
     }
 
@@ -50,7 +50,7 @@ abstract class BasePetalMigration {
                     " match. A @Petal annotated schema must be provided matching the current table."
         }
 
-        check(petalSchemaVersions[versionNumber]!!.columnMigrations == existingTableInfo!!.tableInfo!!.columns) {
+        check(petalSchemaVersions[versionNumber]!!.columnMigrations == existingTableInfo!!.columns) {
             "Table $tableName version $versionNumber does not match the provided schema."
         }
     }
@@ -67,19 +67,18 @@ abstract class BasePetalMigration {
     }
 
     private fun performMigrationsStartingWithVersion(startingMigrationVersionNumber: Int) {
-        val connection = dataSource.connection
-        petalSchemaVersions.filterKeys { it >= startingMigrationVersionNumber }
-            .toSortedMap()
-            .forEach { (version, schema) ->
-                migrateSchema(connection, schema.migrationSql!!, version)
-            }
-        connection.close()
+        dataSource.connection.use { connection ->
+            petalSchemaVersions.filterKeys { it >= startingMigrationVersionNumber }
+                .toSortedMap()
+                .forEach { (version, schema) ->
+                    migrateSchema(connection, schema.migrationSql!!, version)
+                }
+        }
     }
 
     private fun migrateSchema(connection: Connection, schemaMigration: String, tableVersion: Int) {
-        connection.createStatement().use { statement ->
+        MetaTableInfo.createStatementWithVersionUpdateBatchAdded(connection, tableName, tableVersion).use { statement ->
             statement.addBatch(schemaMigration)
-            statement.addBatch(MetaTableInfo.createUpdateTableVersionSql(tableName, tableVersion))
             statement.executeBatch()
         }
     }
