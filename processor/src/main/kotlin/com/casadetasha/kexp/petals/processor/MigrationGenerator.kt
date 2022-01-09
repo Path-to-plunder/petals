@@ -60,28 +60,28 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
     }
 
     private fun buildCreateTableSql(petalSchemaMigration: PetalSchemaMigration): String {
-        var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} (" + "\n"
+        var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} ("
 
         val primaryKeyType = petalSchemaMigration.primaryKeyType
         tableCreationSql += when (primaryKeyType) {
             NONE -> ""
-            INT -> "  id ${primaryKeyType.dataType} AUTO_INCREMENT NOT NULL,\n"
-            LONG -> "  id ${primaryKeyType.dataType} AUTO_INCREMENT NOT NULL,\n"
-            else -> "  id ${primaryKeyType.dataType} NOT NULL,\n"
+            INT -> " id ${primaryKeyType.dataType} AUTO_INCREMENT NOT NULL,"
+            LONG -> " id ${primaryKeyType.dataType} AUTO_INCREMENT NOT NULL,"
+            else -> " id ${primaryKeyType.dataType} NOT NULL,"
         }
 
         petalSchemaMigration.columnMigrations.values
             .filter { !it.isId!! }
             .forEach {
-                tableCreationSql += "  ${parseNewColumnSql(it)},\n"
+                tableCreationSql += " ${parseNewColumnSql(it)},"
             }
-        tableCreationSql = tableCreationSql.removeSuffix(",\n") + "\n"
+        tableCreationSql = tableCreationSql.removeSuffix(",")
 
         if (petalSchemaMigration.primaryKeyType != NONE) {
-            tableCreationSql += "  PRIMARY KEY (id)\n"
+            tableCreationSql += " PRIMARY KEY (id)"
         }
 
-        tableCreationSql += ")"
+        tableCreationSql += " )"
 
         return tableCreationSql
     }
@@ -99,13 +99,13 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
         val droppedColumns: List<PetalColumn> =
             getDroppedColumns(previousMigration, currentMigration, alteredColumns)
 
-        var tableMigrationSql = "ALTER TABLE ${petalMigration.tableName}\n"
+        var tableMigrationSql = "ALTER TABLE ${petalMigration.tableName}"
 
         tableMigrationSql = tableMigrationSql.amendDroppedColumnSql(droppedColumns)
         tableMigrationSql = tableMigrationSql.amendAlteredColumnSql(alteredColumns)
         tableMigrationSql = tableMigrationSql.amendAddedColumnSql(addedColumns)
 
-        tableMigrationSql = tableMigrationSql.removeSuffix(",\n") + "\n"
+        tableMigrationSql = tableMigrationSql.removeSuffix(",")
 
         return tableMigrationSql
     }
@@ -171,7 +171,7 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
 private fun String.amendAddedColumnSql(addedColumns: List<PetalColumn>): String {
     var sql = ""
     addedColumns.forEach { addedColumn ->
-        sql += "  ADD COLUMN ${parseNewColumnSql(addedColumn)},\n"
+        sql += " ADD COLUMN ${parseNewColumnSql(addedColumn)},"
     }
 
     return this + sql
@@ -180,7 +180,7 @@ private fun String.amendAddedColumnSql(addedColumns: List<PetalColumn>): String 
 private fun String.amendDroppedColumnSql(droppedColumns: List<PetalColumn>): String {
     var sql = ""
     droppedColumns.forEach { droppedColumn ->
-        sql += "  DROP COLUMN ${droppedColumn.name},\n"
+        sql += " DROP COLUMN ${droppedColumn.name},"
     }
 
     return this + sql
@@ -190,13 +190,13 @@ private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumn
     var sql = ""
     alteredColumns.values.forEach { alteredColumn ->
         if (alteredColumn.previousColumnState.name != alteredColumn.updatedColumnState.name) {
-            sql += "  RENAME COLUMN ${alteredColumn.previousColumnState.name}" +
-                    " TO ${alteredColumn.updatedColumnState.name},\n"
+            sql += " RENAME COLUMN ${alteredColumn.previousColumnState.name}" +
+                    " TO ${alteredColumn.updatedColumnState.name},"
         }
         if (alteredColumn.previousColumnState.isNullable && !alteredColumn.updatedColumnState.isNullable) {
-            sql += "  ALTER COLUMN ${alteredColumn.updatedColumnState.name} SET NOT NULL,\n"
+            sql += " ALTER COLUMN ${alteredColumn.updatedColumnState.name} SET NOT NULL,"
         } else if (!alteredColumn.previousColumnState.isNullable && alteredColumn.updatedColumnState.isNullable) {
-            sql += "  ALTER COLUMN ${alteredColumn.updatedColumnState.name} DROP NOT NULL,\n"
+            sql += " ALTER COLUMN ${alteredColumn.updatedColumnState.name} DROP NOT NULL,"
         }
     }
 
