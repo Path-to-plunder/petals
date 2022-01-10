@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
 import java.sql.Connection
+import java.sql.SQLException
 
 abstract class BasePetalMigration {
 
@@ -11,6 +12,7 @@ abstract class BasePetalMigration {
 
     private var existingTableInfo: DatabaseTableInfo? = null
     private val petalMigration: PetalMigration by lazy { Json.decodeFromString(petalJson) }
+
     val tableName: String by lazy { petalMigration.tableName }
     private val petalSchemaVersions: MutableMap<Int, PetalSchemaMigration> by lazy { petalMigration.schemaMigrations }
     private lateinit var dataSource: HikariDataSource
@@ -71,12 +73,18 @@ abstract class BasePetalMigration {
     }
 
     private fun performMigrationsStartingWithVersion(startingMigrationVersionNumber: Int) {
-        dataSource.connection.use { connection ->
+        dataSource.connection.useWithoutAutoCommit { connection ->
             petalSchemaVersions.filterKeys { it >= startingMigrationVersionNumber }
                 .toSortedMap()
                 .forEach { (version, schema) ->
-                    migrateSchema(connection, schema.migrationSql!!, version)
+                    runMigration(connection, schema, version)
                 }
+        }
+    }
+
+    private fun runMigration(connection: Connection, schema: PetalSchemaMigration, version: Int) {
+        connection.runTransactionWithRollback {
+            migrateSchema(it, schema.migrationSql!!, version)
         }
     }
 
@@ -85,6 +93,27 @@ abstract class BasePetalMigration {
             statement.execute(schemaMigration)
         }
         MetaTableInfo.updateTableVersionNumber(connection, tableName, tableVersion)
+    }
+}
 
+private fun Connection.useWithoutAutoCommit(function: (Connection) -> Unit) {
+    use {
+        try {
+            autoCommit = false
+            function.invoke(this)
+        } finally {
+            autoCommit = true
+        }
+    }
+}
+
+private fun Connection.runTransactionWithRollback(function: (Connection) -> Unit) {
+    val savepoint = setSavepoint()
+    try {
+        function.invoke(this)
+        commit()
+    } catch (e: SQLException) {
+        println(e)
+        rollback(savepoint)
     }
 }
