@@ -2,14 +2,14 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
+import com.casadetasha.kexp.petals.annotations.BasePetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.*
-import com.squareup.kotlinpoet.CodeBlock
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeSpec
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.LONG
+import com.squareup.kotlinpoet.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -33,11 +33,11 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
             fileName = className
         )
 
-        classBuilder = TypeSpec.classBuilder(className)
+        classBuilder = TypeSpec.classBuilder(className).superclass(BasePetalMigration::class)
         addMigrationSpecs()
 
         val petalJson = json.encodeToString(petalMigration)
-        classBuilder.addStringProperty("petalJson", petalJson)
+        classBuilder.addOverriddenStringProperty("petalJson", petalJson)
 
         fileSpecBuilder.addType(classBuilder.build())
         fileSpecBuilder.build().writeTo(File(AnnotationParser.kaptKotlinGeneratedDir))
@@ -137,7 +137,6 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
                     )
                 }
             }
-
     }
 
     private fun getDroppedColumns(
@@ -212,14 +211,14 @@ private fun parseNewColumnSql(column: PetalColumn): String {
     return sql
 }
 
-private fun TypeSpec.Builder.addStringProperty(propertyName: String, propertyValue: String) {
+private fun TypeSpec.Builder.addOverriddenStringProperty(propertyName: String, propertyValue: String) {
     addProperty(
         PropertySpec.builder(propertyName, String::class)
             .initializer(
                 CodeBlock.builder()
                     .add("%S", propertyValue)
                     .build()
-            )
+            ).addModifiers(KModifier.OVERRIDE)
             .build()
     )
 }

@@ -11,7 +11,7 @@ abstract class BasePetalMigration {
 
     private var existingTableInfo: DatabaseTableInfo? = null
     private val petalMigration: PetalMigration by lazy { Json.decodeFromString(petalJson) }
-    private val tableName: String by lazy { petalMigration.tableName }
+    val tableName: String by lazy { petalMigration.tableName }
     private val petalSchemaVersions: MutableMap<Int, PetalSchemaMigration> by lazy { petalMigration.schemaMigrations }
     private lateinit var dataSource: HikariDataSource
 
@@ -34,24 +34,28 @@ abstract class BasePetalMigration {
     }
 
     private fun migrateFrom(versionNumber: Int) {
-        checkVersionEquality(versionNumber)
+        checkSchemaVersionValidity(versionNumber)
         if (versionNumber == petalSchemaVersions.keys.toSortedSet().last()) return
         checkNextVersionIsIncremental(versionNumber)
 
         performMigrationsStartingWithVersion(versionNumber + 1)
     }
 
-    private fun checkVersionEquality(versionNumber: Int) {
+    private fun checkSchemaVersionValidity(versionNumber: Int) {
+        val schemaVersion = petalSchemaVersions[versionNumber]
+
         checkNotNull(existingTableInfo) { "INTERNAL LIBRARY ERROR: should not check version equality when existing" +
                 " table is null" }
 
-        checkNotNull(petalSchemaVersions[versionNumber]) {
+        checkNotNull(schemaVersion) {
             "Found meta info for table $tableName version $versionNumber but no matching schema was provided to" +
                     " match. A @Petal annotated schema must be provided matching the current table."
         }
 
-        check(petalSchemaVersions[versionNumber]!!.columnMigrations == existingTableInfo!!.columns) {
-            "Table $tableName version $versionNumber does not match the provided schema."
+        check(schemaVersion.columnsAsList == existingTableInfo!!.columns) {
+            "Table $tableName version $versionNumber does not match the provided schema.\n\n" +
+                    "Expected Columns: ${schemaVersion.columnsAsList.joinToString()}\n\n" +
+                    "Actual Columns: ${existingTableInfo!!.columns.joinToString()}\n"
         }
     }
 
@@ -60,7 +64,7 @@ abstract class BasePetalMigration {
         if (sortedFollowingKeys.size == 0) return
 
         val nextExpectedVersion = versionNumber + 1
-        check(sortedFollowingKeys.first() != nextExpectedVersion) {
+        check(sortedFollowingKeys.first() == nextExpectedVersion) {
             "Version changes must be incremental. Expecting next version to be $nextExpectedVersion but instead found" +
                     " ${sortedFollowingKeys.first()} for table $tableName."
         }
@@ -77,9 +81,10 @@ abstract class BasePetalMigration {
     }
 
     private fun migrateSchema(connection: Connection, schemaMigration: String, tableVersion: Int) {
-        MetaTableInfo.createStatementWithVersionUpdateBatchAdded(connection, tableName, tableVersion).use { statement ->
-            statement.addBatch(schemaMigration)
-            statement.executeBatch()
+        connection.createStatement().use { statement ->
+            statement.execute(schemaMigration)
         }
+        MetaTableInfo.updateTableVersionNumber(connection, tableName, tableVersion)
+
     }
 }

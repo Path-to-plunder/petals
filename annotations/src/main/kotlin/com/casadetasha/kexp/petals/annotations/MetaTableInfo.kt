@@ -3,7 +3,6 @@ package com.casadetasha.kexp.petals.annotations
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.Serializable
 import java.sql.Connection
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 
@@ -17,8 +16,8 @@ object MetaTableInfo {
             " PRIMARY KEY (table_name)" +
             ")"
 
-    private const val UPDATE_TABLE_VERSION_SQL = "INSERT INTO $META_TABLE_NAME (table_name, version) VALUES('?', ?)" +
-            " ON CONFLICT DO UPDATE SET table_name='?', tableVersion=?"
+    private const val UPDATE_TABLE_VERSION_SQL = "INSERT INTO $META_TABLE_NAME (table_name, version) VALUES(?, ?)" +
+            " ON CONFLICT (table_name) DO UPDATE SET table_name=?, version=?"
 
     private const val LOAD_TABLE_VERSION_SQL: String = "SELECT version FROM $META_TABLE_NAME WHERE table_name = ?"
 
@@ -36,21 +35,23 @@ object MetaTableInfo {
         }
     }
 
-    private fun loadTableVersion(dataSource: HikariDataSource, tableName: String): Int? {
+    fun loadTableVersion(dataSource: HikariDataSource, tableName: String): Int? {
         loadOrCreatePetalVersionTable(dataSource)
         dataSource.connection.use {  connection ->
             connection.prepareStatement(LOAD_TABLE_VERSION_SQL).use { preparedStatement ->
                 preparedStatement.setString(1, tableName)
-                val columns = preparedStatement.executeQuery()
-                return when (columns.first()) {
-                    true -> columns.getInt("version")
+                val rows = preparedStatement.executeQuery()
+                return when (rows.next()) {
                     false -> null
+                    true -> {
+                        rows.getInt("version")
+                    }
                 }
             }
         }
     }
 
-    private fun loadOrCreatePetalVersionTable(dataSource: HikariDataSource): DatabaseTableInfo {
+    fun loadOrCreatePetalVersionTable(dataSource: HikariDataSource): DatabaseTableInfo {
         return loadDataForDatabaseTable(dataSource, META_TABLE_NAME) ?: createPetalVersionTable(dataSource)
     }
 
@@ -72,16 +73,16 @@ object MetaTableInfo {
     private fun queryDatabaseTableInfo(connection: Connection, tableName: String): DatabaseTableInfo? {
         connection.prepareStatement(LOAD_TABLE_INFO_SQL).use { pst ->
             pst.setString(1, tableName)
-            val columns: ResultSet = pst.executeQuery()
+            val rows: ResultSet = pst.executeQuery()
 
-            return parseDatabaseTableInfoQueryResult(tableName, columns)
+            return parseDatabaseTableInfoQueryResult(tableName, rows)
         }
     }
 
-    private fun parseDatabaseTableInfoQueryResult(tableName: String, columns: ResultSet): DatabaseTableInfo? {
+    private fun parseDatabaseTableInfoQueryResult(tableName: String, rows: ResultSet): DatabaseTableInfo? {
         val columnList = mutableListOf<PetalColumn>()
-        while (columns.next()) {
-            columnList += parseColumn(columns)
+        while (rows.next()) {
+            columnList += parseColumn(rows)
         }
 
         return when (columnList.isEmpty()) {
@@ -92,13 +93,13 @@ object MetaTableInfo {
         }
     }
 
-    private fun parseColumn(columns: ResultSet): PetalColumn {
-        val columnName = columns.getString("column_name")
-        val dataType = columns.getString("data_type")
-        val isNullable = columns.getString("is_nullable")
+    private fun parseColumn(row: ResultSet): PetalColumn {
+        val columnName = row.getString("column_name")
+        val dataType = row.getString("data_type")
+        val isNullable = row.getString("is_nullable")
 
         return PetalColumn(name = columnName,
-            dataType = dataType,
+            dataType = dataType.mapFromSchemaColumnType(),
             isNullable = when (isNullable) {
                 "NO" -> false
                 "YES" -> true
@@ -106,17 +107,24 @@ object MetaTableInfo {
             })
     }
 
-    internal fun createStatementWithVersionUpdateBatchAdded(connection: Connection,
-                                                   tableName: String,
-                                                   tableVersion: Int): PreparedStatement {
-        val statement = connection.prepareStatement(UPDATE_TABLE_VERSION_SQL)
-        statement.setString(1, tableName)
-        statement.setInt(2, tableVersion)
-        statement.setString(3, tableName)
-        statement.setInt(4, tableVersion)
-        statement.addBatch()
+    fun updateTableVersionNumber(connection: Connection,
+                                          tableName: String,
+                                          tableVersion: Int) {
+        connection.prepareStatement(UPDATE_TABLE_VERSION_SQL).use { statement ->
+            statement.setString(1, tableName)
+            statement.setInt(2, tableVersion)
+            statement.setString(3, tableName)
+            statement.setInt(4, tableVersion)
+            statement.executeUpdate()
+        }
+    }
+}
 
-        return statement;
+private fun String.mapFromSchemaColumnType(): String {
+    return when (this) {
+        "uuid" -> "uuid"
+        "integer" -> "INT"
+        else -> this.uppercase()
     }
 }
 
