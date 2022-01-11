@@ -161,10 +161,14 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
         currentMigration: PetalSchemaMigration
     ): Map<String, AlterColumnMigration> {
         return currentMigration.columnMigrations.values.filter { it.isAlteration!! }
-            .map { AlterColumnMigration(previousMigration.columnMigrations[it.previousName]!!, it) }
+            .map {
+                checkNotNull(previousMigration.columnMigrations[it.previousName]) {
+                    "Attempting to alter non existent column ${it.previousName} for table ${petalMigration.tableName}"
+                }
+                AlterColumnMigration(previousMigration.columnMigrations[it.previousName]!!, it)
+            }
             .associateBy { it.previousColumnState.name }
     }
-
 }
 
 private fun String.amendAddedColumnSql(addedColumns: List<PetalColumn>): String {

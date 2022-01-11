@@ -22,8 +22,7 @@ class BasicPetalSchemaTest {
     fun `Creates table creation migration with all supported types`() {
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
             .isEqualTo("CREATE TABLE basic_petal (" +
-              " checkingVarChar CHARACTER VARYING NOT NULL," +
-              " checkingCappedVarChar CHARACTER VARYING(10) NOT NULL," +
+              " checkingVarChar CHARACTER VARYING(10) NOT NULL," +
               " checkingString TEXT NOT NULL," +
               " checkingInt INT NOT NULL," +
               " checkingUUID uuid NOT NULL," +
@@ -37,15 +36,13 @@ class BasicPetalSchemaTest {
         assertThat(decodedPetalMigration.schemaMigrations[2]!!.migrationSql)
             .isEqualTo("ALTER TABLE basic_petal" +
               " DROP COLUMN checkingVarChar," +
-              " DROP COLUMN checkingCappedVarChar," +
               " DROP COLUMN checkingString," +
               " DROP COLUMN checkingInt," +
               " DROP COLUMN checkingUUID," +
               " DROP COLUMN checkingLong," +
-              " ADD COLUMN thirdColor CHARACTER VARYING(10) NOT NULL," +
               " ADD COLUMN color TEXT NOT NULL," +
               " ADD COLUMN count INT NOT NULL," +
-              " ADD COLUMN secondColor CHARACTER VARYING NOT NULL," +
+              " ADD COLUMN secondColor CHARACTER VARYING(10) NOT NULL," +
               " ADD COLUMN uuid uuid NOT NULL," +
               " ADD COLUMN sporeCount BIGINT NOT NULL")
     }
@@ -58,7 +55,6 @@ class BasicPetalSchemaTest {
               " RENAME COLUMN sporeCount TO renamed_sporeCount," +
               " RENAME COLUMN uuid TO renamed_uuid," +
               " RENAME COLUMN secondColor TO renamed_secondColor," +
-              " RENAME COLUMN thirdColor TO renamed_thirdColor," +
               " RENAME COLUMN color TO renamed_color")
     }
 }

@@ -48,8 +48,13 @@ class PetalProcessor : AbstractProcessor() {
             tableMap[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser.parseFromClass(it)
         }
 
-        tableMap.values.forEach {
-            MigrationGenerator(it).createMigrationForTable()
+        tableMap.values.forEach { migration ->
+            MigrationGenerator(migration).createMigrationForTable()
+            migration.getCurrentSchema()?.let { DaoGenerator(migration.tableName, it).generateFile() }
+        }
+
+        if (tableMap.isNotEmpty()) {
+            PetalMigrationSetupGenerator(tableMap.values).createPetalMigrationSetupClass()
         }
     }
 }
