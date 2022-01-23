@@ -18,7 +18,7 @@ class SchemaGenerationTest {
             import com.casadetasha.kexp.petals.annotations.Petal
             import java.util.*
 
-            @Petal(tableName = "basic_petal", version = 1)
+            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 1)
             interface BasicPetalSchemaV1 {
                 val uuid: UUID
                 val color: String
@@ -36,7 +36,7 @@ class SchemaGenerationTest {
             import com.casadetasha.kexp.petals.annotations.Petal
             import java.util.*
 
-            @Petal(tableName = "basic_petal", version = 1)
+            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 1)
             interface BasicPetalSchemaV1 {
                 val uuid: UUID
                 val color: String
@@ -44,7 +44,7 @@ class SchemaGenerationTest {
                 val sporeCount: Long
             }
 
-            @Petal(tableName = "basic_petal", version = 2)
+            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 2)
             class BasicPetalSchemaV2 {
                 @AlterColumn(renameFrom = "uuid") val renamed_uuid: UUID = UUID.randomUUID()
                 @AlterColumn(renameFrom = "color") val renamed_color: String = ""
@@ -62,12 +62,12 @@ class SchemaGenerationTest {
             import com.casadetasha.kexp.petals.annotations.Petal
             import java.util.*
 
-            @Petal(tableName = "basic_petal", version = 1)
+            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 1)
             interface BasicPetalSchemaV1 {
                 val uuid: UUID
             }
 
-            @Petal(tableName = "basic_petal", version = 2)
+            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 2)
             interface BasicPetalSchemaV2 {
                 val uuid: UUID?
             }

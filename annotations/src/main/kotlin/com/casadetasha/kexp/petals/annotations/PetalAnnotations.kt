@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.annotations
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
 annotation class Petal(val tableName: String,
+                       val className: String,
                        val version: Int = 1,
                        val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.NONE)
 

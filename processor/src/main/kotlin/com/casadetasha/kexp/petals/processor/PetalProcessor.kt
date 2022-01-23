@@ -43,14 +43,18 @@ class PetalProcessor : AbstractProcessor() {
         classes.forEach {
             val petalAnnotation: Petal = it.getAnnotation(Petal::class)!!
             val tableName = petalAnnotation.tableName
+            val className = petalAnnotation.className
             val tableVersion = petalAnnotation.version
-            if (tableMap[tableName] == null) tableMap[tableName] = PetalMigration(tableName)
+            if (tableMap[tableName] == null) tableMap[tableName] = PetalMigration(
+                tableName = tableName,
+                className = className
+            )
             tableMap[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser.parseFromClass(it)
         }
 
         tableMap.values.forEach { migration ->
             MigrationGenerator(migration).createMigrationForTable()
-            migration.getCurrentSchema()?.let { DaoGenerator(migration.tableName, it).generateFile() }
+            migration.getCurrentSchema()?.let { DaoGenerator(migration.className, it).generateFile() }
         }
 
         if (tableMap.isNotEmpty()) {

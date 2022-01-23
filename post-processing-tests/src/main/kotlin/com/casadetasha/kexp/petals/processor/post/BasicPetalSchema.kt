@@ -7,7 +7,7 @@ import java.util.*
 
 import kotlin.Int
 
-@Petal(tableName = "basic_petal", version = 1)
+@Petal(tableName = "basic_petal", className = "BasicPetal", version = 1)
 interface BasicPetalSchemaV1 {
     val checkingInt: Int
     val checkingLong: Long
@@ -16,7 +16,7 @@ interface BasicPetalSchemaV1 {
     val checkingUUID: UUID
 }
 
-@Petal(tableName = "basic_petal", version = 2)
+@Petal(tableName = "basic_petal", className = "BasicPetal", version = 2)
 interface BasicPetalSchemaV2 {
     val uuid: UUID
     val color: String
@@ -25,7 +25,7 @@ interface BasicPetalSchemaV2 {
     val sporeCount: Long
 }
 
-@Petal(tableName = "basic_petal", version = 3)
+@Petal(tableName = "basic_petal", className = "BasicPetal", version = 3)
 abstract class BasicPetalSchemaV3 {
     @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
     @AlterColumn(renameFrom = "color") abstract val renamed_color: String

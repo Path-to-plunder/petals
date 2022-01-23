@@ -6,13 +6,15 @@ import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import org.jetbrains.exposed.dao.Entity
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Table
 import java.io.File
 import java.util.*
 
-class DaoGenerator(private val tableName: String, private val schema: PetalSchemaMigration) {
+class DaoGenerator(private val className: String, private val schema: PetalSchemaMigration) {
 
     companion object {
         const val EXPOSED_TABLE_PACKAGE = "org.jetbrains.exposed.sql.Table.Dual"
@@ -20,32 +22,29 @@ class DaoGenerator(private val tableName: String, private val schema: PetalSchem
         private const val PACKAGE_NAME: String = "com.casadetasha.kexp.petals"
     }
 
+    private val tableClassName: String by lazy { "${className}Table" }
+    private val entityClassName: String by lazy { "${className}Entity" }
+
     private lateinit var tableBuilder: TypeSpec.Builder
     private lateinit var entityBuilder: TypeSpec.Builder
 
     fun generateFile() {
         val fileSpecBuilder = FileSpec.builder(
             packageName = PACKAGE_NAME,
-            fileName = "${tableName}Petals"
+            fileName = "${className}Petals"
         )
 
         generateClasses()
-        fileSpecBuilder.addType(tableBuilder.build())
+        fileSpecBuilder
+            .addType(tableBuilder.build())
+            .addType(entityBuilder.build())
             .build()
             .writeTo(File(AnnotationParser.kaptKotlinGeneratedDir))
     }
 
-    fun generateClasses() {
-        tableBuilder = TypeSpec.Companion.objectBuilder("${tableName}Table")
-            .superclass(Table::class)
-        entityBuilder = TypeSpec.Companion.classBuilder("${tableName}Entity")
-            .superclass(
-                Entity::class.asClassName()
-                    .parameterizedBy(
-                        Int::class.asClassName()
-                    )
-            )
-
+    private fun generateClasses() {
+        createTableBuilder()
+        createEntityBuilder()
 
         schema.columnMigrations.values
             .filter { !it.isId!! }
@@ -54,6 +53,34 @@ class DaoGenerator(private val tableName: String, private val schema: PetalSchem
                 addEntityColumn(column)
             }
     }
+
+    private fun createTableBuilder() {
+        tableBuilder = TypeSpec.Companion.objectBuilder(tableClassName)
+            .superclass(IntIdTable::class)
+    }
+
+    private fun createEntityBuilder() {
+        entityBuilder = TypeSpec.Companion.classBuilder(entityClassName)
+            .primaryConstructor(FunSpec.constructorBuilder()
+                .addParameter("id",
+                    EntityID::class
+                        .asClassName()
+                        .parameterizedBy(Int::class.asClassName()))
+                .build()
+            )
+            .superclass(IntEntity::class.asClassName())
+            .addSuperclassConstructorParameter("id")
+            .addType(
+                TypeSpec
+                    .companionObjectBuilder()
+                    .superclass(
+                        IntEntityClass::class.asClassName()
+                            .parameterizedBy(ClassName(PACKAGE_NAME, entityClassName)))
+                    .addSuperclassConstructorParameter(tableClassName)
+                    .build()
+            )
+    }
+
 
     private fun addTableColumn(column: PetalColumn) {
         tableBuilder.addProperty(
@@ -90,7 +117,7 @@ class DaoGenerator(private val tableName: String, private val schema: PetalSchem
             ).build()
     }
 
-    private fun getColumnCreationMemberName(column: PetalColumn): Any? {
+    private fun getColumnCreationMemberName(column: PetalColumn): MemberName {
         val methodName = when (column.dataType) {
             "uuid" -> "uuid"
             "TEXT" -> "text"
@@ -98,7 +125,7 @@ class DaoGenerator(private val tableName: String, private val schema: PetalSchem
             "BIGINT" -> "long"
             else -> printThenThrowError(
                 "INTERNAL LIBRARY ERROR: unsupported column (${column.dataType})" +
-                        " found while parsing Dao for table $tableName"
+                        " found while parsing Dao for table $className"
             )
         }
 
@@ -106,7 +133,13 @@ class DaoGenerator(private val tableName: String, private val schema: PetalSchem
     }
 
     private fun addEntityColumn(column: PetalColumn) {
-
+        entityBuilder
+            .addProperty(PropertySpec.builder(column.name, column.kotlinType)
+                .delegate(
+                    CodeBlock.of(
+                        "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)
+                ).build()
+            )
     }
 
     private val PetalColumn.kotlinType: ClassName
@@ -122,7 +155,7 @@ class DaoGenerator(private val tableName: String, private val schema: PetalSchem
                 "BIGINT" -> Long::class
                 else -> printThenThrowError(
                     "INTERNAL LIBRARY ERROR: unsupported datatype ($type) found while" +
-                            " parsing Dao for table $tableName"
+                            " parsing Dao for table $className"
                 )
             }.asClassName()
         }

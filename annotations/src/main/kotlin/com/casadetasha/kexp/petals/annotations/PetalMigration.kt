@@ -5,6 +5,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class PetalMigration(val tableName: String,
+                          val className: String,
                           val schemaMigrations: MutableMap<Int, PetalSchemaMigration> = HashMap()) {
 
     fun getCurrentSchema(): PetalSchemaMigration? = schemaMigrations.toSortedMap()
