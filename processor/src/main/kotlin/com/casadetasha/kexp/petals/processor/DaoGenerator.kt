@@ -14,7 +14,9 @@ import org.jetbrains.exposed.sql.Column
 import java.io.File
 import java.util.*
 
-class DaoGenerator(private val className: String, private val schema: PetalSchemaMigration) {
+class DaoGenerator(private val className: String,
+                   private val tableName: String,
+                   private val schema: PetalSchemaMigration) {
 
     companion object {
         const val EXPOSED_TABLE_PACKAGE = "org.jetbrains.exposed.sql.Table.Dual"
@@ -57,6 +59,7 @@ class DaoGenerator(private val className: String, private val schema: PetalSchem
     private fun createTableBuilder() {
         tableBuilder = TypeSpec.Companion.objectBuilder(tableClassName)
             .superclass(IntIdTable::class)
+            .addSuperclassConstructorParameter(CodeBlock.of("name = %S", tableName))
     }
 
     private fun createEntityBuilder() {
@@ -135,6 +138,7 @@ class DaoGenerator(private val className: String, private val schema: PetalSchem
     private fun addEntityColumn(column: PetalColumn) {
         entityBuilder
             .addProperty(PropertySpec.builder(column.name, column.kotlinType)
+                .mutable()
                 .delegate(
                     CodeBlock.of(
                         "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)

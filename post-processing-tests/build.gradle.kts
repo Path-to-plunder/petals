@@ -1,5 +1,6 @@
 val ktorVersion: String by project
 val kotlinVersion: String by project
+val postgresqlVersion: String by project
 
 val exposedVersion: String by project
 
@@ -29,6 +30,12 @@ dependencies {
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")
     testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
+
+    // DB Container
+    testImplementation("org.testcontainers:testcontainers:1.16.3")
+    testImplementation("org.testcontainers:postgresql:1.16.3")
+    testImplementation("org.postgresql:postgresql:$postgresqlVersion")
+    testImplementation("org.jetbrains.exposed:exposed-jdbc:0.30.2")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

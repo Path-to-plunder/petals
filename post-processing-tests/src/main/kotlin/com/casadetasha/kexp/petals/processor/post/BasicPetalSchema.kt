@@ -2,12 +2,13 @@ package com.casadetasha.kexp.petals.processor.post
 
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.annotations.VarChar
 import java.util.*
 
 import kotlin.Int
 
-@Petal(tableName = "basic_petal", className = "BasicPetal", version = 1)
+@Petal(tableName = "basic_petal", className = "BasicPetal", version = 1, primaryKeyType = PetalPrimaryKey.INT)
 interface BasicPetalSchemaV1 {
     val checkingInt: Int
     val checkingLong: Long

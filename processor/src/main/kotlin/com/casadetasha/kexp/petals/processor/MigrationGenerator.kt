@@ -60,14 +60,14 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
     }
 
     private fun buildCreateTableSql(petalSchemaMigration: PetalSchemaMigration): String {
-        var tableCreationSql = "CREATE TABLE ${petalMigration.tableName} ("
+        var tableCreationSql = "CREATE TABLE \"${petalMigration.tableName}\" ("
 
         val primaryKeyType = petalSchemaMigration.primaryKeyType
         tableCreationSql += when (primaryKeyType) {
             NONE -> ""
-            INT -> " id ${primaryKeyType.dataType} AUTO_INCREMENT NOT NULL,"
-            LONG -> " id ${primaryKeyType.dataType} AUTO_INCREMENT NOT NULL,"
-            else -> " id ${primaryKeyType.dataType} NOT NULL,"
+            INT -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
+            LONG -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
+            else -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
         }
 
         petalSchemaMigration.columnMigrations.values
@@ -76,10 +76,6 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
                 tableCreationSql += " ${parseNewColumnSql(it)},"
             }
         tableCreationSql = tableCreationSql.removeSuffix(",")
-
-        if (petalSchemaMigration.primaryKeyType != NONE) {
-            tableCreationSql += " PRIMARY KEY (id)"
-        }
 
         tableCreationSql += " )"
 
@@ -99,7 +95,7 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
         val droppedColumns: List<PetalColumn> =
             getDroppedColumns(previousMigration, currentMigration, alteredColumns)
 
-        var tableMigrationSql = "ALTER TABLE ${petalMigration.tableName}"
+        var tableMigrationSql = "ALTER TABLE \"${petalMigration.tableName}\""
 
         tableMigrationSql = tableMigrationSql.amendDroppedColumnSql(droppedColumns)
         tableMigrationSql = tableMigrationSql.amendAlteredColumnSql(alteredColumns)
@@ -145,7 +141,9 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
         alteredColumns: Map<String, AlterColumnMigration>
     ): List<PetalColumn> {
         return previousMigration.columnMigrations.values.filter {
-            !alteredColumns.containsKey(it.name) && !currentMigration.columnMigrations.containsKey(it.name)
+            !alteredColumns.containsKey(it.name)
+                    && !currentMigration.columnMigrations.containsKey(it.name)
+                    && !it.isId!!
         }
     }
 
@@ -183,7 +181,7 @@ private fun String.amendAddedColumnSql(addedColumns: List<PetalColumn>): String 
 private fun String.amendDroppedColumnSql(droppedColumns: List<PetalColumn>): String {
     var sql = ""
     droppedColumns.forEach { droppedColumn ->
-        sql += " DROP COLUMN ${droppedColumn.name},"
+        sql += " DROP COLUMN \"${droppedColumn.name}\","
     }
 
     return this + sql
@@ -193,13 +191,13 @@ private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumn
     var sql = ""
     alteredColumns.values.forEach { alteredColumn ->
         if (alteredColumn.previousColumnState.name != alteredColumn.updatedColumnState.name) {
-            sql += " RENAME COLUMN ${alteredColumn.previousColumnState.name}" +
-                    " TO ${alteredColumn.updatedColumnState.name},"
+            sql += " RENAME COLUMN \"${alteredColumn.previousColumnState.name}\"" +
+                    " TO \"${alteredColumn.updatedColumnState.name}\","
         }
         if (alteredColumn.previousColumnState.isNullable && !alteredColumn.updatedColumnState.isNullable) {
-            sql += " ALTER COLUMN ${alteredColumn.updatedColumnState.name} SET NOT NULL,"
+            sql += " ALTER COLUMN \"${alteredColumn.updatedColumnState.name}\" SET NOT NULL,"
         } else if (!alteredColumn.previousColumnState.isNullable && alteredColumn.updatedColumnState.isNullable) {
-            sql += " ALTER COLUMN ${alteredColumn.updatedColumnState.name} DROP NOT NULL,"
+            sql += " ALTER COLUMN \"${alteredColumn.updatedColumnState.name}\" DROP NOT NULL,"
         }
     }
 
@@ -207,7 +205,7 @@ private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumn
 }
 
 private fun parseNewColumnSql(column: PetalColumn): String {
-    var sql = "${column.name} ${column.dataType}"
+    var sql = "\"${column.name}\" ${column.dataType}"
     if (!column.isNullable) {
         sql += " NOT NULL"
     }

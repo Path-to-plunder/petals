@@ -54,7 +54,7 @@ class PetalProcessor : AbstractProcessor() {
 
         tableMap.values.forEach { migration ->
             MigrationGenerator(migration).createMigrationForTable()
-            migration.getCurrentSchema()?.let { DaoGenerator(migration.className, it).generateFile() }
+            migration.getCurrentSchema()?.let { DaoGenerator(migration.className, migration.tableName, it).generateFile() }
         }
 
         if (tableMap.isNotEmpty()) {
