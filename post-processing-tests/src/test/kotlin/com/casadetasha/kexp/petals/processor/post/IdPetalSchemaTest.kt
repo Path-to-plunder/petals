@@ -19,8 +19,8 @@ class IdPetalSchemaTest {
     fun `Creates table without ID`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$no_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE no_id_petal (" +
-              " column TEXT NOT NULL" +
+            .isEqualTo("CREATE TABLE \"no_id_petal\" (" +
+              " \"column\" TEXT NOT NULL" +
               " )"
             )
     }
@@ -29,10 +29,9 @@ class IdPetalSchemaTest {
     fun `Creates table with int id`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$int_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE int_id_petal (" +
-              " id SERIAL AUTO_INCREMENT NOT NULL," +
-              " column TEXT NOT NULL" +
-              " PRIMARY KEY (id)" +
+            .isEqualTo("CREATE TABLE \"int_id_petal\" (" +
+              " id SERIAL PRIMARY KEY," +
+              " \"column\" TEXT NOT NULL" +
               " )"
             )
     }
@@ -40,10 +39,9 @@ class IdPetalSchemaTest {
     fun `Creates table with long id`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$long_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE long_id_petal (" +
-              " id BIGSERIAL AUTO_INCREMENT NOT NULL," +
-              " column TEXT NOT NULL" +
-              " PRIMARY KEY (id)" +
+            .isEqualTo("CREATE TABLE \"long_id_petal\" (" +
+              " id BIGSERIAL PRIMARY KEY," +
+              " \"column\" TEXT NOT NULL" +
               " )"
             )
     }
@@ -53,10 +51,9 @@ class IdPetalSchemaTest {
     fun `Creates table with uuid id`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$uuid_id_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE uuid_id_petal (" +
-              " id uuid NOT NULL," +
-              " column TEXT NOT NULL" +
-              " PRIMARY KEY (id)" +
+            .isEqualTo("CREATE TABLE \"uuid_id_petal\" (" +
+              " id uuid PRIMARY KEY," +
+              " \"column\" TEXT NOT NULL" +
               " )"
             )
     }

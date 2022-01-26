@@ -17,8 +17,8 @@ class NullabilityPetalSchemaTest {
     fun `Creates column as nullable if schema property is nullable`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$starting_nullable_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE starting_nullable_petal (" +
-              " color TEXT" +
+            .isEqualTo("CREATE TABLE \"starting_nullable_petal\" (" +
+              " \"color\" TEXT" +
               " )"
             )
     }
@@ -27,16 +27,16 @@ class NullabilityPetalSchemaTest {
     fun `Updates column to nullable if altered column is nullable`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$starting_nullable_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[2]!!.migrationSql)
-            .isEqualTo("ALTER TABLE starting_nullable_petal" +
-              " ALTER COLUMN color SET NOT NULL")
+            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
+              " ALTER COLUMN \"color\" SET NOT NULL")
     }
 
     @Test
     fun `Added nullable columns are added as nullable`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$starting_nullable_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[3]!!.migrationSql)
-            .isEqualTo("ALTER TABLE starting_nullable_petal" +
-              " ADD COLUMN secondColor TEXT"
+            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
+              " ADD COLUMN \"secondColor\" TEXT"
             )
     }
 
@@ -44,8 +44,8 @@ class NullabilityPetalSchemaTest {
     fun `Creates column as NOT NULL if schema property is not nullable`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$starting_non_nullable_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE starting_non_nullable_petal (" +
-              " color TEXT NOT NULL" +
+            .isEqualTo("CREATE TABLE \"starting_non_nullable_petal\" (" +
+              " \"color\" TEXT NOT NULL" +
               " )"
             )
     }
@@ -54,8 +54,8 @@ class NullabilityPetalSchemaTest {
     fun `Updates column to NOT NULL if altered column is non nullable`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$starting_non_nullable_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[2]!!.migrationSql)
-            .isEqualTo("ALTER TABLE starting_non_nullable_petal" +
-              " ALTER COLUMN color DROP NOT NULL"
+            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
+              " ALTER COLUMN \"color\" DROP NOT NULL"
             )
     }
 
@@ -63,8 +63,8 @@ class NullabilityPetalSchemaTest {
     fun `Added non nullable columns are added as non nullable`() {
         decodedPetalMigration = Json.decodeFromString(`TableMigrations$starting_non_nullable_petal`().petalJson)
         assertThat(decodedPetalMigration.schemaMigrations[3]!!.migrationSql)
-            .isEqualTo("ALTER TABLE starting_non_nullable_petal" +
-              " ADD COLUMN secondColor TEXT NOT NULL"
+            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
+              " ADD COLUMN \"secondColor\" TEXT NOT NULL"
             )
     }
 }
