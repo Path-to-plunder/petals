@@ -1,127 +1,127 @@
 package com.casadetasha.kexp.petals.processor.post
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
+import assertk.assertions.*
 import com.casadetasha.kexp.petals.BasicPetalEntity
-import com.casadetasha.kexp.petals.BasicPetalTable
 import com.casadetasha.kexp.petals.PetalTables
-import com.casadetasha.kexp.petals.annotations.MetaTableInfo
 import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.junit.Rule
+import org.junit.ClassRule
+import org.junit.rules.ExternalResource
 import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import java.util.*
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-private val json = Json { prettyPrint = true }
-
 class BasicPetalSchemaTest {
 
-    lateinit var decodedPetalMigration: PetalMigration
+    companion object {
 
-    @get:Rule
-    var genericContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres")
-        .withDatabaseName("test_db")
-        .withUsername("test_user")
-        .withPassword("test_password")
+        private lateinit var datasource: HikariDataSource
 
-    private lateinit var datasource: HikariDataSource
+        var dbContainer: JdbcDatabaseContainer<*> = PostgreSQLContainer("postgres")
+            .withDatabaseName("test_db")
+            .withUsername("test_user")
+            .withPassword("test_password")
+
+        @ClassRule
+        @JvmField
+        val resource: ExternalResource = object : ExternalResource() {
+
+            override fun before() {
+                dbContainer.start()
+                runMigrations()
+            }
+
+            private fun runMigrations() {
+                datasource = HikariDataSource(
+                    HikariConfig().apply {
+                        jdbcUrl = dbContainer.jdbcUrl;
+                        username = dbContainer.username;
+                        password = dbContainer.password;
+                        driverClassName = dbContainer.driverClassName;
+                    })
+
+                Database.connect(datasource)
+            }
+
+            override fun after() {
+                dbContainer.close()
+            }
+        }
+    }
+
+    private val tableName: String by lazy { `TableMigrations$basic_petal`().tableName }
 
     @BeforeTest
     fun setup() {
-        decodedPetalMigration = Json.decodeFromString(`TableMigrations$basic_petal`().petalJson)
-
-        val jdbcContainer =  genericContainer as JdbcDatabaseContainer<*>;
-
-        datasource = HikariDataSource(
-            HikariConfig().apply {
-                jdbcUrl = jdbcContainer.jdbcUrl;
-                username = jdbcContainer.username;
-                password = jdbcContainer.password;
-                driverClassName = jdbcContainer.driverClassName;
-            })
-
-        Database.connect(datasource)
         PetalTables.setupAndMigrateTables(datasource)
     }
 
-    @Test
-    fun `Creates table creation migration with all supported types`() {
-        assertThat(decodedPetalMigration.schemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE \"basic_petal\" (" +
-              " id SERIAL PRIMARY KEY," +
-              " \"checkingVarChar\" CHARACTER VARYING(10) NOT NULL," +
-              " \"checkingString\" TEXT NOT NULL," +
-              " \"checkingInt\" INT NOT NULL," +
-              " \"checkingUUID\" uuid NOT NULL," +
-              " \"checkingLong\" BIGINT NOT NULL" +
-              " )"
-        )
+    @AfterTest
+    fun teardown() {
+        datasource.connection.use { connection ->
+            connection.prepareStatement("DELETE FROM \"$tableName\"").execute()
+        }
     }
 
     @Test
-    fun `Creates alter table migration with dropping and adding all supported types`() {
-        assertThat(decodedPetalMigration.schemaMigrations[2]!!.migrationSql)
-            .isEqualTo("ALTER TABLE \"basic_petal\"" +
-              " DROP COLUMN \"checkingVarChar\"," +
-              " DROP COLUMN \"checkingString\"," +
-              " DROP COLUMN \"checkingInt\"," +
-              " DROP COLUMN \"checkingUUID\"," +
-              " DROP COLUMN \"checkingLong\"," +
-              " ADD COLUMN \"color\" TEXT NOT NULL," +
-              " ADD COLUMN \"count\" INT NOT NULL," +
-              " ADD COLUMN \"secondColor\" CHARACTER VARYING(10) NOT NULL," +
-              " ADD COLUMN \"uuid\" uuid NOT NULL," +
-              " ADD COLUMN \"sporeCount\" BIGINT NOT NULL")
+    fun `Loads stored petals`() {
+        val baseUuid = UUID.randomUUID();
+        var petalEntityId: Int? = null
+        transaction {
+            val petalEntity = BasicPetalEntity.new {
+                renamed_count = 1
+                renamed_sporeCount = 2
+                renamed_color = "Blue"
+                renamed_secondColor = "Yellow"
+                renamed_uuid = baseUuid
+            }
+
+            petalEntityId = petalEntity.id.value
+        }
+
+        transaction {
+            val loadedPetal = BasicPetalEntity[petalEntityId!!]
+            assertThat(loadedPetal.renamed_count).isEqualTo(1)
+            assertThat(loadedPetal.renamed_sporeCount).isEqualTo(2)
+            assertThat(loadedPetal.renamed_color).isEqualTo("Blue")
+            assertThat(loadedPetal.renamed_secondColor).isEqualTo("Yellow")
+            assertThat(loadedPetal.renamed_uuid).isEqualTo(baseUuid)
+        }
     }
 
     @Test
-    fun `Creates alter table migration with renaming of all supported types`() {
-        assertThat(decodedPetalMigration.schemaMigrations[3]!!.migrationSql)
-            .isEqualTo("ALTER TABLE \"basic_petal\"" +
-              " RENAME COLUMN \"count\" TO \"renamed_count\"," +
-              " RENAME COLUMN \"sporeCount\" TO \"renamed_sporeCount\"," +
-              " RENAME COLUMN \"uuid\" TO \"renamed_uuid\"," +
-              " RENAME COLUMN \"secondColor\" TO \"renamed_secondColor\"," +
-              " RENAME COLUMN \"color\" TO \"renamed_color\"")
-    }
+    fun `Creates int IDs in order`() {
+        transaction {
+            val firstPetalEntity = BasicPetalEntity.new {
+                renamed_count = 1
+                renamed_sporeCount = 2
+                renamed_color = "Blue"
+                renamed_secondColor = "Yellow"
+                renamed_uuid = UUID.randomUUID()
+            }
 
-//    @Test
-//    fun `Loads stored petals`() {
-////        val testMigrationTable = `TableMigrations$basic_petal`()
-////        val testMigrationTableInfo = MetaTableInfo.loadTableInfo(datasource, testMigrationTable.tableName)
-//
-//        val baseUuid = UUID.randomUUID();
-//        var petalEntityId: Int? = null
-//        transaction {
-//            val petalEntity = BasicPetalEntity.new {
-//                count = 1
-//                sporeCount = 2
-//                color = "Blue"
-//                secondColor = "Yellow"
-//                uuid = baseUuid
-//            }
-//
-//            petalEntityId = petalEntity.id.value
-//        }
-//
-//        transaction {
-//            val loadedPetal = BasicPetalEntity[petalEntityId!!]
-//            assertThat(loadedPetal.count).isEqualTo(1)
-//            assertThat(loadedPetal.sporeCount).isEqualTo(2)
-//            assertThat(loadedPetal.color).isEqualTo("Blue")
-//            assertThat(loadedPetal.secondColor).isEqualTo("Yellow")
-//            assertThat(loadedPetal.uuid).isEqualTo(baseUuid)
-//        }
-//    }
+            val secondPetalEntity = BasicPetalEntity.new {
+                renamed_count = 1
+                renamed_sporeCount = 2
+                renamed_color = "Blue"
+                renamed_secondColor = "Yellow"
+                renamed_uuid = UUID.randomUUID()
+            }
+
+            val firstPetalEntityId = firstPetalEntity.id.value
+            val secondPetalEntityId = secondPetalEntity.id.value
+
+            assertThat(secondPetalEntityId).isEqualTo(firstPetalEntityId+1)
+        }
+    }
 }

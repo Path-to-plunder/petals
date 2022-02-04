@@ -55,8 +55,22 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
                     it.key to currentMigration
                 )
             }
+            if (previousMigration != null) {
+                currentMigration.migrationAlterationSql = createRenameSql(previousMigration!!, currentMigration)
+            }
             previousMigration = currentMigration
         }
+    }
+
+    private fun createRenameSql(previousMigration: PetalSchemaMigration, currentMigration: PetalSchemaMigration): List<String>? {
+        val renameSqlList = ArrayList<String>()
+        val alteredColumns: Map<String, AlterColumnMigration> = getAlteredColumns(previousMigration, currentMigration)
+        alteredColumns.filter { it.value.previousColumnState.name != it.value.updatedColumnState.name }
+            .forEach { (_, migration) ->
+                renameSqlList += createRenameColumnSql(migration)
+            }
+
+        return renameSqlList
     }
 
     private fun buildCreateTableSql(petalSchemaMigration: PetalSchemaMigration): String {
@@ -85,7 +99,7 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
     private fun buildMigrateTableSql(
         previousMigrationInfo: Pair<Int, PetalSchemaMigration>,
         currentMigrationInfo: Pair<Int, PetalSchemaMigration>
-    ): String {
+    ): String? {
         val previousMigration = previousMigrationInfo.second
         val currentMigration = currentMigrationInfo.second
         checkColumnConsistency(previousMigration.columnMigrations, currentMigrationInfo)
@@ -95,15 +109,19 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
         val droppedColumns: List<PetalColumn> =
             getDroppedColumns(previousMigration, currentMigration, alteredColumns)
 
-        var tableMigrationSql = "ALTER TABLE \"${petalMigration.tableName}\""
+        val baseMigrationSql = "ALTER TABLE \"${petalMigration.tableName}\""
 
+        var tableMigrationSql = baseMigrationSql
         tableMigrationSql = tableMigrationSql.amendDroppedColumnSql(droppedColumns)
         tableMigrationSql = tableMigrationSql.amendAlteredColumnSql(alteredColumns)
         tableMigrationSql = tableMigrationSql.amendAddedColumnSql(addedColumns)
 
         tableMigrationSql = tableMigrationSql.removeSuffix(",")
 
-        return tableMigrationSql
+        return when (tableMigrationSql == baseMigrationSql) {
+            false -> tableMigrationSql;
+            true -> null;
+        }
     }
 
     private fun checkColumnConsistency(
@@ -167,6 +185,17 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
             }
             .associateBy { it.previousColumnState.name }
     }
+
+
+    private fun createRenameColumnSql(alteredColumn: AlterColumnMigration): String {
+        if (alteredColumn.previousColumnState.name == alteredColumn.updatedColumnState.name) {
+            printThenThrowError("Attempting to rename column ${alteredColumn.previousColumnState} for table" +
+                    " ${petalMigration.tableName}, however no name change has occurred.")
+        }
+
+        return "ALTER TABLE \"${petalMigration.tableName}\" RENAME COLUMN \"${alteredColumn.previousColumnState.name}\"" +
+                " TO \"${alteredColumn.updatedColumnState.name}\";"
+    }
 }
 
 private fun String.amendAddedColumnSql(addedColumns: List<PetalColumn>): String {
@@ -190,10 +219,6 @@ private fun String.amendDroppedColumnSql(droppedColumns: List<PetalColumn>): Str
 private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumnMigration>): String {
     var sql = ""
     alteredColumns.values.forEach { alteredColumn ->
-        if (alteredColumn.previousColumnState.name != alteredColumn.updatedColumnState.name) {
-            sql += " RENAME COLUMN \"${alteredColumn.previousColumnState.name}\"" +
-                    " TO \"${alteredColumn.updatedColumnState.name}\","
-        }
         if (alteredColumn.previousColumnState.isNullable && !alteredColumn.updatedColumnState.isNullable) {
             sql += " ALTER COLUMN \"${alteredColumn.updatedColumnState.name}\" SET NOT NULL,"
         } else if (!alteredColumn.previousColumnState.isNullable && alteredColumn.updatedColumnState.isNullable) {

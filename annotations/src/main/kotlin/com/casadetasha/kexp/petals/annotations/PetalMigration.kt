@@ -17,6 +17,7 @@ data class PetalMigration(val tableName: String,
 data class PetalSchemaMigration(val primaryKeyType: PetalPrimaryKey,
                                 val columnMigrations:HashMap<String, PetalColumn>) {
     var migrationSql: String? = null
+    var migrationAlterationSql: List<String>? = null
 
     val columnsAsList: List<PetalColumn> by lazy { columnMigrations.values.toList() }
 }

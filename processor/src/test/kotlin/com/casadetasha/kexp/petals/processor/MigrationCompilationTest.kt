@@ -5,11 +5,13 @@ import assertk.assertions.isEqualTo
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode.*
 import com.tschuchort.compiletesting.SourceFile
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class SchemaGenerationTest {
+class MigrationCompilationTest {
 
     companion object {
+
         private val createTableSource = SourceFile.kotlin(
             "PetalSchema.kt", """
             package com.casadetasha
@@ -94,13 +96,13 @@ class SchemaGenerationTest {
         compilationResult = compileSources(unAnnotatedAlteredColumnSource)
         assertThat(compilationResult.exitCode).isEqualTo(INTERNAL_ERROR)
     }
+}
 
-    private fun compileSources(vararg sourceFiles: SourceFile): KotlinCompilation.Result {
-        return KotlinCompilation().apply {
-            sources = sourceFiles.toList()
-            annotationProcessors = listOf(PetalProcessor())
-            inheritClassPath = true
-            messageOutputStream = System.out
-        }.compile()
-    }
+internal fun compileSources(vararg sourceFiles: SourceFile): KotlinCompilation.Result {
+    return KotlinCompilation().apply {
+        sources = sourceFiles.toList()
+        annotationProcessors = listOf(PetalProcessor())
+        inheritClassPath = true
+        messageOutputStream = System.out
+    }.compile()
 }

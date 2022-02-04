@@ -6,8 +6,6 @@ import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.annotations.VarChar
 import java.util.*
 
-import kotlin.Int
-
 @Petal(tableName = "basic_petal", className = "BasicPetal", version = 1, primaryKeyType = PetalPrimaryKey.INT)
 interface BasicPetalSchemaV1 {
     val checkingInt: Int
@@ -17,7 +15,7 @@ interface BasicPetalSchemaV1 {
     val checkingUUID: UUID
 }
 
-@Petal(tableName = "basic_petal", className = "BasicPetal", version = 2)
+@Petal(tableName = "basic_petal", className = "BasicPetal", version = 2, primaryKeyType = PetalPrimaryKey.INT)
 interface BasicPetalSchemaV2 {
     val uuid: UUID
     val color: String
@@ -26,7 +24,7 @@ interface BasicPetalSchemaV2 {
     val sporeCount: Long
 }
 
-@Petal(tableName = "basic_petal", className = "BasicPetal", version = 3)
+@Petal(tableName = "basic_petal", className = "BasicPetal", version = 3, primaryKeyType = PetalPrimaryKey.INT)
 abstract class BasicPetalSchemaV3 {
     @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
     @AlterColumn(renameFrom = "color") abstract val renamed_color: String

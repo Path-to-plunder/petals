@@ -21,8 +21,8 @@ object MetaTableInfo {
 
     private const val LOAD_TABLE_VERSION_SQL: String = "SELECT version FROM $META_TABLE_NAME WHERE table_name = ?"
 
-    private const val LOAD_TABLE_INFO_SQL: String = "SELECT table_name, column_name, data_type, is_nullable" +
-            " FROM information_schema.columns WHERE table_name = ?"
+    private const val LOAD_TABLE_INFO_SQL: String = "SELECT table_name, column_name, data_type, is_nullable," +
+            " character_maximum_length FROM information_schema.columns WHERE table_name = ?"
 
     fun loadTableInfo(dataSource: HikariDataSource, tableName: String): DatabaseTableInfo? {
         val version: Int? = loadTableVersion(dataSource, tableName)
@@ -97,9 +97,10 @@ object MetaTableInfo {
         val columnName = row.getString("column_name")
         val dataType = row.getString("data_type")
         val isNullable = row.getString("is_nullable")
+        val maxCharacterLength = row.getString("character_maximum_length")
 
         return PetalColumn(name = columnName,
-            dataType = dataType.mapFromSchemaColumnType(),
+            dataType = dataType.mapFromSchemaColumnType(maxCharacterLength),
             isNullable = when (isNullable) {
                 "NO" -> false
                 "YES" -> true
@@ -120,12 +121,20 @@ object MetaTableInfo {
     }
 }
 
-private fun String.mapFromSchemaColumnType(): String {
+private fun String.mapFromSchemaColumnType(maxCharacterLength: String?): String {
     return when (this) {
         "uuid" -> "uuid"
         "integer" -> "INT"
+        "character varying" -> "CHARACTER VARYING(${checkCharLengthNotNull(maxCharacterLength)})"
         else -> this.uppercase()
     }
+}
+
+fun checkCharLengthNotNull(maxCharacterLength: String?): String {
+    checkNotNull(maxCharacterLength) {
+        "CHARACTER VARYING columns without a max character length are not currently supported."
+    }
+    return maxCharacterLength
 }
 
 @Serializable

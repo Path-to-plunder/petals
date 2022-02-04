@@ -67,10 +67,14 @@ object PetalMigrationColumnParser {
         return PetalColumn(
             previousName = "id",
             name = "id",
-            dataType = primaryKeyType.dataType!!,
             isNullable = false,
             isAlteration = false,
-            isId = true
+            isId = true,
+            dataType = when (val dataType = primaryKeyType.dataType!!) {
+                "SERIAL" -> "INT"
+                "BIGSERIAL" -> "BIGINT"
+                else -> dataType
+            }
         )
     }
 

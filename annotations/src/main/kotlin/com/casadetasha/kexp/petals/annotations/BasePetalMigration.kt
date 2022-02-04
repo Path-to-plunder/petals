@@ -46,18 +46,35 @@ abstract class BasePetalMigration {
     private fun checkSchemaVersionValidity(versionNumber: Int) {
         val schemaVersion = petalSchemaVersions[versionNumber]
 
-        checkNotNull(existingTableInfo) { "INTERNAL LIBRARY ERROR: should not check version equality when existing" +
-                " table is null" }
+        checkNotNull(existingTableInfo) {
+            "INTERNAL LIBRARY ERROR: should not check version equality when existing" +
+                    " table is null"
+        }
 
         checkNotNull(schemaVersion) {
             "Found meta info for table $tableName version $versionNumber but no matching schema was provided to" +
                     " match. A @Petal annotated schema must be provided matching the current table."
         }
 
-        check(schemaVersion.columnsAsList == existingTableInfo!!.columns) {
+        if(schemaVersion.columnsAsList != existingTableInfo!!.columns) {
+        }
+
+        check(schemaVersion.columnsAsList.sortedBy { it.name } == existingTableInfo!!.columns.sortedBy { it.name }) {
+            val schemaColumns = schemaVersion.columnsAsList
+            val existingColumns = existingTableInfo!!.columns
+            val columnDiff = existingColumns.filterNot { schemaColumns.contains(it) }.toMutableSet()
+            columnDiff += schemaColumns.filterNot { existingColumns.contains(it) }
+
             "Table $tableName version $versionNumber does not match the provided schema.\n\n" +
-                    "Expected Columns: ${schemaVersion.columnsAsList.joinToString()}\n\n" +
-                    "Actual Columns: ${existingTableInfo!!.columns.joinToString()}\n"
+                    "Non-matching columns:\n{\n${
+                        columnDiff.sortedBy { it.name }.joinToString("\n")
+                    }\n}\n\n" +
+                    "Expected Columns:\n{\n${
+                        schemaColumns.sortedBy { it.name }.joinToString("\n")
+                    }\n}\n\n" +
+                    "Actual Columns:\n{\n${
+                        existingColumns.sortedBy { it.name }.joinToString("\n")
+                    }\n}\n"
         }
     }
 
@@ -84,14 +101,27 @@ abstract class BasePetalMigration {
 
     private fun runMigration(connection: Connection, schema: PetalSchemaMigration, version: Int) {
         connection.runTransactionWithRollback {
-            migrateSchema(it, schema.migrationSql!!, version)
+            migrateSchema(it, schema.migrationSql, schema.migrationAlterationSql, version)
         }
     }
 
-    private fun migrateSchema(connection: Connection, schemaMigration: String, tableVersion: Int) {
-        connection.createStatement().use { statement ->
-            statement.execute(schemaMigration)
+    private fun migrateSchema(
+        connection: Connection,
+        schemaMigration: String?,
+        alterationMigrations: List<String>?,
+        tableVersion: Int
+    ) {
+        if (schemaMigration != null) {
+            connection.createStatement().use { statement ->
+                statement.execute(schemaMigration)
+            }
         }
+        (alterationMigrations ?: ArrayList()).forEach { alterationSql ->
+            connection.createStatement().use { statement ->
+                statement.execute(alterationSql)
+            }
+        }
+
         MetaTableInfo.updateTableVersionNumber(connection, tableName, tableVersion)
     }
 }
