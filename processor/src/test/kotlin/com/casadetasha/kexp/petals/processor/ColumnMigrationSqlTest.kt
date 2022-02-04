@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.rules.ExternalResource
 import java.lang.reflect.Method
 
-class GeneratedSqlTest {
+class ColumnMigrationSqlTest {
 
     companion object {
 
@@ -58,6 +58,25 @@ class GeneratedSqlTest {
             }
             """.trimIndent()
         )
+
+        private val unAnnotatedAlteredColumnSource = SourceFile.kotlin(
+            "PetalSchema.kt", """
+            package com.casadetasha
+
+            import com.casadetasha.kexp.petals.annotations.AlterColumn
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import java.util.*
+
+            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 1)
+            interface BasicPetalSchemaV1 {
+                val uuid: UUID
+            }
+
+            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 2)
+            interface BasicPetalSchemaV2 {
+                val uuid: UUID?
+            }
+        """.trimIndent())
 
         private lateinit var petalSchemaMigrations: Map<Int, PetalSchemaMigration>
 
@@ -138,5 +157,11 @@ class GeneratedSqlTest {
             """ALTER TABLE "basic_petal" RENAME COLUMN "secondColor" TO "renamed_secondColor";""",
             """ALTER TABLE "basic_petal" RENAME COLUMN "color" TO "renamed_color";"""
         )
+    }
+
+    @Test
+    fun `compiling migration with updated column info and no AlterColumn annotation fails`() {
+        val compilationResult = compileSources(unAnnotatedAlteredColumnSource)
+        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
     }
 }

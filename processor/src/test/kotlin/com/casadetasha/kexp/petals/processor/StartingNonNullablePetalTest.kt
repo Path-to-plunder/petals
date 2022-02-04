@@ -13,7 +13,7 @@ import org.junit.Test
 import org.junit.rules.ExternalResource
 import java.lang.reflect.Method
 
-class StartingNullablePetalTest {
+class StartingNonNullablePetalTest {
 
     companion object {
 
@@ -25,20 +25,21 @@ class StartingNullablePetalTest {
             import com.casadetasha.kexp.petals.annotations.Petal
             import java.util.*
 
-            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal", version = 1)
-            interface StartingNullablePetalSchemaV1 {
-                val color: String?
-            }
-            
-            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal", version = 2)
-            interface StartingNullablePetalSchemaV2 {
-                @AlterColumn val color: String
-            }
-            
-            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal", version = 3)
-            interface StartingNullablePetalSchemaV3 {
+
+            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal", version = 1)
+            interface StartingNonNullablePetalSchemaV1 {
                 val color: String
-                val secondColor: String?
+            }
+
+            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal", version = 2)
+            interface StartingNonNullablePetalSchemaV2 {
+                @AlterColumn val color: String?
+            }
+
+            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal", version = 3)
+            interface StartingNonNullablePetalSchemaV3 {
+                val color: String?
+                val secondColor: String
             }
             """.trimIndent()
         )
@@ -58,7 +59,7 @@ class StartingNullablePetalTest {
             }
 
             private fun parsePetalMigrations(compilationResult: KotlinCompilation.Result) {
-                val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$starting_nullable_petal")
+                val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$starting_non_nullable_petal")
 
                 val migrationClassInstance = generatedMigrationClass.getDeclaredConstructor().newInstance()
                 val petalJsonGetter: Method = migrationClassInstance.javaClass.getDeclaredMethod("getPetalJson")
@@ -71,26 +72,27 @@ class StartingNullablePetalTest {
     }
 
     @Test
-    fun `Creates column as nullable if schema property is nullable`() {
+    fun `Creates column as NOT NULL if schema property is not nullable`() {
         assertThat(petalSchemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE \"starting_nullable_petal\" (" +
-                    " \"color\" TEXT" +
+            .isEqualTo("CREATE TABLE \"starting_non_nullable_petal\" (" +
+                    " \"color\" TEXT NOT NULL" +
                     " )"
             )
     }
 
     @Test
-    fun `Updates column to nullable if altered column is nullable`() {
+    fun `Updates column to NOT NULL if altered column is non nullable`() {
         assertThat(petalSchemaMigrations[2]!!.migrationSql)
-            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
-                    " ALTER COLUMN \"color\" SET NOT NULL")
+            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
+                    " ALTER COLUMN \"color\" DROP NOT NULL"
+            )
     }
 
     @Test
-    fun `Added nullable columns are added as nullable`() {
+    fun `Added non nullable columns are added as non nullable`() {
         assertThat(petalSchemaMigrations[3]!!.migrationSql)
-            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
-                    " ADD COLUMN \"secondColor\" TEXT"
+            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
+                    " ADD COLUMN \"secondColor\" TEXT NOT NULL"
             )
     }
 }
