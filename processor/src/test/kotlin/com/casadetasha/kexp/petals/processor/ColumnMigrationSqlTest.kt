@@ -7,6 +7,7 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.util.compileSources
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import kotlinx.serialization.decodeFromString

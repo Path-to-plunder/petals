@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.util.compileSources
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import kotlinx.serialization.decodeFromString
@@ -13,7 +14,7 @@ import org.junit.Test
 import org.junit.rules.ExternalResource
 import java.lang.reflect.Method
 
-class StartingNonNullablePetalTest {
+class StartingNonNullableSqlTest {
 
     companion object {
 

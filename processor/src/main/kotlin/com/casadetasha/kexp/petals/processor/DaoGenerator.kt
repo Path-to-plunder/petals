@@ -3,13 +3,15 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.Column
 import java.io.File
 import java.util.*
@@ -20,7 +22,6 @@ class DaoGenerator(private val className: String,
 
     companion object {
         const val EXPOSED_TABLE_PACKAGE = "org.jetbrains.exposed.sql.Table.Dual"
-
         private const val PACKAGE_NAME: String = "com.casadetasha.kexp.petals"
     }
 
@@ -58,8 +59,17 @@ class DaoGenerator(private val className: String,
 
     private fun createTableBuilder() {
         tableBuilder = TypeSpec.Companion.objectBuilder(tableClassName)
-            .superclass(IntIdTable::class)
+            .superclass(getTableSuperclass())
             .addSuperclassConstructorParameter(CodeBlock.of("name = %S", tableName))
+    }
+
+    private fun getTableSuperclass(): ClassName {
+        return when (schema.primaryKeyType) {
+            PetalPrimaryKey.INT -> IntIdTable::class.asClassName()
+            PetalPrimaryKey.LONG -> LongIdTable::class.asClassName()
+            PetalPrimaryKey.UUID -> UUIDTable::class.asClassName()
+            PetalPrimaryKey.NONE -> IntIdTable::class.asClassName()
+        }
     }
 
     private fun createEntityBuilder() {
@@ -68,22 +78,48 @@ class DaoGenerator(private val className: String,
                 .addParameter("id",
                     EntityID::class
                         .asClassName()
-                        .parameterizedBy(Int::class.asClassName()))
+                        .parameterizedBy(getEntityIdParameter()))
                 .build()
             )
-            .superclass(IntEntity::class.asClassName())
+            .superclass(getEntitySuperclass())
             .addSuperclassConstructorParameter("id")
             .addType(
                 TypeSpec
                     .companionObjectBuilder()
                     .superclass(
-                        IntEntityClass::class.asClassName()
+                        getEntityClassName()
                             .parameterizedBy(ClassName(PACKAGE_NAME, entityClassName)))
                     .addSuperclassConstructorParameter(tableClassName)
                     .build()
             )
     }
 
+    private fun getEntityClassName(): ClassName {
+        return when (schema.primaryKeyType) {
+            PetalPrimaryKey.INT -> IntEntityClass::class.asClassName()
+            PetalPrimaryKey.LONG -> LongEntityClass::class.asClassName()
+            PetalPrimaryKey.UUID -> UUIDEntityClass::class.asClassName()
+            PetalPrimaryKey.NONE -> IntEntityClass::class.asClassName()
+        }
+    }
+
+    private fun getEntitySuperclass(): ClassName {
+        return when (schema.primaryKeyType) {
+            PetalPrimaryKey.INT -> IntEntity::class.asClassName()
+            PetalPrimaryKey.LONG -> LongEntity::class.asClassName()
+            PetalPrimaryKey.UUID -> UUIDEntity::class.asClassName()
+            PetalPrimaryKey.NONE -> IntEntity::class.asClassName()
+        }
+    }
+
+    private fun getEntityIdParameter(): ClassName {
+        return when (schema.primaryKeyType) {
+            PetalPrimaryKey.INT -> Int::class.asClassName()
+            PetalPrimaryKey.LONG -> Long::class.asClassName()
+            PetalPrimaryKey.UUID -> UUID::class.asClassName()
+            PetalPrimaryKey.NONE -> Int::class.asClassName()
+        }
+    }
 
     private fun addTableColumn(column: PetalColumn) {
         tableBuilder.addProperty(
