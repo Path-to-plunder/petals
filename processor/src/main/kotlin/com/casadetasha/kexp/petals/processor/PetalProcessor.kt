@@ -7,6 +7,9 @@ import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.casadetasha.kexp.petals.annotations.VarChar
+import com.casadetasha.kexp.petals.processor.classgenerator.table.TableGenerator
+import com.casadetasha.kexp.petals.processor.migration.MigrationGenerator
+import com.casadetasha.kexp.petals.processor.migration.PetalMigrationSetupGenerator
 import com.google.auto.service.AutoService
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -54,7 +57,7 @@ class PetalProcessor : AbstractProcessor() {
 
         tableMap.values.forEach { migration ->
             MigrationGenerator(migration).createMigrationForTable()
-            migration.getCurrentSchema()?.let { DaoGenerator(migration.className, migration.tableName, it).generateFile() }
+            migration.getCurrentSchema()?.let { TableGenerator(migration.className, migration.tableName, it).generateFile() }
         }
 
         if (tableMap.isNotEmpty()) {

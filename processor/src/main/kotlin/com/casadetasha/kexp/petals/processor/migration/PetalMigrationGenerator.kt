@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor
+package com.casadetasha.kexp.petals.processor.migration
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.petals.annotations.PetalMigration

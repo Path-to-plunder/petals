@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor
+package com.casadetasha.kexp.petals.processor.classgenerator.table
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
@@ -16,9 +16,9 @@ import org.jetbrains.exposed.sql.Column
 import java.io.File
 import java.util.*
 
-class DaoGenerator(private val className: String,
-                   private val tableName: String,
-                   private val schema: PetalSchemaMigration) {
+class TableGenerator(private val className: String,
+                     private val tableName: String,
+                     private val schema: PetalSchemaMigration) {
 
     companion object {
         const val EXPOSED_TABLE_PACKAGE = "org.jetbrains.exposed.sql.Table.Dual"

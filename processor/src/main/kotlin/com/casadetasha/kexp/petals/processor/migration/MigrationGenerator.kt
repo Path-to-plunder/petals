@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor
+package com.casadetasha.kexp.petals.processor.migration
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
@@ -9,6 +9,7 @@ import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.*
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.LONG
+import com.casadetasha.kexp.petals.processor.migration.AlterColumnMigration
 import com.squareup.kotlinpoet.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
