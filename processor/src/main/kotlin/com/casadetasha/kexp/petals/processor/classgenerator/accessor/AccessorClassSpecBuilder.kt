@@ -1,12 +1,14 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor
 
-import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.annotations.UUIDSerializer
+import com.casadetasha.kexp.petals.processor.ktx.kotlinType
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.*
+import kotlin.reflect.KClass
 
 @OptIn(KotlinPoetMetadataPreview::class)
 class AccessorClassSpecBuilder {
@@ -18,21 +20,23 @@ class AccessorClassSpecBuilder {
 
         val tableColumns: Set<PetalColumn> = accessorClassInfo.columns.toSortedSet()
 
-//        val tableColumns: List<PetalColumn> = accessorClassInfo.columns.toList()
-
         tableColumns.forEach {
-            classTypeBuilder.addProperty(getKexportedPropertySpec(it))
+            classTypeBuilder.addProperty(getAccessorPropertySpec(it))
         }
 
-        return classTypeBuilder
+        classTypeBuilder
             .primaryConstructor(createConstructorSpec(tableColumns))
-            .build()
+            .addAccessorCompanionObject(accessorClassInfo)
+
+        return classTypeBuilder.build()
     }
 
-    private fun getKexportedPropertySpec(property: PetalColumn): PropertySpec {
+    private fun getAccessorPropertySpec(property: PetalColumn): PropertySpec {
         val propertyTypeName = property.kotlinType
         val propertyBuilder = PropertySpec.builder(property.name, propertyTypeName)
         val serialName = property.name;
+
+        if (!property.isId!!) { propertyBuilder.mutable() }
 
         if (serialName != property.name) {
             propertyBuilder.addAnnotation(
@@ -40,6 +44,12 @@ class AccessorClassSpecBuilder {
                     .addMember("%S", serialName)
                     .build()
             )
+        }
+
+        if (property.kotlinType == UUID::class.asClassName()) {
+            propertyBuilder.addAnnotation(AnnotationSpec.builder(Serializable::class)
+                .addMember("with = %M::class", UUIDSerializer::class.asMemberName())
+                .build())
         }
 
         return propertyBuilder
@@ -55,27 +65,25 @@ class AccessorClassSpecBuilder {
         return constructorBuilder.build()
     }
 
-    private fun getPropertySpec(property: PetalColumn): ParameterSpec {
-        val propertyTypeName = property.kotlinType
-        return ParameterSpec.builder(property.name, propertyTypeName)
+    private fun getPropertySpec(column: PetalColumn): ParameterSpec {
+        val propertyTypeName = column.kotlinType
+        return ParameterSpec.builder(column.name, propertyTypeName)
             .build()
     }
 
-    private val PetalColumn.kotlinType: ClassName
-        get() {
-            if (dataType.startsWith("CHARACTER VARYING")) {
-                return String::class.asClassName()
-            }
+}
 
-            return when (val type = dataType) {
-                "uuid" -> UUID::class
-                "TEXT" -> String::class
-                "INT" -> Int::class
-                "BIGINT" -> Long::class
-                else -> AnnotationParser.printThenThrowError(
-                    "INTERNAL LIBRARY ERROR: unsupported datatype ($type) found while" +
-                            " parsing column for accessor"
-                )
-            }.asClassName()
-        }
+private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: AccessorClassInfo) {
+    this.addType(
+        TypeSpec
+            .companionObjectBuilder()
+            .addFunction(AccessorLoadFunSpecBuilder().getFunSpec(accessorClassInfo))
+            .addFunction(AccessorExportFunSpecBuilder().getFunSpec(accessorClassInfo))
+            .build()
+    )
+}
+
+private fun KClass<*>.asMemberName(): MemberName {
+    val className = this.asClassName()
+    return MemberName(packageName = className.packageName, simpleName = className.simpleName)
 }

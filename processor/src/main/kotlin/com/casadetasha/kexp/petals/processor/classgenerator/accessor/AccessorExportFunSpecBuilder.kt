@@ -1,15 +1,11 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor
 
-import com.casadetasha.kexp.annotationparser.AnnotationParser
-import com.casadetasha.kexp.petals.annotations.PetalColumn
-import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
-import java.util.*
 
 @OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorFunSpecBuilder() {
+internal class AccessorExportFunSpecBuilder {
 
     companion object {
         const val EXPORT_METHOD_SIMPLE_NAME = "export";
@@ -20,18 +16,24 @@ internal class AccessorFunSpecBuilder() {
         return FunSpec.builder(EXPORT_METHOD_SIMPLE_NAME)
             .returns(accessorClassInfo.className)
             .receiver(accessorClassInfo.sourceClassName)
-            .addStatement(statementParser.exportMethodStatement)
+            .addCode(statementParser.exportMethodStatement)
             .build()
     }
 
     private class AccessorKtxFunctionParser(private val accessorClassInfo: AccessorClassInfo) {
         private val stringBuilder = StringBuilder()
 
-        val exportMethodStatement: String by lazy {
+        private val methodBody: String by lazy {
             stringBuilder.append("return ${accessorClassInfo.className.simpleName}(")
             amendSettersForColumns()
             closeExportCreation()
             stringBuilder.toString()
+        }
+
+        val exportMethodStatement: CodeBlock by lazy {
+            return@lazy CodeBlock.builder()
+                .addStatement(methodBody)
+                .build()
         }
 
         private fun amendSettersForColumns(): StringBuilder {
@@ -52,7 +54,7 @@ internal class AccessorFunSpecBuilder() {
 
         private fun closeExportCreation(): StringBuilder {
             stringBuilder.removeTrailingComma()
-            stringBuilder.append("\n)")
+            stringBuilder.append("\n).apply {  }")
             return stringBuilder
         }
 
