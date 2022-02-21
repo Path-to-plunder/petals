@@ -12,7 +12,6 @@ internal class AccessorClassFileGenerator(
 
     fun generateFile() {
         val classSpecBuilder = AccessorClassSpecBuilder()
-        val funSpecBuilder = AccessorExportFunSpecBuilder()
         val fileSpec = FileSpec.builder(
             packageName = "com.casadetasha.kexp.petals.accessor",
             fileName = accessorClassInfo.className.simpleName

@@ -33,14 +33,19 @@ class AccessorClassSpecBuilder {
         return classTypeBuilder.build()
     }
 
-    private fun getAccessorPropertySpec(property: PetalColumn): PropertySpec {
-        val propertyTypeName = property.kotlinType
-        val propertyBuilder = PropertySpec.builder(property.name, propertyTypeName)
-        val serialName = property.name;
+    private fun getAccessorPropertySpec(column: PetalColumn): PropertySpec {
+        val propertyTypeName = when (column.isId!!) {
+            true -> column.kotlinType.copy(nullable = true)
+            false -> column.kotlinType
+        }
+        val propertyBuilder = PropertySpec.builder(column.name, propertyTypeName)
+        val serialName = column.name;
 
-        if (!property.isId!!) { propertyBuilder.mutable() }
+        if (!column.isId!!) {
+            propertyBuilder.mutable()
+        }
 
-        if (serialName != property.name) {
+        if (serialName != column.name) {
             propertyBuilder.addAnnotation(
                 AnnotationSpec.builder(SerialName::class)
                     .addMember("%S", serialName)
@@ -48,29 +53,36 @@ class AccessorClassSpecBuilder {
             )
         }
 
-        if (property.kotlinType == UUID::class.asClassName()) {
+        if (column.kotlinType == UUID::class.asClassName()) {
             propertyBuilder.addAnnotation(AnnotationSpec.builder(Serializable::class)
                 .addMember("with = %M::class", UUIDSerializer::class.asMemberName())
                 .build())
         }
 
         return propertyBuilder
-            .initializer(property.name)
+            .initializer(column.name)
             .build()
     }
 
     private fun createConstructorSpec(petalColumns: Set<PetalColumn>): FunSpec {
         val constructorBuilder = FunSpec.constructorBuilder()
         petalColumns.forEach {
-            constructorBuilder.addParameter(getPropertySpec(it))
+            constructorBuilder.addParameter(getParameterSpec(it))
         }
         return constructorBuilder.build()
     }
 
-    private fun getPropertySpec(column: PetalColumn): ParameterSpec {
-        val propertyTypeName = column.kotlinType
-        return ParameterSpec.builder(column.name, propertyTypeName)
-            .build()
+    private fun getParameterSpec(column: PetalColumn): ParameterSpec {
+        val propertyTypeName = when (column.isId!!) {
+            true -> column.kotlinType.copy(nullable = true)
+            false -> column.kotlinType
+        }
+
+        val builder = ParameterSpec.builder(column.name, propertyTypeName)
+        return when (column.isId!!) {
+            true -> builder.defaultValue("null").build()
+            false -> builder.build()
+        }
     }
 
 }
