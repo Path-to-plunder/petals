@@ -199,4 +199,5 @@ class TableGenerator(private val className: String,
                 )
             }.asClassName()
         }
+
 }

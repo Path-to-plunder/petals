@@ -7,10 +7,13 @@ import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.AlterColumn
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.casadetasha.kexp.petals.annotations.VarChar
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.classgenerator.table.TableGenerator
 import com.casadetasha.kexp.petals.processor.migration.MigrationGenerator
 import com.casadetasha.kexp.petals.processor.migration.PetalMigrationSetupGenerator
 import com.google.auto.service.AutoService
+import com.squareup.kotlinpoet.ClassName
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
@@ -57,11 +60,23 @@ class PetalProcessor : AbstractProcessor() {
 
         tableMap.values.forEach { migration ->
             MigrationGenerator(migration).createMigrationForTable()
-            migration.getCurrentSchema()?.let { TableGenerator(migration.className, migration.tableName, it).generateFile() }
+            migration.getCurrentSchema()?.let {
+                TableGenerator(migration.className, migration.tableName, it).generateFile()
+                AccessorClassFileGenerator(migration.getAccessorClassInfo()).generateFile()
+            }
         }
 
         if (tableMap.isNotEmpty()) {
             PetalMigrationSetupGenerator(tableMap.values).createPetalMigrationSetupClass()
         }
     }
+}
+
+private fun PetalMigration.getAccessorClassInfo(): AccessorClassInfo {
+    return AccessorClassInfo(
+        packageName = "com.casadetasha.kexp.petals.accessor",
+        simpleName = className,
+        sourceClassName = ClassName("com.casadetasha.kexp.petals", "${className}Entity"),
+        columns = getCurrentSchema()!!.columnsAsList.toSet()
+    )
 }

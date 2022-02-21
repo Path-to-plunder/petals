@@ -29,7 +29,7 @@ data class PetalColumn(@Transient val previousName: String? = null,
                        val isNullable: Boolean,
                        @Transient val isAlteration: Boolean? = null,
                        @Transient val isId: Boolean? = null
-) {
+): Comparable<PetalColumn> {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -48,4 +48,6 @@ data class PetalColumn(@Transient val previousName: String? = null,
         result = 31 * result + isNullable.hashCode()
         return result
     }
+
+    override fun compareTo(other: PetalColumn) = name.compareTo(other.name)
 }
