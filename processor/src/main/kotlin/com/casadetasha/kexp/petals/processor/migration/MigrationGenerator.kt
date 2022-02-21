@@ -79,7 +79,6 @@ class MigrationGenerator(private val petalMigration: PetalMigration) {
 
         val primaryKeyType = petalSchemaMigration.primaryKeyType
         tableCreationSql += when (primaryKeyType) {
-            NONE -> ""
             INT -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
             LONG -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
             else -> " id ${primaryKeyType.dataType} PRIMARY KEY,"

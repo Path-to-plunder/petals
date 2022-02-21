@@ -15,22 +15,8 @@ class IdColumnSqlTest {
 
     companion object {
 
-        private val noIdPetalSchema = SourceFile.kotlin(
-            "NoIdPetalSchema.kt", """
-            package com.casadetasha.kexp.petals.processor.post
-
-            import com.casadetasha.kexp.petals.annotations.Petal
-            import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-            
-            @Petal(tableName = "no_id_petal", className = "NoIdPetal", primaryKeyType = PetalPrimaryKey.NONE)
-            interface NoIdPetalSchema {
-                val column: String
-            }
-            """.trimIndent()
-        )
-
         private val intIdPetalSchema = SourceFile.kotlin(
-            "NoIdPetalSchema.kt", """
+            "IntIdPetalSchema.kt", """
             package com.casadetasha.kexp.petals.processor.post
 
             import com.casadetasha.kexp.petals.annotations.Petal
@@ -44,7 +30,7 @@ class IdColumnSqlTest {
         )
 
         private val longIdPetalSchema = SourceFile.kotlin(
-            "NoIdPetalSchema.kt", """
+            "LongIdPetalSchema.kt", """
             package com.casadetasha.kexp.petals.processor.post
 
             import com.casadetasha.kexp.petals.annotations.Petal
@@ -58,7 +44,7 @@ class IdColumnSqlTest {
         )
 
         private val uuidIdPetalSchema = SourceFile.kotlin(
-            "NoIdPetalSchema.kt", """
+            "UuidIdPetalSchema.kt", """
             package com.casadetasha.kexp.petals.processor.post
 
             import com.casadetasha.kexp.petals.annotations.Petal
@@ -70,16 +56,6 @@ class IdColumnSqlTest {
             }
             """.trimIndent()
         )
-    }
-
-    @Test
-    fun `Creates table without ID`() {
-        val petalSchemaMigration = generateSchemaMigrations(noIdPetalSchema, "no_id_petal")
-        assertThat(petalSchemaMigration[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE \"no_id_petal\" (" +
-                    " \"column\" TEXT NOT NULL" +
-                    " )"
-            )
     }
 
     @Test

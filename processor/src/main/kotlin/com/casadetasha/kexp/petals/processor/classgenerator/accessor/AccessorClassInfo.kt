@@ -20,5 +20,7 @@ class AccessorClassInfo(
 
     val idKotlinType: ClassName = columns.firstOrNull { it.isId!! }?.kotlinType ?: Int::class.asClassName()
     val className: ClassName = ClassName(packageName, simpleName)
+
+    val entityMemberName by lazy { MemberName(sourceClassName.packageName, sourceClassName.simpleName) }
 }
 

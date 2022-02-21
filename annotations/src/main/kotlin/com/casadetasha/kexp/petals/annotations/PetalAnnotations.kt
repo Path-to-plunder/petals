@@ -5,7 +5,8 @@ package com.casadetasha.kexp.petals.annotations
 annotation class Petal(val tableName: String,
                        val className: String,
                        val version: Int = 1,
-                       val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.NONE)
+                       val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.INT
+)
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
@@ -16,7 +17,6 @@ annotation class AlterColumn(val renameFrom: String = "")
 annotation class VarChar(val charLimit: Int)
 
 enum class PetalPrimaryKey(val dataType: String?) {
-    NONE(null),
     INT("SERIAL"),
     LONG("BIGSERIAL"),
     UUID("uuid")

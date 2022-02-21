@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
 public data class BasicPetal constructor(
-    public val id: Int?,
+    private val id: Int?,
     public var renamed_color: String,
     public var renamed_count: Int,
     public var renamed_secondColor: String,
@@ -29,14 +29,15 @@ public data class BasicPetal constructor(
     public fun destroy() {
         if (!isStored) return
 
-        transaction { findEntity().delete() }
+        transaction { findBackingEntity()?.delete() }
     }
 
-    fun store() {
-        when (isStored) {
+    fun store(): BasicPetal {
+        val entity = when (isStored) {
             false -> create()
             true -> update()
         }
+        return entity
     }
 
     private fun create(): BasicPetal {
@@ -48,9 +49,12 @@ public data class BasicPetal constructor(
         }.export()
     }
 
-    private fun update() {
-        val entity = findEntity()
-        transaction { entity.setValues() }
+    private fun update(): BasicPetal {
+        return transaction {
+            val entity = checkNotNull(findBackingEntity()) { "Could not update petal, no ID match found in DB." }
+            entity.setValues()
+            return@transaction entity
+        }.export()
     }
 
     private fun BasicPetalEntity.setValues() {
@@ -61,9 +65,9 @@ public data class BasicPetal constructor(
         renamed_uuid = this@BasicPetal.renamed_uuid
     }
 
-    private fun findEntity(): BasicPetalEntity {
+    private fun findBackingEntity(): BasicPetalEntity? {
         checkNotNull(id) { "null ID found even though object was stored" }
-        return checkNotNull(BasicPetalEntity.findById(id)) { "Could not update petal, no ID match found in DB." }
+        return BasicPetalEntity.findById(id)
     }
 
     companion object {

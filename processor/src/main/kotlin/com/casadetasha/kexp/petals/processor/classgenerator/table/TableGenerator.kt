@@ -68,7 +68,6 @@ class TableGenerator(private val className: String,
             PetalPrimaryKey.INT -> IntIdTable::class.asClassName()
             PetalPrimaryKey.LONG -> LongIdTable::class.asClassName()
             PetalPrimaryKey.UUID -> UUIDTable::class.asClassName()
-            PetalPrimaryKey.NONE -> IntIdTable::class.asClassName()
         }
     }
 
@@ -99,7 +98,6 @@ class TableGenerator(private val className: String,
             PetalPrimaryKey.INT -> IntEntityClass::class.asClassName()
             PetalPrimaryKey.LONG -> LongEntityClass::class.asClassName()
             PetalPrimaryKey.UUID -> UUIDEntityClass::class.asClassName()
-            PetalPrimaryKey.NONE -> IntEntityClass::class.asClassName()
         }
     }
 
@@ -108,7 +106,6 @@ class TableGenerator(private val className: String,
             PetalPrimaryKey.INT -> IntEntity::class.asClassName()
             PetalPrimaryKey.LONG -> LongEntity::class.asClassName()
             PetalPrimaryKey.UUID -> UUIDEntity::class.asClassName()
-            PetalPrimaryKey.NONE -> IntEntity::class.asClassName()
         }
     }
 
@@ -117,7 +114,6 @@ class TableGenerator(private val className: String,
             PetalPrimaryKey.INT -> Int::class.asClassName()
             PetalPrimaryKey.LONG -> Long::class.asClassName()
             PetalPrimaryKey.UUID -> UUID::class.asClassName()
-            PetalPrimaryKey.NONE -> Int::class.asClassName()
         }
     }
 

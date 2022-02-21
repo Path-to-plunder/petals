@@ -34,9 +34,7 @@ object PetalSchemaMigrationParser {
         primaryKeyType: PetalPrimaryKey
     ): HashMap<String, PetalColumn> {
         val columns = parsePetalPropertyColumns(kotlinClass.kotlinProperties)
-        if (primaryKeyType != PetalPrimaryKey.NONE) {
-            columns["id"] = PetalMigrationColumnParser.parseIdColumn(primaryKeyType)
-        }
+        columns["id"] = PetalMigrationColumnParser.parseIdColumn(primaryKeyType)
 
         return columns
     }
@@ -60,10 +58,6 @@ object PetalMigrationColumnParser {
     ).map { it.asTypeName() }
 
     fun parseIdColumn(primaryKeyType: PetalPrimaryKey): PetalColumn {
-        if (primaryKeyType == PetalPrimaryKey.NONE) {
-            printThenThrowError("INTERNAL LIBRARY ERROR: cannot parse id column for type NONE")
-        }
-
         return PetalColumn(
             previousName = "id",
             name = "id",

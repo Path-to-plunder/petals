@@ -27,7 +27,8 @@ class AccessorClassSpecBuilder {
 
         classTypeBuilder
             .primaryConstructor(createConstructorSpec(tableColumns))
-            .addIsStoredParam()
+            .addStoreMethod(accessorClassInfo)
+            .addFindEntityMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)
 
         return classTypeBuilder.build()
@@ -87,9 +88,14 @@ class AccessorClassSpecBuilder {
 
 }
 
+private fun TypeSpec.Builder.addStoreMethod(accessorClassInfo: AccessorClassInfo) = apply {
+    this.addIsStoredParam()
+        .addFunctions(AccessorStoreFunSpecBuilder(accessorClassInfo).getFunSpecs())
+}
+
 private fun TypeSpec.Builder.addIsStoredParam() = apply {
     addProperty(
-        PropertySpec.builder("isStored_", Boolean::class.asClassName(), KModifier.PRIVATE)
+        PropertySpec.builder("_isStored", Boolean::class.asClassName(), KModifier.PRIVATE)
             .addAnnotation(Transient::class)
             .initializer("false")
             .mutable()
@@ -98,7 +104,7 @@ private fun TypeSpec.Builder.addIsStoredParam() = apply {
         PropertySpec.builder("isStored", Boolean::class.asClassName(), KModifier.PUBLIC)
             .getter(FunSpec.getterBuilder()
                 .addAnnotation(Synchronized::class)
-                .addStatement("return isStored_")
+                .addStatement("return _isStored")
                 .build()
             )
             .mutable()
@@ -106,7 +112,7 @@ private fun TypeSpec.Builder.addIsStoredParam() = apply {
                 .addParameter("value", Boolean::class.asClassName())
                 .addModifiers(KModifier.PRIVATE)
                 .addAnnotation(Synchronized::class)
-                .addStatement("isStored_ = value")
+                .addStatement("_isStored = value")
                 .build()
             )
             .build())
@@ -120,6 +126,10 @@ private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: Acces
             .addFunction(AccessorExportFunSpecBuilder().getFunSpec(accessorClassInfo))
             .build()
     )
+}
+
+private fun TypeSpec.Builder.addFindEntityMethod(accessorClassInfo: AccessorClassInfo) = apply {
+    this.addFunction(AccessorFindBackingEntityFunSpecBuilder(accessorClassInfo).getFunSpec())
 }
 
 private fun KClass<*>.asMemberName(): MemberName {
