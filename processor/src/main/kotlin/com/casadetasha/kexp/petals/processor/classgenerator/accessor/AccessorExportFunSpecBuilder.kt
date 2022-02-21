@@ -54,7 +54,7 @@ internal class AccessorExportFunSpecBuilder {
 
         private fun closeExportCreation(): StringBuilder {
             stringBuilder.removeTrailingComma()
-            stringBuilder.append("\n).apply {  }")
+            stringBuilder.append("\n).apply { isStored = true }")
             return stringBuilder
         }
 

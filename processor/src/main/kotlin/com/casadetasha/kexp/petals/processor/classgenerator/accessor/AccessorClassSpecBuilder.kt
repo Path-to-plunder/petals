@@ -7,6 +7,7 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -26,6 +27,7 @@ class AccessorClassSpecBuilder {
 
         classTypeBuilder
             .primaryConstructor(createConstructorSpec(tableColumns))
+            .addIsStoredParam()
             .addAccessorCompanionObject(accessorClassInfo)
 
         return classTypeBuilder.build()
@@ -71,6 +73,31 @@ class AccessorClassSpecBuilder {
             .build()
     }
 
+}
+
+private fun TypeSpec.Builder.addIsStoredParam() = apply {
+    addProperty(
+        PropertySpec.builder("isStored_", Boolean::class.asClassName(), KModifier.PRIVATE)
+            .addAnnotation(Transient::class)
+            .initializer("false")
+            .mutable()
+            .build())
+    addProperty(
+        PropertySpec.builder("isStored", Boolean::class.asClassName(), KModifier.PUBLIC)
+            .getter(FunSpec.getterBuilder()
+                .addAnnotation(Synchronized::class)
+                .addStatement("return isStored_")
+                .build()
+            )
+            .mutable()
+            .setter(FunSpec.setterBuilder()
+                .addParameter("value", Boolean::class.asClassName())
+                .addModifiers(KModifier.PRIVATE)
+                .addAnnotation(Synchronized::class)
+                .addStatement("isStored_ = value")
+                .build()
+            )
+            .build())
 }
 
 private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: AccessorClassInfo) {
