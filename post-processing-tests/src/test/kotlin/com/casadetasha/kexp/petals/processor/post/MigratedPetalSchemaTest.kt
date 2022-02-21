@@ -2,7 +2,7 @@ package com.casadetasha.kexp.petals.processor.post
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import com.casadetasha.kexp.petals.BasicPetalEntity
+import com.casadetasha.kexp.petals.MigratedPetalEntity
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
@@ -33,7 +33,7 @@ class MigratedPetalSchemaTest: ContainerizedTestBase() {
         val baseUuid = UUID.randomUUID();
         var petalEntityId: Int? = null
         transaction {
-            val petalEntity = BasicPetalEntity.new {
+            val petalEntity = MigratedPetalEntity.new {
                 renamed_count = 1
                 renamed_sporeCount = 2
                 renamed_color = "Blue"
@@ -45,7 +45,7 @@ class MigratedPetalSchemaTest: ContainerizedTestBase() {
         }
 
         transaction {
-            val loadedPetal = BasicPetalEntity[petalEntityId!!]
+            val loadedPetal = MigratedPetalEntity[petalEntityId!!]
             assertThat(loadedPetal.renamed_count).isEqualTo(1)
             assertThat(loadedPetal.renamed_sporeCount).isEqualTo(2)
             assertThat(loadedPetal.renamed_color).isEqualTo("Blue")
@@ -57,7 +57,7 @@ class MigratedPetalSchemaTest: ContainerizedTestBase() {
     @Test
     fun `Creates int IDs in order`() {
         transaction {
-            val firstPetalEntity = BasicPetalEntity.new {
+            val firstPetalEntity = MigratedPetalEntity.new {
                 renamed_count = 1
                 renamed_sporeCount = 2
                 renamed_color = "Blue"
@@ -65,7 +65,7 @@ class MigratedPetalSchemaTest: ContainerizedTestBase() {
                 renamed_uuid = UUID.randomUUID()
             }
 
-            val secondPetalEntity = BasicPetalEntity.new {
+            val secondPetalEntity = MigratedPetalEntity.new {
                 renamed_count = 1
                 renamed_sporeCount = 2
                 renamed_color = "Blue"

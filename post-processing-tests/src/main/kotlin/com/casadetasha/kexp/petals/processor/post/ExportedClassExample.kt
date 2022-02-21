@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor
 
-import com.casadetasha.kexp.petals.BasicPetalEntity
+import com.casadetasha.kexp.petals.MigratedPetalEntity
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
 import java.util.UUID
 import kotlin.Int
@@ -11,7 +11,7 @@ import kotlinx.serialization.Transient
 import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
-public data class BasicPetal constructor(
+public data class MigratedPetal constructor(
     private val id: Int?,
     public var renamed_color: String,
     public var renamed_count: Int,
@@ -32,7 +32,7 @@ public data class BasicPetal constructor(
         transaction { findBackingEntity()?.delete() }
     }
 
-    fun store(): BasicPetal {
+    fun store(): MigratedPetal {
         val entity = when (isStored) {
             false -> create()
             true -> update()
@@ -40,16 +40,16 @@ public data class BasicPetal constructor(
         return entity
     }
 
-    private fun create(): BasicPetal {
+    private fun create(): MigratedPetal {
         return transaction {
-            when (val petalId = this@BasicPetal.id) {
-                null -> BasicPetalEntity.new { this.setValues() }
-                else -> BasicPetalEntity.new(petalId) { this.setValues() }
+            when (val petalId = this@MigratedPetal.id) {
+                null -> MigratedPetalEntity.new { this.setValues() }
+                else -> MigratedPetalEntity.new(petalId) { this.setValues() }
             }
         }.export()
     }
 
-    private fun update(): BasicPetal {
+    private fun update(): MigratedPetal {
         return transaction {
             val entity = checkNotNull(findBackingEntity()) { "Could not update petal, no ID match found in DB." }
             entity.setValues()
@@ -57,24 +57,24 @@ public data class BasicPetal constructor(
         }.export()
     }
 
-    private fun BasicPetalEntity.setValues() {
-        renamed_color = this@BasicPetal.renamed_color
-        renamed_count = this@BasicPetal.renamed_count
-        renamed_secondColor = this@BasicPetal.renamed_secondColor
-        renamed_sporeCount = this@BasicPetal.renamed_sporeCount
-        renamed_uuid = this@BasicPetal.renamed_uuid
+    private fun MigratedPetalEntity.setValues() {
+        renamed_color = this@MigratedPetal.renamed_color
+        renamed_count = this@MigratedPetal.renamed_count
+        renamed_secondColor = this@MigratedPetal.renamed_secondColor
+        renamed_sporeCount = this@MigratedPetal.renamed_sporeCount
+        renamed_uuid = this@MigratedPetal.renamed_uuid
     }
 
-    private fun findBackingEntity(): BasicPetalEntity? {
+    private fun findBackingEntity(): MigratedPetalEntity? {
         checkNotNull(id) { "null ID found even though object was stored" }
-        return BasicPetalEntity.findById(id)
+        return MigratedPetalEntity.findById(id)
     }
 
     companion object {
-        fun load(id: Int): BasicPetal? = transaction { BasicPetalEntity.findById(id) }
+        fun load(id: Int): MigratedPetal? = transaction { MigratedPetalEntity.findById(id) }
             ?.export()
 
-        public fun BasicPetalEntity.export(): BasicPetal = BasicPetal(
+        public fun MigratedPetalEntity.export(): MigratedPetal = MigratedPetal(
             renamed_count = renamed_count,
             renamed_sporeCount = renamed_sporeCount,
             renamed_uuid = renamed_uuid,

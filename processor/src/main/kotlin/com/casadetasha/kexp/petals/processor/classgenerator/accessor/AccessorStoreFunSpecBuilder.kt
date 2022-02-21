@@ -11,7 +11,7 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
         const val STORE_METHOD_SIMPLE_NAME = "store";
         const val CREATE_METHOD_SIMPLE_NAME = "create";
         const val UPDATE_METHOD_SIMPLE_NAME = "update";
-        const val SET_VALUES_METHOD_SIMPLE_NAME = "setValues";
+        const val SET_VALUES_METHOD_SIMPLE_NAME = "storeValuesInBackend";
 
         val TRANSACTION_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql.transactions", "transaction")
     }
@@ -27,7 +27,7 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
 
     private fun createStoreFunction(): FunSpec {
         return FunSpec.builder(STORE_METHOD_SIMPLE_NAME)
-            .returns(accessorClassInfo.className.copy(nullable = true))
+            .returns(accessorClassInfo.className)
             .addCode(StoreFunctionParser().methodBody)
             .build()
     }
@@ -78,8 +78,8 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
             CodeBlock.builder()
                 .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
                 .beginControlFlow("when (val petalId = this@${petalSimpleName}.id) ")
-                .addStatement("null -> %M.new { this.setValues() }", entityName)
-                .addStatement("else -> ${entityName.simpleName}.new(petalId) { this.setValues() }")
+                .addStatement("null -> %M.new { this.$SET_VALUES_METHOD_SIMPLE_NAME() }", entityName)
+                .addStatement("else -> ${entityName.simpleName}.new(petalId) { this.$SET_VALUES_METHOD_SIMPLE_NAME() }")
                 .addStatement("}")
                 .unindent()
                 .unindent()
@@ -96,7 +96,7 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
                 .beginControlFlow("val entity = checkNotNull(findBackingEntity())")
                 .addStatement("%S", "Could not update petal, no ID match found in DB.")
                 .endControlFlow()
-                .addStatement("entity.setValues()")
+                .addStatement("entity.$SET_VALUES_METHOD_SIMPLE_NAME()")
                 .unindent()
                 .add("}.export()")
                 .build()
