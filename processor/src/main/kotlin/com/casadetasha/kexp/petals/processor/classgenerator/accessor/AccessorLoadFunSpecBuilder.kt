@@ -23,11 +23,10 @@ internal class AccessorLoadFunSpecBuilder {
 
         val methodStatement: CodeBlock by lazy {
             CodeBlock.builder()
-                .add("return %M { %M.findById(id) }",
-                    TRANSACTION_MEMBER_NAME,
-                    accessorClassInfo.sourceClassName.asMemberName()
-                )
-                .add("?.export()")
+                .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
+                .addStatement("%M.findById(id)", accessorClassInfo.entityMemberName)
+                .unindent()
+                .add("}?.export()")
                 .build()
         }
 
@@ -36,5 +35,3 @@ internal class AccessorLoadFunSpecBuilder {
         }
     }
 }
-
-private fun ClassName.asMemberName(): MemberName = MemberName(packageName, simpleName)

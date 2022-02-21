@@ -27,6 +27,7 @@ class AccessorClassSpecBuilder {
 
         classTypeBuilder
             .primaryConstructor(createConstructorSpec(tableColumns))
+            .addDeleteMethod()
             .addStoreMethod(accessorClassInfo)
             .addFindEntityMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)
@@ -86,6 +87,10 @@ class AccessorClassSpecBuilder {
         }
     }
 
+}
+
+private fun TypeSpec.Builder.addDeleteMethod() = apply {
+    this.addFunction(AccessorDeleteFunSpecBuilder().getFunSpec())
 }
 
 private fun TypeSpec.Builder.addStoreMethod(accessorClassInfo: AccessorClassInfo) = apply {

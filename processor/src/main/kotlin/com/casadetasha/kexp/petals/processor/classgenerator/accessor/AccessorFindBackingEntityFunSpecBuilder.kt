@@ -12,6 +12,7 @@ internal class AccessorFindBackingEntityFunSpecBuilder(private val accessorClass
 
     fun getFunSpec(): FunSpec {
         return FunSpec.builder(METHOD_SIMPLE_NAME)
+            .addModifiers(KModifier.PRIVATE)
             .returns(accessorClassInfo.sourceClassName.copy(nullable = true))
             .addCode(FindBackingEntityFunctionParser(accessorClassInfo).methodBody)
             .build()
