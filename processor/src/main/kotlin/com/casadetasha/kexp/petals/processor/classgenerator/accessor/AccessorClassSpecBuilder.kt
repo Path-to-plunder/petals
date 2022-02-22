@@ -2,12 +2,12 @@ package com.casadetasha.kexp.petals.processor.classgenerator.accessor
 
 import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.*
 import com.casadetasha.kexp.petals.processor.ktx.kotlinType
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -38,10 +38,10 @@ class AccessorClassSpecBuilder {
     private fun getAccessorPropertySpec(column: PetalColumn): PropertySpec {
         val propertyTypeName = when (column.isId!!) {
             true -> column.kotlinType.copy(nullable = true)
-            false -> column.kotlinType
+            false -> column.kotlinType.copy(nullable = column.isNullable)
         }
         val propertyBuilder = PropertySpec.builder(column.name, propertyTypeName)
-        val serialName = column.name;
+        val serialName = column.name
 
         if (!column.isId!!) {
             propertyBuilder.mutable()
@@ -77,7 +77,7 @@ class AccessorClassSpecBuilder {
     private fun getParameterSpec(column: PetalColumn): ParameterSpec {
         val propertyTypeName = when (column.isId!!) {
             true -> column.kotlinType.copy(nullable = true)
-            false -> column.kotlinType
+            false -> column.kotlinType.copy(nullable = column.isNullable)
         }
 
         val builder = ParameterSpec.builder(column.name, propertyTypeName)
@@ -86,41 +86,6 @@ class AccessorClassSpecBuilder {
             false -> builder.build()
         }
     }
-
-}
-
-private fun TypeSpec.Builder.addDeleteMethod() = apply {
-    this.addFunction(AccessorDeleteFunSpecBuilder().getFunSpec())
-}
-
-private fun TypeSpec.Builder.addStoreMethod(accessorClassInfo: AccessorClassInfo) = apply {
-    this.addIsStoredParam()
-        .addFunctions(AccessorStoreFunSpecBuilder(accessorClassInfo).getFunSpecs())
-}
-
-private fun TypeSpec.Builder.addIsStoredParam() = apply {
-    addProperty(
-        PropertySpec.builder("_isStored", Boolean::class.asClassName(), KModifier.PRIVATE)
-            .addAnnotation(Transient::class)
-            .initializer("false")
-            .mutable()
-            .build())
-    addProperty(
-        PropertySpec.builder("isStored", Boolean::class.asClassName(), KModifier.PUBLIC)
-            .getter(FunSpec.getterBuilder()
-                .addAnnotation(Synchronized::class)
-                .addStatement("return _isStored")
-                .build()
-            )
-            .mutable()
-            .setter(FunSpec.setterBuilder()
-                .addParameter("value", Boolean::class.asClassName())
-                .addModifiers(KModifier.PRIVATE)
-                .addAnnotation(Synchronized::class)
-                .addStatement("_isStored = value")
-                .build()
-            )
-            .build())
 }
 
 private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: AccessorClassInfo) {
@@ -131,10 +96,6 @@ private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: Acces
             .addFunction(AccessorExportFunSpecBuilder().getFunSpec(accessorClassInfo))
             .build()
     )
-}
-
-private fun TypeSpec.Builder.addFindEntityMethod(accessorClassInfo: AccessorClassInfo) = apply {
-    this.addFunction(AccessorFindBackingEntityFunSpecBuilder(accessorClassInfo).getFunSpec())
 }
 
 private fun KClass<*>.asMemberName(): MemberName {

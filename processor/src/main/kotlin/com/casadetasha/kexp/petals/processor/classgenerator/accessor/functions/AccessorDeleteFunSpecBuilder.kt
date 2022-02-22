@@ -1,10 +1,10 @@
-package com.casadetasha.kexp.petals.processor.classgenerator.accessor
+package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
 @OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorDeleteFunSpecBuilder() {
+internal class AccessorDeleteFunSpecBuilder {
 
     companion object {
         const val METHOD_SIMPLE_NAME = "delete";
@@ -27,4 +27,8 @@ internal class AccessorDeleteFunSpecBuilder() {
                 .build()
         }
     }
+}
+
+internal fun TypeSpec.Builder.addDeleteMethod() = apply {
+    this.addFunction(AccessorDeleteFunSpecBuilder().getFunSpec())
 }

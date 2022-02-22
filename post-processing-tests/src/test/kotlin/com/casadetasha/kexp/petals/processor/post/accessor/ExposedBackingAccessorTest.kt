@@ -78,7 +78,7 @@ class ExposedBackingAccessorTest: ContainerizedTestBase() {
             color = "Blue",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store()!!.id!!
+        ).store().id!!
 
         val loadedEntity = transaction {
             checkNotNull(BasicPetalEntity.findById(id))

@@ -1,8 +1,10 @@
-package com.casadetasha.kexp.petals.processor.classgenerator.accessor
+package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
 import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
+import kotlinx.serialization.Transient
 
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
@@ -119,4 +121,34 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
             codeBlockBuilder.addStatement("return this").build()
         }
     }
+}
+
+internal fun TypeSpec.Builder.addStoreMethod(accessorClassInfo: AccessorClassInfo) = apply {
+    this.addIsStoredParam()
+        .addFunctions(AccessorStoreFunSpecBuilder(accessorClassInfo).getFunSpecs())
+}
+
+private fun TypeSpec.Builder.addIsStoredParam() = apply {
+    addProperty(
+        PropertySpec.builder("_isStored", Boolean::class.asClassName(), KModifier.PRIVATE)
+            .addAnnotation(Transient::class)
+            .initializer("false")
+            .mutable()
+            .build())
+    addProperty(
+        PropertySpec.builder("isStored", Boolean::class.asClassName(), KModifier.PUBLIC)
+            .getter(FunSpec.getterBuilder()
+                .addAnnotation(Synchronized::class)
+                .addStatement("return _isStored")
+                .build()
+            )
+            .mutable()
+            .setter(FunSpec.setterBuilder()
+                .addParameter("value", Boolean::class.asClassName())
+                .addModifiers(KModifier.PRIVATE)
+                .addAnnotation(Synchronized::class)
+                .addStatement("_isStored = value")
+                .build()
+            )
+            .build())
 }

@@ -1,5 +1,6 @@
-package com.casadetasha.kexp.petals.processor.classgenerator.accessor
+package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
