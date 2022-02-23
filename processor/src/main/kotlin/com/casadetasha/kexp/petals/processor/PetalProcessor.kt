@@ -3,15 +3,13 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.casadetasha.kexp.annotationparser.AnnotationParser.getClassesAnnotatedWith
-import com.casadetasha.kexp.petals.annotations.PetalMigration
-import com.casadetasha.kexp.petals.annotations.AlterColumn
-import com.casadetasha.kexp.petals.annotations.Petal
-import com.casadetasha.kexp.petals.annotations.VarChar
+import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedGenerator
+import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedClassesFileGenerator
 import com.casadetasha.kexp.petals.processor.migration.MigrationGenerator
 import com.casadetasha.kexp.petals.processor.migration.PetalMigrationSetupGenerator
+import com.casadetasha.kexp.petals.processor.migration.PetalSchemaMigrationParser
 import com.google.auto.service.AutoService
 import com.squareup.kotlinpoet.ClassName
 import javax.annotation.processing.*
@@ -26,7 +24,11 @@ class PetalProcessor : AbstractProcessor() {
     override fun getSupportedAnnotationTypes() = mutableSetOf(
         Petal::class.java.canonicalName,
         AlterColumn::class.java.canonicalName,
-        VarChar::class.java.canonicalName
+        VarChar::class.java.canonicalName,
+        DefaultInt::class.java.canonicalName,
+        DefaultString::class.java.canonicalName,
+        DefaultLong::class.java.canonicalName,
+        DefaultNull::class.java.canonicalName,
     )
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
@@ -41,17 +43,19 @@ class PetalProcessor : AbstractProcessor() {
     }
 
     private fun generateClasses() {
-        val classes = getClassesAnnotatedWith(Petal::class,
-            propertyAnnotations = listOf(AlterColumn::class, VarChar::class))
+        val classes = getClassesAnnotatedWith(
+            annotationClass = Petal::class,
+            propertyAnnotations = SUPPORTED_PROPERTY_ANNOTATIONS
+        )
 
-        val tableMap = HashMap<String, PetalMigration>()
+        val tableMap = HashMap<String, UnprocessedPetalMigration>()
 
         classes.forEach {
             val petalAnnotation: Petal = it.getAnnotation(Petal::class)!!
             val tableName = petalAnnotation.tableName
             val className = petalAnnotation.className
             val tableVersion = petalAnnotation.version
-            if (tableMap[tableName] == null) tableMap[tableName] = PetalMigration(
+            if (tableMap[tableName] == null) tableMap[tableName] = UnprocessedPetalMigration(
                 tableName = tableName,
                 className = className
             )
@@ -61,7 +65,7 @@ class PetalProcessor : AbstractProcessor() {
         tableMap.values.forEach { migration ->
             MigrationGenerator(migration).createMigrationForTable()
             migration.getCurrentSchema()?.let {
-                ExposedGenerator(migration.className, migration.tableName, it).generateFile()
+                ExposedClassesFileGenerator(migration.className, migration.tableName, it).generateFile()
                 AccessorClassFileGenerator(migration.getAccessorClassInfo()).generateFile()
             }
         }
@@ -70,9 +74,21 @@ class PetalProcessor : AbstractProcessor() {
             PetalMigrationSetupGenerator(tableMap.values).createPetalMigrationSetupClass()
         }
     }
+
+    companion object {
+        private val SUPPORTED_PROPERTY_ANNOTATIONS =
+            listOf(
+                AlterColumn::class,
+                VarChar::class,
+                DefaultInt::class,
+                DefaultString::class,
+                DefaultLong::class,
+                DefaultNull::class
+            )
+    }
 }
 
-private fun PetalMigration.getAccessorClassInfo(): AccessorClassInfo {
+private fun UnprocessedPetalMigration.getAccessorClassInfo(): AccessorClassInfo {
     return AccessorClassInfo(
         packageName = "com.casadetasha.kexp.petals.accessor",
         simpleName = className,

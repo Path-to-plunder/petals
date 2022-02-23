@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
-import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
@@ -10,10 +10,10 @@ import kotlinx.serialization.Transient
 internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
     companion object {
-        const val STORE_METHOD_SIMPLE_NAME = "store";
-        const val CREATE_METHOD_SIMPLE_NAME = "create";
-        const val UPDATE_METHOD_SIMPLE_NAME = "update";
-        const val SET_VALUES_METHOD_SIMPLE_NAME = "storeValuesInBackend";
+        const val STORE_METHOD_SIMPLE_NAME = "store"
+        const val CREATE_METHOD_SIMPLE_NAME = "create"
+        const val UPDATE_METHOD_SIMPLE_NAME = "update"
+        const val SET_VALUES_METHOD_SIMPLE_NAME = "storeValuesInBackend"
 
         val TRANSACTION_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql.transactions", "transaction")
     }
@@ -107,8 +107,8 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
 
     private class SetValuesFunctionParser(accessorClassInfo: AccessorClassInfo) {
 
-        val nonIdColumns: Iterable<PetalColumn> by lazy {
-            accessorClassInfo.columns.filterNot { it.isId!! }
+        val nonIdColumns: Iterable<UnprocessedPetalColumn> by lazy {
+            accessorClassInfo.columns.filterNot { it.isId }
         }
 
         val methodBody: CodeBlock by lazy {

@@ -7,7 +7,7 @@ import com.casadetasha.kexp.petals.BasicPetalEntity
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.BasicPetal
 import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.export
-import com.casadetasha.kexp.petals.migration.`TableMigrations$int_id_petal`
+import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -17,7 +17,7 @@ import kotlin.test.Test
 
 class ExposedBackingAccessorTest: ContainerizedTestBase() {
 
-    private val tableName: String by lazy { `TableMigrations$int_id_petal`().tableName }
+    private val tableName: String by lazy { `TableMigrations$basic_petal`().tableName }
 
     @BeforeTest
     fun setup() {

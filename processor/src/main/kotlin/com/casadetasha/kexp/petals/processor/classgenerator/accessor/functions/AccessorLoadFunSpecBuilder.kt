@@ -8,7 +8,7 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 internal class AccessorLoadFunSpecBuilder {
 
     companion object {
-        const val METHOD_SIMPLE_NAME = "load";
+        const val METHOD_SIMPLE_NAME = "load"
     }
 
     fun getFunSpec(accessorClassInfo: AccessorClassInfo): FunSpec {

@@ -23,12 +23,10 @@ data class PetalSchemaMigration(val primaryKeyType: PetalPrimaryKey,
 }
 
 @Serializable
-data class PetalColumn(@Transient val previousName: String? = null,
-                       val name: String,
-                       val dataType: String,
-                       val isNullable: Boolean,
-                       @Transient val isAlteration: Boolean? = null,
-                       @Transient val isId: Boolean? = null
+data class PetalColumn constructor(
+    val name: String,
+    val dataType: String,
+    val isNullable: Boolean,
 ): Comparable<PetalColumn> {
 
     override fun equals(other: Any?): Boolean {

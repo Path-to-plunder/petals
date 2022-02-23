@@ -1,7 +1,8 @@
 package com.casadetasha.kexp.petals.processor.migration
 
-import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 
-class AlterColumnMigration(val previousColumnState: PetalColumn,
-                           val updatedColumnState: PetalColumn
+internal class AlterColumnMigration(
+    val previousColumnState: UnprocessedPetalColumn,
+    val updatedColumnState: UnprocessedPetalColumn
 )

@@ -1,9 +1,8 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor
 
-import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.*
-import com.casadetasha.kexp.petals.processor.ktx.kotlinType
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 import kotlinx.serialization.SerialName
@@ -19,7 +18,7 @@ class AccessorClassSpecBuilder {
             .addModifiers(KModifier.DATA)
             .addAnnotation(Serializable::class)
 
-        val tableColumns: Set<PetalColumn> = accessorClassInfo.columns.toSortedSet()
+        val tableColumns: SortedSet<UnprocessedPetalColumn> = accessorClassInfo.columns.toSortedSet()
 
         tableColumns.forEach {
             classTypeBuilder.addProperty(getAccessorPropertySpec(it))
@@ -35,15 +34,15 @@ class AccessorClassSpecBuilder {
         return classTypeBuilder.build()
     }
 
-    private fun getAccessorPropertySpec(column: PetalColumn): PropertySpec {
-        val propertyTypeName = when (column.isId!!) {
+    private fun getAccessorPropertySpec(column: UnprocessedPetalColumn): PropertySpec {
+        val propertyTypeName = when (column.isId) {
             true -> column.kotlinType.copy(nullable = true)
             false -> column.kotlinType.copy(nullable = column.isNullable)
         }
         val propertyBuilder = PropertySpec.builder(column.name, propertyTypeName)
         val serialName = column.name
 
-        if (!column.isId!!) {
+        if (!column.isId) {
             propertyBuilder.mutable()
         }
 
@@ -66,7 +65,7 @@ class AccessorClassSpecBuilder {
             .build()
     }
 
-    private fun createConstructorSpec(petalColumns: Set<PetalColumn>): FunSpec {
+    private fun createConstructorSpec(petalColumns: SortedSet<UnprocessedPetalColumn>): FunSpec {
         val constructorBuilder = FunSpec.constructorBuilder()
         petalColumns.forEach {
             constructorBuilder.addParameter(getParameterSpec(it))
@@ -74,14 +73,20 @@ class AccessorClassSpecBuilder {
         return constructorBuilder.build()
     }
 
-    private fun getParameterSpec(column: PetalColumn): ParameterSpec {
-        val propertyTypeName = when (column.isId!!) {
+    private fun getParameterSpec(column: UnprocessedPetalColumn): ParameterSpec {
+        val propertyTypeName = when (column.isId) {
             true -> column.kotlinType.copy(nullable = true)
             false -> column.kotlinType.copy(nullable = column.isNullable)
         }
 
         val builder = ParameterSpec.builder(column.name, propertyTypeName)
-        return when (column.isId!!) {
+        column.defaultValue?.let {
+            when (column.kotlinType.copy(nullable = false)) {
+                String::class.asClassName() -> builder.defaultValue("%S", it)
+                else -> builder.defaultValue("%L", it)
+            }
+        }
+        return when (column.isId) {
             true -> builder.defaultValue("null").build()
             false -> builder.build()
         }

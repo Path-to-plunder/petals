@@ -1,18 +1,16 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.table
 
-import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
-import com.casadetasha.kexp.petals.processor.ktx.kotlinType
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.dao.id.EntityID
 import java.util.*
 
-class ExposedEntityGenerator(private val className: String,
-                             private val tableName: String,
-                             private val schema: PetalSchemaMigration
+internal class ExposedEntityGenerator(private val className: String,
+                             private val schema: UnprocessedPetalSchemaMigration
 ) {
 
     companion object {
@@ -54,7 +52,7 @@ class ExposedEntityGenerator(private val className: String,
 
     fun generateClassSpec(): TypeSpec = entityBuilder.build()
 
-    fun addEntityColumn(column: PetalColumn) {
+    fun addEntityColumn(column: UnprocessedPetalColumn) {
         entityBuilder
             .addProperty(
                 PropertySpec.builder(column.name, column.kotlinType.copy(nullable = column.isNullable))

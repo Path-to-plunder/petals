@@ -1,13 +1,14 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.table
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
-import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.squareup.kotlinpoet.*
 import java.io.File
 
-class ExposedGenerator(private val className: String,
-                       private val tableName: String,
-                       private val schema: PetalSchemaMigration) {
+internal class ExposedClassesFileGenerator(private val className: String,
+                                  private val tableName: String,
+                                  private val schema: UnprocessedPetalSchemaMigration
+) {
 
     companion object {
         const val EXPOSED_TABLE_PACKAGE = "org.jetbrains.exposed.sql.Table.Dual"
@@ -25,7 +26,6 @@ class ExposedGenerator(private val className: String,
     private val entityGenerator: ExposedEntityGenerator by lazy {
         ExposedEntityGenerator(
             className = className,
-            tableName = tableName,
             schema = schema
         )
     }
@@ -44,7 +44,7 @@ class ExposedGenerator(private val className: String,
 
     private fun addColumnsToGenerators() {
         schema.columnMigrations.values
-            .filter { !it.isId!! }
+            .filter { !it.isId }
             .forEach { column ->
                 tableGenerator.addTableColumn(column)
                 entityGenerator.addEntityColumn(column)

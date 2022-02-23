@@ -9,7 +9,7 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 internal class AccessorExportFunSpecBuilder {
 
     companion object {
-        const val EXPORT_METHOD_SIMPLE_NAME = "export";
+        const val EXPORT_METHOD_SIMPLE_NAME = "export"
     }
 
     fun getFunSpec(accessorClassInfo: AccessorClassInfo): FunSpec {
@@ -39,13 +39,13 @@ internal class AccessorExportFunSpecBuilder {
 
         private fun amendSettersForColumns(): StringBuilder {
             accessorClassInfo.columns
-                .filterNot { it.isId!! }
+                .filterNot { it.isId }
                 .forEach {
                     val constructorBlock = "\n  ${it.name} = ${it.name},"
                     stringBuilder.append(constructorBlock)
                 }
             accessorClassInfo.columns
-                .filter { it.isId!! }
+                .filter { it.isId }
                 .forEach {
                     val constructorBlock = "\n  ${it.name} = ${it.name}.value,"
                     stringBuilder.append(constructorBlock)

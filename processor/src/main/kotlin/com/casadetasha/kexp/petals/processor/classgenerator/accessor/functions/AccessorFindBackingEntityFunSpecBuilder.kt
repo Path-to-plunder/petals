@@ -8,7 +8,7 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 internal class AccessorFindBackingEntityFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
     companion object {
-        const val METHOD_SIMPLE_NAME = "findBackingEntity";
+        const val METHOD_SIMPLE_NAME = "findBackingEntity"
     }
 
     fun getFunSpec(): FunSpec {

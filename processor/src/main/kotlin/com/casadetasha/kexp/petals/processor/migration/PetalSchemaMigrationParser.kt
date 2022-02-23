@@ -1,29 +1,27 @@
-package com.casadetasha.kexp.petals.processor
+package com.casadetasha.kexp.petals.processor.migration
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
-import com.casadetasha.kexp.petals.annotations.PetalColumn
-import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
-import com.casadetasha.kexp.petals.annotations.AlterColumn
-import com.casadetasha.kexp.petals.annotations.Petal
-import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.annotations.VarChar
+import com.casadetasha.kexp.petals.annotations.*
+import com.casadetasha.kexp.petals.processor.DefaultPetalValue
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
 import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
-object PetalSchemaMigrationParser {
-    fun parseFromClass(kotlinClass: KotlinClass): PetalSchemaMigration {
+internal object PetalSchemaMigrationParser {
+    fun parseFromClass(kotlinClass: KotlinClass): UnprocessedPetalSchemaMigration {
         val petalAnnotation = kotlinClass.getAnnotation(Petal::class)
             ?: printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Cannot parse petal migration from class ${kotlinClass.className}:" +
                         " petal class must contain petal annotation "
             )
 
-        return PetalSchemaMigration(
+        return UnprocessedPetalSchemaMigration(
             primaryKeyType = petalAnnotation.primaryKeyType,
             columnMigrations = parsePetalColumns(kotlinClass, petalAnnotation.primaryKeyType)
         )
@@ -32,15 +30,15 @@ object PetalSchemaMigrationParser {
     private fun parsePetalColumns(
         kotlinClass: KotlinClass,
         primaryKeyType: PetalPrimaryKey
-    ): HashMap<String, PetalColumn> {
+    ): HashMap<String, UnprocessedPetalColumn> {
         val columns = parsePetalPropertyColumns(kotlinClass.kotlinProperties)
         columns["id"] = PetalMigrationColumnParser.parseIdColumn(primaryKeyType)
 
         return columns
     }
 
-    private fun parsePetalPropertyColumns(kotlinProperties: List<KotlinProperty>): HashMap<String, PetalColumn> {
-        val columnMap = HashMap<String, PetalColumn>()
+    private fun parsePetalPropertyColumns(kotlinProperties: List<KotlinProperty>): HashMap<String, UnprocessedPetalColumn> {
+        val columnMap = HashMap<String, UnprocessedPetalColumn>()
         kotlinProperties.forEach {
             columnMap[it.simpleName] = PetalMigrationColumnParser.parseFromKotlinProperty(it)
         }
@@ -49,7 +47,7 @@ object PetalSchemaMigrationParser {
     }
 }
 
-object PetalMigrationColumnParser {
+internal object PetalMigrationColumnParser {
     private val SUPPORTED_TYPES = listOf<KClass<*>>(
         String::class,
         Int::class,
@@ -57,31 +55,39 @@ object PetalMigrationColumnParser {
         UUID::class
     ).map { it.asTypeName() }
 
-    fun parseIdColumn(primaryKeyType: PetalPrimaryKey): PetalColumn {
-        return PetalColumn(
+    fun parseIdColumn(primaryKeyType: PetalPrimaryKey): UnprocessedPetalColumn {
+        return UnprocessedPetalColumn(
             previousName = "id",
             name = "id",
-            isNullable = false,
-            isAlteration = false,
-            isId = true,
             dataType = when (val dataType = primaryKeyType.dataType!!) {
                 "SERIAL" -> "INT"
                 "BIGSERIAL" -> "BIGINT"
                 else -> dataType
-            }
+            },
+            isNullable = false,
+            isAlteration = false,
+            isId = true
         )
     }
 
-    fun parseFromKotlinProperty(kotlinProperty: KotlinProperty): PetalColumn {
+    fun parseFromKotlinProperty(kotlinProperty: KotlinProperty): UnprocessedPetalColumn {
         val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
         val name = kotlinProperty.simpleName
-        return PetalColumn(
+        val defaultValueParser = DefaultPetalValue(kotlinProperty)
+        val defaultValue = if(defaultValueParser.hasDefaultValue) {
+            defaultValueParser.defaultValue
+        } else {
+            null
+        }
+
+        return UnprocessedPetalColumn(
             previousName = getPreviousName(name, alterColumnAnnotation),
             name = name,
             dataType = getDataType(kotlinProperty),
             isNullable = kotlinProperty.isNullable,
             isAlteration = alterColumnAnnotation?.renameFrom != null,
-            isId = false
+            isId = false,
+            defaultValue = defaultValue
         )
     }
 

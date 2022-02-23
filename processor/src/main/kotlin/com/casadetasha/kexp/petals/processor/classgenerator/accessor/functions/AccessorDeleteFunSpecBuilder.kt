@@ -7,7 +7,7 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 internal class AccessorDeleteFunSpecBuilder {
 
     companion object {
-        const val METHOD_SIMPLE_NAME = "delete";
+        const val METHOD_SIMPLE_NAME = "delete"
 
         val TRANSACTION_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql.transactions", "transaction")
     }

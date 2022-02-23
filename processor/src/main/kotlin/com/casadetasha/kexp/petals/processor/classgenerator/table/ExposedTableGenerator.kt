@@ -1,11 +1,10 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.table
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
-import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
+import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedEntityGenerator.Companion.EXPOSED_TABLE_PACKAGE
-import com.casadetasha.kexp.petals.processor.ktx.kotlinType
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -15,7 +14,7 @@ import org.jetbrains.exposed.sql.Column
 
 internal class ExposedTableGenerator(private val className: String,
                                      private val tableName: String,
-                                     private val schema: PetalSchemaMigration
+                                     private val schema: UnprocessedPetalSchemaMigration
 ) {
 
     private val tableClassName: String by lazy { "${className}Table" }
@@ -28,7 +27,7 @@ internal class ExposedTableGenerator(private val className: String,
 
     fun generateClassSpec(): TypeSpec = tableBuilder.build()
 
-    fun addTableColumn(column: PetalColumn) {
+    fun addTableColumn(column: UnprocessedPetalColumn) {
         tableBuilder.addProperty(
             PropertySpec.builder(
                 column.name,
@@ -41,7 +40,7 @@ internal class ExposedTableGenerator(private val className: String,
         )
     }
 
-    private fun getColumnInitializationBlock(column: PetalColumn): CodeBlock {
+    private fun getColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
         if (column.dataType.startsWith("CHARACTER VARYING")) {
             val charLimit = column.dataType
                 .removePrefix("CHARACTER VARYING(")
@@ -49,7 +48,7 @@ internal class ExposedTableGenerator(private val className: String,
             val builder = CodeBlock.builder()
                 .add(
                     "%M(%S, %L)",
-                    MemberName(ExposedGenerator.EXPOSED_TABLE_PACKAGE, "varchar"),
+                    MemberName(ExposedClassesFileGenerator.EXPOSED_TABLE_PACKAGE, "varchar"),
                     column.name,
                     charLimit
                 )
@@ -74,7 +73,7 @@ internal class ExposedTableGenerator(private val className: String,
         return builder.build()
     }
 
-    private fun getColumnCreationMemberName(column: PetalColumn): MemberName {
+    private fun getColumnCreationMemberName(column: UnprocessedPetalColumn): MemberName {
         val methodName = when (column.dataType) {
             "uuid" -> "uuid"
             "TEXT" -> "text"
@@ -86,7 +85,7 @@ internal class ExposedTableGenerator(private val className: String,
             )
         }
 
-        return MemberName(ExposedGenerator.EXPOSED_TABLE_PACKAGE, methodName)
+        return MemberName(ExposedClassesFileGenerator.EXPOSED_TABLE_PACKAGE, methodName)
     }
 
     private fun getTableSuperclass(): ClassName {

@@ -99,13 +99,15 @@ object MetaTableInfo {
         val isNullable = row.getString("is_nullable")
         val maxCharacterLength = row.getString("character_maximum_length")
 
-        return PetalColumn(name = columnName,
+        return PetalColumn(
+            name = columnName,
             dataType = dataType.mapFromSchemaColumnType(maxCharacterLength),
             isNullable = when (isNullable) {
                 "NO" -> false
                 "YES" -> true
                 else -> throw IllegalStateException("Illegal value for isNullable column: $isNullable")
-            })
+            }
+        )
     }
 
     fun updateTableVersionNumber(connection: Connection,
