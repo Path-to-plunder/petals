@@ -14,7 +14,7 @@ abstract class BasePetalMigration {
     private val petalMigration: PetalMigration by lazy { Json.decodeFromString(petalJson) }
 
     val tableName: String by lazy { petalMigration.tableName }
-    private val petalSchemaVersions: MutableMap<Int, PetalSchemaMigration> by lazy { petalMigration.schemaMigrations }
+    private val petalSchemaVersions: Map<Int, PetalSchemaMigration> by lazy { petalMigration.schemaMigrations }
     private lateinit var dataSource: HikariDataSource
 
     fun migrateToLatest(dataSource: HikariDataSource) {
@@ -54,9 +54,6 @@ abstract class BasePetalMigration {
         checkNotNull(schemaVersion) {
             "Found meta info for table $tableName version $versionNumber but no matching schema was provided to" +
                     " match. A @Petal annotated schema must be provided matching the current table."
-        }
-
-        if(schemaVersion.columnsAsList != existingTableInfo!!.columns) {
         }
 
         check(schemaVersion.columnsAsList.sortedBy { it.name } == existingTableInfo!!.columns.sortedBy { it.name }) {

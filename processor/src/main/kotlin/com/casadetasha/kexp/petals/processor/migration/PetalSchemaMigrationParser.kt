@@ -66,19 +66,15 @@ internal object PetalMigrationColumnParser {
             },
             isNullable = false,
             isAlteration = false,
-            isId = true
+            isId = true,
+            defaultValue = null
         )
     }
 
     fun parseFromKotlinProperty(kotlinProperty: KotlinProperty): UnprocessedPetalColumn {
         val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
         val name = kotlinProperty.simpleName
-        val defaultValueParser = DefaultPetalValue(kotlinProperty)
-        val defaultValue = if(defaultValueParser.hasDefaultValue) {
-            defaultValueParser.defaultValue
-        } else {
-            null
-        }
+        val defaultPetalValue = DefaultPetalValue(kotlinProperty)
 
         return UnprocessedPetalColumn(
             previousName = getPreviousName(name, alterColumnAnnotation),
@@ -87,7 +83,7 @@ internal object PetalMigrationColumnParser {
             isNullable = kotlinProperty.isNullable,
             isAlteration = alterColumnAnnotation?.renameFrom != null,
             isId = false,
-            defaultValue = defaultValue
+            defaultValue = defaultPetalValue
         )
     }
 

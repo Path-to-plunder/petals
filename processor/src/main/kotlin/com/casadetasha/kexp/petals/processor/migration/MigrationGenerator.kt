@@ -35,7 +35,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
         classBuilder = TypeSpec.classBuilder(className).superclass(BasePetalMigration::class)
         addMigrationSpecs()
 
-        val petalJson = json.encodeToString(petalMigration)
+        val petalJson = json.encodeToString(petalMigration.process())
         classBuilder.addOverriddenStringProperty("petalJson", petalJson)
 
         fileSpecBuilder.addType(classBuilder.build())
@@ -136,7 +136,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
             .filter { !it.isId }
             .forEach {
                 val previousColumn = previousMigrationColumns[it.name]
-                if (previousColumn != null && !it.isAlteration && previousColumn != it) {
+                if (previousColumn != null && !it.isAlteration && previousColumn.petalColumn != it.petalColumn) {
                     printThenThrowError(
                         "Updated schema for ${it.name} in table ${petalMigration.tableName} version" +
                                 " $currentMigrationVersion does not match column from previous schema. If this schema" +

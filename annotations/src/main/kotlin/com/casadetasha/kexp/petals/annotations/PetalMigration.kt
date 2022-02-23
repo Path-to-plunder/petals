@@ -1,21 +1,15 @@
 package com.casadetasha.kexp.petals.annotations;
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 @Serializable
 data class PetalMigration(val tableName: String,
                           val className: String,
-                          val schemaMigrations: MutableMap<Int, PetalSchemaMigration> = HashMap()) {
-
-    fun getCurrentSchema(): PetalSchemaMigration? = schemaMigrations.toSortedMap()
-        .values
-        .lastOrNull()
-}
+                          val schemaMigrations: Map<Int, PetalSchemaMigration> = HashMap())
 
 @Serializable
 data class PetalSchemaMigration(val primaryKeyType: PetalPrimaryKey,
-                                val columnMigrations:HashMap<String, PetalColumn>) {
+                                val columnMigrations: Map<String, PetalColumn>) {
     var migrationSql: String? = null
     var migrationAlterationSql: List<String>? = null
 

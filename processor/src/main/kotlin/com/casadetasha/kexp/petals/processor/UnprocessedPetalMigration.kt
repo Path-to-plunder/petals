@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.processor
 
+import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.squareup.kotlinpoet.MemberName
 
 internal data class UnprocessedPetalMigration(val tableName: String,
@@ -16,4 +17,12 @@ internal data class UnprocessedPetalMigration(val tableName: String,
     fun getCurrentSchema(): UnprocessedPetalSchemaMigration? = schemaMigrations.toSortedMap()
         .values
         .lastOrNull()
+
+    fun process(): PetalMigration {
+        return PetalMigration(
+            tableName = tableName,
+            className = className,
+            schemaMigrations = schemaMigrations.map { it.key to it.value.process() }.toMap()
+        )
+    }
 }

@@ -11,7 +11,7 @@ internal class UnprocessedPetalColumn(
     val previousName: String? = null,
     val isAlteration: Boolean,
     val isId: Boolean,
-    val defaultValue: String? = null,
+    val defaultValue: DefaultPetalValue?
 ) : Comparable<UnprocessedPetalColumn> {
 
     val dataType = petalColumn.dataType
@@ -25,7 +25,7 @@ internal class UnprocessedPetalColumn(
         previousName: String? = null,
         isAlteration: Boolean,
         isId: Boolean,
-        defaultValue: String? = null,
+        defaultValue: DefaultPetalValue?,
     ) : this(
         petalColumn = PetalColumn(
             name = name,
@@ -55,6 +55,8 @@ internal class UnprocessedPetalColumn(
         }.asClassName()
     }
 
+    fun process(): PetalColumn = petalColumn
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is UnprocessedPetalColumn) return false
@@ -71,8 +73,8 @@ internal class UnprocessedPetalColumn(
     override fun hashCode(): Int {
         var result = petalColumn.hashCode()
         result = 31 * result + (previousName?.hashCode() ?: 0)
-        result = 31 * result + (isAlteration?.hashCode() ?: 0)
-        result = 31 * result + (isId?.hashCode() ?: 0)
+        result = 31 * result + isAlteration.hashCode()
+        result = 31 * result + isId.hashCode()
         result = 31 * result + (defaultValue?.hashCode() ?: 0)
         return result
     }

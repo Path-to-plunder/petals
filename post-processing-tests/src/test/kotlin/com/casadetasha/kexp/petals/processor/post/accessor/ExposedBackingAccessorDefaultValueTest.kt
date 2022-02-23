@@ -93,31 +93,9 @@ class ExposedBackingAccessorDefaultValueTest: ContainerizedTestBase() {
 
         assertThat(loadedEntity.id.value).isEqualTo(id)
         assertThat(loadedEntity.count).isEqualTo(1)
-        assertThat(loadedEntity.sporeCount).isEqualTo(200)
+        assertThat(loadedEntity.sporeCount).isEqualTo(2)
         assertThat(loadedEntity.color).isEqualTo("default color")
         assertThat(loadedEntity.secondColor).isEqualTo("Yellow")
-        assertThat(loadedEntity.uuid).isEqualTo(baseUuid)
-    }
-
-    @Test
-    fun `store() without provided @DefaultNull column value stores null value for column`() {
-        val baseUuid = UUID.randomUUID()
-        val id: UUID = DefaultValuePetal(
-            count = 1,
-            sporeCount = 2,
-            color = "Blue",
-            uuid = baseUuid
-        ).store().id!!
-
-        val loadedEntity = transaction {
-            checkNotNull(DefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
-        }
-
-        assertThat(loadedEntity.id.value).isEqualTo(id)
-        assertThat(loadedEntity.count).isEqualTo(1)
-        assertThat(loadedEntity.sporeCount).isEqualTo(200)
-        assertThat(loadedEntity.color).isEqualTo("Blue")
-        assertThat(loadedEntity.secondColor).isNull()
         assertThat(loadedEntity.uuid).isEqualTo(baseUuid)
     }
 }

@@ -1,6 +1,7 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor
 
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
+import com.casadetasha.kexp.petals.processor.DefaultPetalValue
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.*
 import com.squareup.kotlinpoet.*
@@ -55,9 +56,11 @@ class AccessorClassSpecBuilder {
         }
 
         if (column.kotlinType == UUID::class.asClassName()) {
-            propertyBuilder.addAnnotation(AnnotationSpec.builder(Serializable::class)
-                .addMember("with = %M::class", UUIDSerializer::class.asMemberName())
-                .build())
+            propertyBuilder.addAnnotation(
+                AnnotationSpec.builder(Serializable::class)
+                    .addMember("with = %M::class", UUIDSerializer::class.asMemberName())
+                    .build()
+            )
         }
 
         return propertyBuilder
@@ -80,15 +83,21 @@ class AccessorClassSpecBuilder {
         }
 
         val builder = ParameterSpec.builder(column.name, propertyTypeName)
-        column.defaultValue?.let {
-            when (column.kotlinType.copy(nullable = false)) {
-                String::class.asClassName() -> builder.defaultValue("%S", it)
-                else -> builder.defaultValue("%L", it)
-            }
-        }
+        builder.addDefaultValueIfPresent(column.defaultValue)
         return when (column.isId) {
             true -> builder.defaultValue("null").build()
             false -> builder.build()
+        }
+    }
+}
+
+private fun ParameterSpec.Builder.addDefaultValueIfPresent(defaultValue: DefaultPetalValue?) {
+    defaultValue?.let {
+        if (!it.hasDefaultValue) { return@let }
+
+        when (it.typeName.copy(nullable = false)) {
+            String::class.asClassName() -> defaultValue("%S", it.defaultValue)
+            else -> defaultValue("%L", it.defaultValue)
         }
     }
 }

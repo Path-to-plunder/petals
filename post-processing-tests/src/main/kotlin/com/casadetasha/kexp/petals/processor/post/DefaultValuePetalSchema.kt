@@ -7,7 +7,7 @@ import java.util.*
 interface DefaultValuePetalSchemaV1 {
     val uuid: UUID
     @DefaultString("default color") val color: String
-    @DefaultNull @VarChar(charLimit = 10) val secondColor: String?
+    @VarChar(charLimit = 10) val secondColor: String?
     @DefaultInt(10) val count: Int
     @DefaultLong(200) val sporeCount: Long
 }

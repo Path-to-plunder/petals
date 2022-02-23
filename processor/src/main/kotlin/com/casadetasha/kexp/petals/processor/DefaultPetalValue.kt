@@ -3,7 +3,6 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
 import com.casadetasha.kexp.petals.annotations.DefaultInt
 import com.casadetasha.kexp.petals.annotations.DefaultLong
-import com.casadetasha.kexp.petals.annotations.DefaultNull
 import com.casadetasha.kexp.petals.annotations.DefaultString
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
@@ -11,11 +10,12 @@ import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
 internal class DefaultPetalValue(kotlinProperty: KotlinProperty) {
-    private val typeName = kotlinProperty.typeName
     private val annotatedElement = kotlinProperty.annotatedElement
 
+    val typeName = kotlinProperty.typeName
+
     val hasDefaultValue: Boolean by lazy {
-        if (kotlinProperty.typeName.copy(nullable = false) == UUID::class.asTypeName()) {
+        if (typeName.copy(nullable = false) == UUID::class.asTypeName()) {
             false
         } else {
             defaultAnnotation != null
@@ -28,7 +28,6 @@ internal class DefaultPetalValue(kotlinProperty: KotlinProperty) {
             is DefaultInt -> annotation.value.toString()
             is DefaultLong -> annotation.value.toString()
             is DefaultString -> annotation.value
-            is DefaultNull -> null
             else -> throw IllegalStateException("INTERNAL LIBRARY ERROR: Unsupported default value annotation: ${annotation.annotationClass}")
         }
     }
@@ -44,5 +43,5 @@ internal class DefaultPetalValue(kotlinProperty: KotlinProperty) {
 }
 
 private fun Element?.getDefaultAnnotation(kClass: KClass<out Annotation>): Annotation? {
-    return this?.getAnnotation(kClass.java) ?: this?.getAnnotation(DefaultNull::class.java)
+    return this?.getAnnotation(kClass.java)
 }

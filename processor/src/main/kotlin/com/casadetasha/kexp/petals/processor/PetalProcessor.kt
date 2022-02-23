@@ -28,7 +28,6 @@ class PetalProcessor : AbstractProcessor() {
         DefaultInt::class.java.canonicalName,
         DefaultString::class.java.canonicalName,
         DefaultLong::class.java.canonicalName,
-        DefaultNull::class.java.canonicalName,
     )
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
@@ -83,7 +82,6 @@ class PetalProcessor : AbstractProcessor() {
                 DefaultInt::class,
                 DefaultString::class,
                 DefaultLong::class,
-                DefaultNull::class
             )
     }
 }

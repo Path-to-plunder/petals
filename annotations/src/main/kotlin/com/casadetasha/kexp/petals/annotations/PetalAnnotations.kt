@@ -22,10 +22,6 @@ annotation class DefaultLong(val value: Long)
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-annotation class DefaultNull()
-
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 annotation class AlterColumn(val renameFrom: String = "")
 
 @Retention(AnnotationRetention.RUNTIME)
