@@ -24,7 +24,7 @@ class ColumnMigrationSqlTest {
         private val createAndRenameTableSource = SourceFile.kotlin(
             "PetalSchema.kt", """
             package com.casadetasha.kexp.petals.processor.post
-
+            
             import com.casadetasha.kexp.petals.annotations.AlterColumn
             import com.casadetasha.kexp.petals.annotations.Petal
             import com.casadetasha.kexp.petals.annotations.PetalSchema
@@ -34,7 +34,7 @@ class ColumnMigrationSqlTest {
             
             @Petal(tableName = "basic_petal", className = "BasicPetal", primaryKeyType = PetalPrimaryKey.INT)
             interface BasicPetal
-
+            
             @PetalSchema(petal = BasicPetal::class, version = 1)
             interface BasicPetalSchemaV1 {
                 val checkingInt: Int
@@ -43,7 +43,7 @@ class ColumnMigrationSqlTest {
                 @VarChar(charLimit = 10) val checkingVarChar: String
                 val checkingUUID: UUID
             }
-
+            
             @PetalSchema(petal = BasicPetal::class, version = 2)
             interface BasicPetalSchemaV2 {
                 val uuid: UUID
@@ -52,7 +52,7 @@ class ColumnMigrationSqlTest {
                 val count: Int
                 val sporeCount: Long
             }
-
+            
             @PetalSchema(petal = BasicPetal::class, version = 3)
             abstract class BasicPetalSchemaV3 {
                 @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
@@ -67,20 +67,20 @@ class ColumnMigrationSqlTest {
         private val unAnnotatedAlteredColumnSource = SourceFile.kotlin(
             "PetalSchema.kt", """
             package com.casadetasha
-
+            
             import com.casadetasha.kexp.petals.annotations.AlterColumn
             import com.casadetasha.kexp.petals.annotations.Petal
             import com.casadetasha.kexp.petals.annotations.PetalSchema
             import java.util.*
-
+            
             @Petal(tableName = "basic_petal", className = "BasicPetal")
             interface BasicPetal
-
+            
             @PetalSchema(petal = BasicPetal::class, version = 1)
             interface BasicPetalSchemaV1 {
                 val uuid: UUID
             }
-
+            
             @PetalSchema(petal = BasicPetal::class, version = 2)
             interface BasicPetalSchemaV2 {
                 val uuid: UUID?

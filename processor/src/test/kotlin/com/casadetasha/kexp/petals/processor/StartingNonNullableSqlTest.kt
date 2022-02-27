@@ -79,7 +79,7 @@ class StartingNonNullableSqlTest {
     fun `Creates column as NOT NULL if schema property is not nullable`() {
         assertThat(petalSchemaMigrations[1]!!.migrationSql)
             .isEqualTo("CREATE TABLE \"starting_non_nullable_petal\" (" +
-                    " id SERIAL PRIMARY KEY," +
+                    " id uuid PRIMARY KEY," +
                     " \"color\" TEXT NOT NULL" +
                     " )"
             )

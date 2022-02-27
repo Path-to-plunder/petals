@@ -4,10 +4,12 @@ import kotlin.reflect.KClass
 
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
-annotation class Petal(val tableName: String = "",
+annotation class Petal(val tableName: String,
                              val className: String,
-                             val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.INT)
+                             val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.UUID)
 
+@Retention(AnnotationRetention.SOURCE)
+@Target(AnnotationTarget.CLASS)
 annotation class PetalSchema(val petal: KClass<out Any>, val version: Int = 1)
 
 @Retention(AnnotationRetention.RUNTIME)
