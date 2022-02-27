@@ -24,20 +24,23 @@ class StartingNonNullableSqlTest {
 
             import com.casadetasha.kexp.petals.annotations.AlterColumn
             import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
             import java.util.*
 
+            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal")
+            interface StartingNonNullablePetal
 
-            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal", version = 1)
+            @PetalSchema(petal = StartingNonNullablePetal::class, version = 1)
             interface StartingNonNullablePetalSchemaV1 {
                 val color: String
             }
 
-            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal", version = 2)
+            @PetalSchema(petal = StartingNonNullablePetal::class, version = 2)
             interface StartingNonNullablePetalSchemaV2 {
                 @AlterColumn val color: String?
             }
 
-            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal", version = 3)
+            @PetalSchema(petal = StartingNonNullablePetal::class, version = 3)
             interface StartingNonNullablePetalSchemaV3 {
                 val color: String?
                 val secondColor: String

@@ -1,12 +1,14 @@
 package com.casadetasha.kexp.petals.annotations
 
+import kotlin.reflect.KClass
+
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
-annotation class Petal(val tableName: String,
-                       val className: String,
-                       val version: Int = 1,
-                       val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.INT
-)
+annotation class Petal(val tableName: String = "",
+                             val className: String,
+                             val primaryKeyType: PetalPrimaryKey = PetalPrimaryKey.INT)
+
+annotation class PetalSchema(val petal: KClass<out Any>, val version: Int = 1)
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)

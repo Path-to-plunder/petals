@@ -1,12 +1,12 @@
 package com.casadetasha.kexp.petals.processor.post
 
-import com.casadetasha.kexp.petals.annotations.AlterColumn
-import com.casadetasha.kexp.petals.annotations.Petal
-import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.annotations.VarChar
+import com.casadetasha.kexp.petals.annotations.*
 import java.util.*
 
-@Petal(tableName = "migrated_petal", className = "MigratedPetal", version = 1, primaryKeyType = PetalPrimaryKey.INT)
+@Petal(tableName = "migrated_petal", className = "MigratedPetal", primaryKeyType = PetalPrimaryKey.INT)
+interface MigratedPetal
+
+@PetalSchema(petal = MigratedPetal::class, version = 1)
 interface MigratedPetalSchemaV1 {
     val checkingInt: Int
     val checkingLong: Long
@@ -15,7 +15,7 @@ interface MigratedPetalSchemaV1 {
     val checkingUUID: UUID
 }
 
-@Petal(tableName = "migrated_petal", className = "MigratedPetal", version = 2, primaryKeyType = PetalPrimaryKey.INT)
+@PetalSchema(petal = MigratedPetal::class, version = 2)
 interface MigratedPetalSchemaV2 {
     val uuid: UUID
     val color: String
@@ -24,7 +24,7 @@ interface MigratedPetalSchemaV2 {
     val sporeCount: Long
 }
 
-@Petal(tableName = "migrated_petal", className = "MigratedPetal", version = 3, primaryKeyType = PetalPrimaryKey.INT)
+@PetalSchema(petal = MigratedPetal::class, version = 3)
 abstract class MigratedPetalSchemaV3 {
     @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
     @AlterColumn(renameFrom = "color") abstract val renamed_color: String

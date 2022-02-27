@@ -20,9 +20,13 @@ class IdColumnSqlTest {
             package com.casadetasha.kexp.petals.processor.post
 
             import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
             import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
             
             @Petal(tableName = "int_id_petal", className = "IntIdPetal", primaryKeyType = PetalPrimaryKey.INT)
+            interface IntIdPetal
+
+            @PetalSchema(petal = IntIdPetal::class)
             interface IntIdPetalSchema {
                 val column: String
             }
@@ -34,9 +38,13 @@ class IdColumnSqlTest {
             package com.casadetasha.kexp.petals.processor.post
 
             import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
             import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
             
             @Petal(tableName = "long_id_petal", className = "LongIdPetal", primaryKeyType = PetalPrimaryKey.LONG)
+            interface LongIdPetal
+
+            @PetalSchema(petal = LongIdPetal::class)
             interface LongIdPetalSchema {
                 val column: String
             }
@@ -48,9 +56,13 @@ class IdColumnSqlTest {
             package com.casadetasha.kexp.petals.processor.post
 
             import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
             import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
             
             @Petal(tableName = "uuid_id_petal", className = "UuidIdPetal", primaryKeyType = PetalPrimaryKey.UUID)
+            interface UuidIdPetal
+
+            @PetalSchema(petal = UuidIdPetal::class)
             interface UuidIdPetalSchema {
                 val column: String
             }

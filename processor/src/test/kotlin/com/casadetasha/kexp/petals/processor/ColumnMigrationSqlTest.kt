@@ -27,11 +27,15 @@ class ColumnMigrationSqlTest {
 
             import com.casadetasha.kexp.petals.annotations.AlterColumn
             import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
             import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
             import com.casadetasha.kexp.petals.annotations.VarChar
             import java.util.*
             
-            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 1, primaryKeyType = PetalPrimaryKey.INT)
+            @Petal(tableName = "basic_petal", className = "BasicPetal", primaryKeyType = PetalPrimaryKey.INT)
+            interface BasicPetal
+
+            @PetalSchema(petal = BasicPetal::class, version = 1)
             interface BasicPetalSchemaV1 {
                 val checkingInt: Int
                 val checkingLong: Long
@@ -40,7 +44,7 @@ class ColumnMigrationSqlTest {
                 val checkingUUID: UUID
             }
 
-            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 2, primaryKeyType = PetalPrimaryKey.INT)
+            @PetalSchema(petal = BasicPetal::class, version = 2)
             interface BasicPetalSchemaV2 {
                 val uuid: UUID
                 val color: String
@@ -49,7 +53,7 @@ class ColumnMigrationSqlTest {
                 val sporeCount: Long
             }
 
-            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 3, primaryKeyType = PetalPrimaryKey.INT)
+            @PetalSchema(petal = BasicPetal::class, version = 3)
             abstract class BasicPetalSchemaV3 {
                 @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
                 @AlterColumn(renameFrom = "color") abstract val renamed_color: String
@@ -66,14 +70,18 @@ class ColumnMigrationSqlTest {
 
             import com.casadetasha.kexp.petals.annotations.AlterColumn
             import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
             import java.util.*
 
-            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 1)
+            @Petal(tableName = "basic_petal", className = "BasicPetal")
+            interface BasicPetal
+
+            @PetalSchema(petal = BasicPetal::class, version = 1)
             interface BasicPetalSchemaV1 {
                 val uuid: UUID
             }
 
-            @Petal(tableName = "basic_petal", className = "BasicPetal", version = 2)
+            @PetalSchema(petal = BasicPetal::class, version = 2)
             interface BasicPetalSchemaV2 {
                 val uuid: UUID?
             }

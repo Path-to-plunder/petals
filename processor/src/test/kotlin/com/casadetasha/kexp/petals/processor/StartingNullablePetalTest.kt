@@ -24,19 +24,23 @@ class StartingNullablePetalTest {
 
             import com.casadetasha.kexp.petals.annotations.AlterColumn
             import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
             import java.util.*
 
-            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal", version = 1)
+            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal")
+            interface StartingNullablePetal
+
+            @PetalSchema(petal = StartingNullablePetal::class, version = 1)
             interface StartingNullablePetalSchemaV1 {
                 val color: String?
             }
             
-            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal", version = 2)
+            @PetalSchema(petal = StartingNullablePetal::class, version = 2)
             interface StartingNullablePetalSchemaV2 {
                 @AlterColumn val color: String
             }
             
-            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal", version = 3)
+            @PetalSchema(petal = StartingNullablePetal::class, version = 3)
             interface StartingNullablePetalSchemaV3 {
                 val color: String
                 val secondColor: String?

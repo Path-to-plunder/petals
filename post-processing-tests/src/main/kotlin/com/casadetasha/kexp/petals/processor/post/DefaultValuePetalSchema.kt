@@ -4,6 +4,9 @@ import com.casadetasha.kexp.petals.annotations.*
 import java.util.*
 
 @Petal(tableName = "default_value_petal", className = "DefaultValuePetal", primaryKeyType = PetalPrimaryKey.UUID)
+interface DefaultValuePetal
+
+@PetalSchema(petal = DefaultValuePetal::class)
 interface DefaultValuePetalSchemaV1 {
     val uuid: UUID
     @DefaultString("default color") val color: String

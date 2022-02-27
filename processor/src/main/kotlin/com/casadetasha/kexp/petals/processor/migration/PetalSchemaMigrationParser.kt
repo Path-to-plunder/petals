@@ -14,16 +14,16 @@ import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
 internal object PetalSchemaMigrationParser {
-    fun parseFromClass(kotlinClass: KotlinClass): UnprocessedPetalSchemaMigration {
-        val petalAnnotation = kotlinClass.getAnnotation(Petal::class)
+    fun parseFromClass(kotlinClass: KotlinClass, primaryKeyType: PetalPrimaryKey): UnprocessedPetalSchemaMigration {
+        val petalSchemaAnnotation = kotlinClass.getAnnotation(PetalSchema::class)
             ?: printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Cannot parse petal migration from class ${kotlinClass.className}:" +
                         " petal class must contain petal annotation "
             )
 
         return UnprocessedPetalSchemaMigration(
-            primaryKeyType = petalAnnotation.primaryKeyType,
-            columnMigrations = parsePetalColumns(kotlinClass, petalAnnotation.primaryKeyType)
+            primaryKeyType = primaryKeyType,
+            columnMigrations = parsePetalColumns(kotlinClass, primaryKeyType)
         )
     }
 
