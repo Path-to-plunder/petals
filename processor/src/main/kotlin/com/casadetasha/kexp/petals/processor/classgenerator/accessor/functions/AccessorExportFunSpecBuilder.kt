@@ -16,7 +16,7 @@ internal class AccessorExportFunSpecBuilder {
         val statementParser = AccessorKtxFunctionParser(accessorClassInfo)
         return FunSpec.builder(EXPORT_METHOD_SIMPLE_NAME)
             .returns(accessorClassInfo.className)
-            .receiver(accessorClassInfo.sourceClassName)
+            .receiver(accessorClassInfo.entityClassName)
             .addCode(statementParser.exportMethodStatement)
             .build()
     }
@@ -55,7 +55,7 @@ internal class AccessorExportFunSpecBuilder {
 
         private fun closeExportCreation(): StringBuilder {
             stringBuilder.removeTrailingComma()
-            stringBuilder.append("\n).apply { isStored = true }")
+            stringBuilder.append("\n)")
             return stringBuilder
         }
 

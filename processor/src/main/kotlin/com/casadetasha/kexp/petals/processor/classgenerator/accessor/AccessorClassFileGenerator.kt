@@ -11,12 +11,11 @@ internal class AccessorClassFileGenerator(
 ) {
 
     fun generateFile() {
-        val classSpecBuilder = AccessorClassSpecBuilder()
         val fileSpec = FileSpec.builder(
             packageName = "com.casadetasha.kexp.petals.accessor",
             fileName = accessorClassInfo.className.simpleName
         )
-            .addType(classSpecBuilder.getClassSpec(accessorClassInfo))
+            .addType(AccessorClassSpecBuilder(accessorClassInfo).getClassSpec())
             .build()
 
         fileSpec.writeTo(File(kaptKotlinGeneratedDir))

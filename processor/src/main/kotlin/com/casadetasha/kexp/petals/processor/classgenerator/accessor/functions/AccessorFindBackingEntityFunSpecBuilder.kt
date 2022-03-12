@@ -7,28 +7,25 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class AccessorFindBackingEntityFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
-    companion object {
-        const val METHOD_SIMPLE_NAME = "findBackingEntity"
-    }
-
-    fun getFunSpec(): FunSpec {
-        return FunSpec.builder(METHOD_SIMPLE_NAME)
+    fun getPropertySpec(): PropertySpec {
+        return PropertySpec.builder("entity", accessorClassInfo.entityClassName)
             .addModifiers(KModifier.PRIVATE)
-            .returns(accessorClassInfo.sourceClassName.copy(nullable = true))
-            .addCode(FindBackingEntityFunctionParser(accessorClassInfo).methodBody)
+            .delegate(FindBackingEntityFunctionParser().methodBody)
             .build()
     }
 
-    private class FindBackingEntityFunctionParser(accessorClassInfo: AccessorClassInfo) {
+    private class FindBackingEntityFunctionParser {
         val methodBody: CodeBlock by lazy {
             CodeBlock.builder()
-                .addStatement("checkNotNull(id) { %S }", "Null petal ID found even though isStored is true")
-                .addStatement("return %M.findById(id)", accessorClassInfo.entityMemberName)
+                .beginControlFlow("lazy ")
+                .addStatement("checkNotNull(dbEntity) { %S }", "Null petal ID found even though isStored is true")
+                .unindent()
+                .addStatement("}")
                 .build()
         }
     }
 }
 
-internal fun TypeSpec.Builder.addFindEntityMethod(accessorClassInfo: AccessorClassInfo) = apply {
-    this.addFunction(AccessorFindBackingEntityFunSpecBuilder(accessorClassInfo).getFunSpec())
+internal fun TypeSpec.Builder.addEntityDelegate(accessorClassInfo: AccessorClassInfo) = apply {
+    this.addProperty(AccessorFindBackingEntityFunSpecBuilder(accessorClassInfo).getPropertySpec())
 }

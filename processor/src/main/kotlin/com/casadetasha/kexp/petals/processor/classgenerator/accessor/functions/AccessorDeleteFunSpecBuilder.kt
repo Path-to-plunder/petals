@@ -18,12 +18,10 @@ internal class AccessorDeleteFunSpecBuilder {
             .build()
     }
 
-    private class FindBackingEntityFunctionParser() {
+    private class FindBackingEntityFunctionParser {
         val methodBody: CodeBlock by lazy {
             CodeBlock.builder()
-                .addStatement("if (!isStored) { return }")
-                .addStatement("")
-                .addStatement("%M { findBackingEntity()?.delete() }", TRANSACTION_MEMBER_NAME)
+                .addStatement("return %M { entity.delete() }", TRANSACTION_MEMBER_NAME)
                 .build()
         }
     }

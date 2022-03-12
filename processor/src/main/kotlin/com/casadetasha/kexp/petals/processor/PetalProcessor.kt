@@ -2,9 +2,11 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
-import com.casadetasha.kexp.annotationparser.AnnotationParser.getClassesAnnotatedWith
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.*
+import com.casadetasha.kexp.petals.processor.PetalClasses.PETAL_CLASSES
+import com.casadetasha.kexp.petals.processor.PetalClasses.SCHEMA_CLASSES
+import com.casadetasha.kexp.petals.processor.PetalClasses.SUPPORTED_PROPERTY_ANNOTATIONS
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedClassesFileGenerator
@@ -23,27 +25,13 @@ import javax.lang.model.type.MirroredTypeException
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 class PetalProcessor : AbstractProcessor() {
 
-    override fun getSupportedAnnotationTypes() = mutableSetOf(
-        Petal::class.java.canonicalName,
-        PetalSchema::class.java.canonicalName,
-        AlterColumn::class.java.canonicalName,
-        VarChar::class.java.canonicalName,
-        DefaultInt::class.java.canonicalName,
-        DefaultString::class.java.canonicalName,
-        DefaultLong::class.java.canonicalName,
-    )
+    override fun getSupportedAnnotationTypes() : MutableSet<String> {
+        val supportedAnnotationTypes = setOf(
+            Petal::class.java.canonicalName,
+            PetalSchema::class.java.canonicalName
+        ) + SUPPORTED_PROPERTY_ANNOTATIONS.map { it.java.canonicalName }
 
-    private val petalClasses: Map<ClassName, KotlinContainer.KotlinClass> by lazy {
-        getClassesAnnotatedWith(
-            annotationClass = Petal::class
-        ).associateBy { it.className }
-    }
-
-    private val schemaClasses: Set<KotlinContainer.KotlinClass> by lazy {
-        getClassesAnnotatedWith(
-            annotationClass = PetalSchema::class,
-            propertyAnnotations = SUPPORTED_PROPERTY_ANNOTATIONS
-        )
+        return supportedAnnotationTypes.toMutableSet()
     }
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
@@ -60,7 +48,7 @@ class PetalProcessor : AbstractProcessor() {
     private fun generateClasses() {
         val tableMap = UnprocessedPetalMigrationMap()
 
-        schemaClasses.forEach {
+        SCHEMA_CLASSES.forEach {
             tableMap.insertMigrationForPetalSchema(it)
         }
 
@@ -81,7 +69,7 @@ class PetalProcessor : AbstractProcessor() {
         val petalSchemaAnnotation: PetalSchema = it.getAnnotation(PetalSchema::class)!!
         val petalClassName = petalSchemaAnnotation.petalTypeName
         val petal: KotlinContainer.KotlinClass =
-            checkNotNull(petalClasses[petalClassName]) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
+            checkNotNull(PETAL_CLASSES[petalClassName]) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
         val petalAnnotation =
             checkNotNull(petal.getAnnotation(Petal::class)) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
         val tableName = petalAnnotation.tableName
@@ -95,17 +83,6 @@ class PetalProcessor : AbstractProcessor() {
         this[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser
             .parseFromClass(it, petalAnnotation.primaryKeyType)
     }
-
-    companion object {
-        private val SUPPORTED_PROPERTY_ANNOTATIONS =
-            listOf(
-                AlterColumn::class,
-                VarChar::class,
-                DefaultInt::class,
-                DefaultString::class,
-                DefaultLong::class,
-            )
-    }
 }
 
 private typealias UnprocessedPetalMigrationMap = HashMap<String, UnprocessedPetalMigration>
@@ -114,7 +91,7 @@ private fun UnprocessedPetalMigration.getAccessorClassInfo(): AccessorClassInfo 
     return AccessorClassInfo(
         packageName = "com.casadetasha.kexp.petals.accessor",
         simpleName = className,
-        sourceClassName = ClassName("com.casadetasha.kexp.petals", "${className}Entity"),
+        entityClassName = ClassName("com.casadetasha.kexp.petals", "${className}Entity"),
         columns = getCurrentSchema()!!.columnsAsList.toSet()
     )
 }

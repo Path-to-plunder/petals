@@ -6,8 +6,9 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.asClassName
 import java.util.*
 
-internal class UnprocessedPetalColumn(
+internal class UnprocessedPetalColumn private constructor(
     val petalColumn: PetalColumn,
+    val referencing: ClassName? = null,
     val previousName: String? = null,
     val isAlteration: Boolean,
     val isId: Boolean,
@@ -22,6 +23,7 @@ internal class UnprocessedPetalColumn(
         name: String,
         dataType: String,
         isNullable: Boolean,
+        referencing: ClassName? = null,
         previousName: String? = null,
         isAlteration: Boolean,
         isId: Boolean,
@@ -32,10 +34,11 @@ internal class UnprocessedPetalColumn(
             dataType = dataType,
             isNullable = isNullable
         ),
-        previousName,
-        isAlteration,
-        isId,
-        defaultValue
+        referencing = referencing,
+        previousName = previousName,
+        isAlteration = isAlteration,
+        isId = isId,
+        defaultValue = defaultValue
     )
 
     val kotlinType: ClassName by lazy {
