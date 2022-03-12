@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.post.accessor
+package com.casadetasha.kexp.petals.processor.post.accessor.exposed
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -15,7 +15,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class ExposedBackingAccessorTest: ContainerizedTestBase() {
+class AccessorTest: ContainerizedTestBase() {
 
     private val tableName: String by lazy { `TableMigrations$basic_petal`().tableName }
 

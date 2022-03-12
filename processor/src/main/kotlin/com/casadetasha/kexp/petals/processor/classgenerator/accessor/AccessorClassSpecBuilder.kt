@@ -79,7 +79,7 @@ class AccessorClassSpecBuilder {
     private fun getParameterSpec(column: UnprocessedPetalColumn): ParameterSpec {
         val propertyTypeName = when (column.isId) {
             true -> column.kotlinType.copy(nullable = true)
-            false -> column.kotlinType.copy(nullable = column.isNullable)
+            false -> getNonIdTypeName(column)
         }
 
         val builder = ParameterSpec.builder(column.name, propertyTypeName)
@@ -87,6 +87,13 @@ class AccessorClassSpecBuilder {
         return when (column.isId) {
             true -> builder.defaultValue("null").build()
             false -> builder.build()
+        }
+    }
+
+    private fun getNonIdTypeName(column: UnprocessedPetalColumn): TypeName {
+        return when (val reference = column.referencing) {
+            null -> column.kotlinType.copy(nullable = column.isNullable)
+            else -> reference
         }
     }
 }

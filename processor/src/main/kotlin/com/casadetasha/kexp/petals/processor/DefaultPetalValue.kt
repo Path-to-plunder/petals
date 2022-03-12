@@ -37,7 +37,7 @@ internal class DefaultPetalValue(kotlinProperty: KotlinProperty) {
             Int::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultInt::class)
             Long::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultLong::class)
             String::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultString::class)
-            else -> throw IllegalStateException("Column type $typeName not supported for default value.")
+            else -> null
         }
     }
 }
