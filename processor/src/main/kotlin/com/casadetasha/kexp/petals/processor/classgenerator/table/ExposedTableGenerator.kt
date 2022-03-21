@@ -4,6 +4,7 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.toMemberName
 import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedEntityGenerator.Companion.EXPOSED_TABLE_PACKAGE
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -31,8 +32,7 @@ internal class ExposedTableGenerator(private val className: String,
         tableBuilder.addProperty(
             PropertySpec.builder(
                 column.name,
-                Column::class.asClassName()
-                    .parameterizedBy(column.kotlinType.copy(nullable = column.isNullable))
+                column.tablePropertyClassName
             ).initializer(
                 getColumnInitializationBlock(column)
             )
@@ -41,6 +41,13 @@ internal class ExposedTableGenerator(private val className: String,
     }
 
     private fun getColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
+        return when (column.columnReference) {
+            null -> getValueColumnInitializationBlock(column)
+            else -> getReferenceColumnInitializationBlock(column)
+        }
+    }
+
+    private fun getValueColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
         if (column.dataType.startsWith("CHARACTER VARYING")) {
             val charLimit = column.dataType
                 .removePrefix("CHARACTER VARYING(")
@@ -71,6 +78,22 @@ internal class ExposedTableGenerator(private val className: String,
         }
 
         return builder.build()
+    }
+
+    private fun getReferenceColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
+        val builder = CodeBlock.builder()
+            .add(
+                "%M(%S, %M)",
+                getReferenceColumnCreationMemberName(),
+                column.name,
+                column.referencingTableClassName!!.toMemberName(),
+            )
+
+        return builder.build()
+    }
+
+    private fun getReferenceColumnCreationMemberName(): MemberName {
+        return MemberName(ExposedClassesFileGenerator.EXPOSED_TABLE_PACKAGE, "reference")
     }
 
     private fun getColumnCreationMemberName(column: UnprocessedPetalColumn): MemberName {

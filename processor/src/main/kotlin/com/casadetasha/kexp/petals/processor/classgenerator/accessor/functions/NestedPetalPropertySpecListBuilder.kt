@@ -74,7 +74,7 @@ internal class NestedPetalPropertySpecListBuilder(
     }
 }
 
-private fun ClassName.toMemberName(): MemberName = MemberName(packageName, simpleName)
+internal fun ClassName.toMemberName(): MemberName = MemberName(packageName, simpleName)
 
 internal fun TypeSpec.Builder.addNestedPetalPropertySpec(accessorClassInfo: AccessorClassInfo) = apply {
     accessorClassInfo.columns

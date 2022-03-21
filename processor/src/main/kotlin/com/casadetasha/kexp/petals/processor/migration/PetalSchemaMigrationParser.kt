@@ -158,6 +158,7 @@ private fun KotlinClass.asReference(): ColumnReference {
 
     return ColumnReference(
         accessorClassName = ClassName(AccessorClassFileGenerator.PACKAGE_NAME, accessorName),
+        tableClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Table"),
         entityClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Entity"),
     )
 }

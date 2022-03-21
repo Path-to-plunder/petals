@@ -4,7 +4,11 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.processor.migration.ColumnReference
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.Column
 import java.util.*
 
 internal class UnprocessedPetalColumn private constructor(
@@ -20,6 +24,7 @@ internal class UnprocessedPetalColumn private constructor(
     val name = petalColumn.name
     val isNullable = petalColumn.isNullable
 
+    val referencingTableClassName: ClassName? = columnReference?.tableClassName
     val referencingEntityClassName: ClassName? = columnReference?.entityClassName
     val referencingAccessorClassName: ClassName? = columnReference?.accessorClassName
     val referencingIdName: String? = when (columnReference) {
@@ -29,6 +34,20 @@ internal class UnprocessedPetalColumn private constructor(
     val nestedPetalManagerName: String? = when(columnReference) {
         null -> null
         else -> "${name}NestedPetalManager"
+    }
+
+    val tablePropertyClassName: TypeName by lazy {
+        when (columnReference) {
+            null -> Column::class.asClassName()
+                .parameterizedBy(kotlinType.copy(nullable = isNullable))
+
+            else -> Column::class.asClassName()
+                .parameterizedBy(
+                    EntityID::class.asClassName()
+                        .parameterizedBy(kotlinType.copy(nullable = isNullable))
+                )
+
+        }
     }
 
     constructor(
