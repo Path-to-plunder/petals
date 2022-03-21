@@ -18,11 +18,11 @@ import java.util.*
 public class ParentPetalClass private constructor(
     dbEntity: ParentPetalClassEntity,
     id: UUID,
-    loadedNestedPetalId: UUID
+    nestedPetalId: UUID
 ): EntityAccessor<ParentPetalClass, ParentPetalClassEntity, UUID>(dbEntity, id) {
 
     private val nestedPetalManager by lazy {
-        NestedEntityManager(loadedNestedPetalId) { dbEntity.nestedPetal.export() }
+        NestedEntityManager(nestedPetalId) { dbEntity.nestedPetal.export() }
     }
 
     /**
@@ -73,7 +73,7 @@ public class ParentPetalClass private constructor(
             return@transaction ParentPetalClass(
                 dbEntity = entity,
                 id = entity.id.value,
-                loadedNestedPetalId = readValues[ParentPetalClassTable.nestedPetal].value
+                nestedPetalId = readValues[ParentPetalClassTable.nestedPetal].value
             )
         }
     }

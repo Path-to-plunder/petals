@@ -14,7 +14,7 @@ internal class AccessorLoadFunSpecBuilder {
     fun getFunSpec(accessorClassInfo: AccessorClassInfo): FunSpec {
         val statementParser = AccessorKtxFunctionParser(accessorClassInfo)
         return FunSpec.builder(METHOD_SIMPLE_NAME)
-            .addParameter(ParameterSpec.builder("id", accessorClassInfo.idKotlinType).build())
+            .addParameter(ParameterSpec.builder("id", accessorClassInfo.idKotlinClassName).build())
             .returns(accessorClassInfo.className.copy(nullable = true))
             .addCode(statementParser.methodStatement)
             .build()

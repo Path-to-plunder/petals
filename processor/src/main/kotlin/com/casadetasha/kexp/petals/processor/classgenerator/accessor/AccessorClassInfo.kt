@@ -16,7 +16,7 @@ internal class AccessorClassInfo constructor(
 
     val sortedColumns: SortedSet<UnprocessedPetalColumn> by lazy { columns.toSortedSet() }
 
-    val idKotlinType: ClassName = columns.firstOrNull { it.isId }?.kotlinType ?: Int::class.asClassName()
+    val idKotlinClassName: ClassName = columns.firstOrNull { it.isId }?.kotlinType ?: Int::class.asClassName()
     val className: ClassName = ClassName(packageName, simpleName)
 
     val entityMemberName by lazy { MemberName(entityClassName.packageName, entityClassName.simpleName) }

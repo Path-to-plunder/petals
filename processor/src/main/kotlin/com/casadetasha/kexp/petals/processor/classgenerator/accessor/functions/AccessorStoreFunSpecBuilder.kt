@@ -9,47 +9,45 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
     companion object {
-        const val STORE_METHOD_SIMPLE_NAME = "store"
-        const val SET_VALUES_METHOD_SIMPLE_NAME = "storeValuesInBackend"
+        const val STORE_METHOD_SIMPLE_NAME = "storeInsideOfTransaction"
+        const val STORE_DEPENDENCIES_METHOD_SIMPLE_NAME = "storeDependencies"
 
-        val TRANSACTION_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql.transactions", "transaction")
+        const val UPDATE_DEPENDENCIES_PARAM_NAME = "updateNestedDependencies"
+    }
+
+    private val storeDependenciesFunSpec: FunSpec by lazy {
+        FunSpec.builder(STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
+            .addModifiers(KModifier.PRIVATE)
+            .apply {
+                accessorClassInfo.columns
+                    .filter { it.referencing != null }
+                    .forEach {
+                        addStatement("${it.name}.store()")
+                    }
+            }
+            .build()
     }
 
     fun getFunSpecs(): Iterable<FunSpec> {
         return setOf(
-            createStoreFunction(),
-            createSetValuesFunction()
+            createSetValuesFunction(),
+            storeDependenciesFunSpec
         )
     }
 
-
-    private fun createStoreFunction(): FunSpec {
-        return FunSpec.builder(STORE_METHOD_SIMPLE_NAME)
-            .addModifiers(KModifier.PRIVATE)
-            .returns(accessorClassInfo.className)
-            .addCode(StoreFunctionParser().methodBody)
-            .build()
-    }
-
     private fun createSetValuesFunction(): FunSpec {
-        return FunSpec.builder(SET_VALUES_METHOD_SIMPLE_NAME)
-            .addModifiers(KModifier.PRIVATE)
-            .receiver(accessorClassInfo.entityClassName)
-            .returns(accessorClassInfo.entityClassName)
+        return FunSpec.builder(STORE_METHOD_SIMPLE_NAME)
+            .addModifiers(
+                KModifier.OVERRIDE
+            )
+            .addParameter(
+                ParameterSpec.builder(
+                    name = UPDATE_DEPENDENCIES_PARAM_NAME,
+                    type = Boolean::class.asClassName()
+                ).build())
+            .returns(accessorClassInfo.className)
             .addCode(SetValuesFunctionParser(accessorClassInfo).methodBody)
             .build()
-    }
-
-    private class StoreFunctionParser {
-
-        val methodBody: CodeBlock by lazy {
-            CodeBlock.builder()
-                .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-                .addStatement("return@transaction entity.$SET_VALUES_METHOD_SIMPLE_NAME()")
-                .unindent()
-                .add("}.export()")
-                .build()
-        }
     }
 
     private class SetValuesFunctionParser(accessorClassInfo: AccessorClassInfo) {
@@ -61,11 +59,22 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
         val methodBody: CodeBlock by lazy {
             val codeBlockBuilder = CodeBlock.builder()
             val classSimpleName = accessorClassInfo.className.simpleName
-            nonIdColumns.forEach {
-                    val name = it.name
-                    codeBlockBuilder.addStatement("$name = this@${classSimpleName}.$name")
-            }
-            codeBlockBuilder.addStatement("return this").build()
+
+            codeBlockBuilder.addStatement(
+                "if (%L) { %L() }\n",
+                UPDATE_DEPENDENCIES_PARAM_NAME,
+                STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
+            )
+                .beginControlFlow("return dbEntity.apply ")
+                .apply {
+                    nonIdColumns.forEach { column ->
+                        val name = column.name
+                        addStatement("$name = this@${classSimpleName}.$name")
+                    }
+                }
+                .unindent()
+                .add("}.export()")
+                .build()
         }
     }
 }

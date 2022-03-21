@@ -19,8 +19,7 @@ internal class ConstructorSpecBuilder(private val accessorClassInfo: AccessorCla
     }
 
     private fun getDbEntityParamSpec(): ParameterSpec = ParameterSpec
-        .builder("dbEntity", accessorClassInfo.entityClassName.copy(nullable = true))
-        .defaultValue("null")
+        .builder("dbEntity", accessorClassInfo.entityClassName)
         .build()
 
     private fun getParameterSpec(column: UnprocessedPetalColumn): ParameterSpec {
