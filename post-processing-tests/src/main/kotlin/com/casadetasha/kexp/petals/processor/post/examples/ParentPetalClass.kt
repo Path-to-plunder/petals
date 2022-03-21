@@ -1,8 +1,8 @@
 package com.casadetasha.kexp.petals.processor.post.examples
 
 import com.casadetasha.kexp.petals.annotations.AccessorCompanion
-import com.casadetasha.kexp.petals.annotations.EntityAccessor
-import com.casadetasha.kexp.petals.annotations.NestedEntityManager
+import com.casadetasha.kexp.petals.annotations.PetalAccessor
+import com.casadetasha.kexp.petals.annotations.NestedPetalManager
 import com.casadetasha.kexp.petals.processor.post.examples.NestedPetalClass.Companion.export
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -19,10 +19,10 @@ public class ParentPetalClass private constructor(
     dbEntity: ParentPetalClassEntity,
     id: UUID,
     nestedPetalId: UUID
-): EntityAccessor<ParentPetalClass, ParentPetalClassEntity, UUID>(dbEntity, id) {
+): PetalAccessor<ParentPetalClass, ParentPetalClassEntity, UUID>(dbEntity, id) {
 
     private val nestedPetalManager by lazy {
-        NestedEntityManager(nestedPetalId) { dbEntity.nestedPetal.export() }
+        NestedPetalManager(nestedPetalId) { dbEntity.nestedPetal.export() }
     }
 
     /**

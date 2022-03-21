@@ -8,6 +8,8 @@ import com.casadetasha.kexp.petals.processor.DefaultPetalValue
 import com.casadetasha.kexp.petals.processor.PetalClasses.PETAL_CLASSES
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
+import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedEntityGenerator
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
@@ -80,7 +82,7 @@ internal object PetalMigrationColumnParser {
         val reference = getReferencingClassName(kotlinProperty)
 
         return UnprocessedPetalColumn(
-            referencing = reference,
+            columnReference = reference,
             previousName = getPreviousName(name, alterColumnAnnotation),
             name = name,
             dataType = getDataType(kotlinProperty),
@@ -110,13 +112,13 @@ internal object PetalMigrationColumnParser {
             )
     }
 
-    private fun getReferencingClassName(kotlinProperty: KotlinProperty): ClassName? {
+    private fun getReferencingClassName(kotlinProperty: KotlinProperty): ColumnReference? {
         return when (SUPPORTED_TYPES.contains(kotlinProperty.typeName.copy(nullable = false))) {
             true -> null
-            false -> PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)]?.className ?: printThenThrowError(
+            false -> PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
                 "Column type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}"
             )
-        }
+        }?.asReference()
     }
 
     private fun getStringTypeName(annotatedElement: Element?): String {
@@ -149,4 +151,13 @@ internal object PetalMigrationColumnParser {
             false -> alterColumnAnnotation.renameFrom
         }
     }
+}
+
+private fun KotlinClass.asReference(): ColumnReference {
+    val accessorName = getAnnotation(Petal::class)!!.className
+
+    return ColumnReference(
+        accessorClassName = ClassName(AccessorClassFileGenerator.PACKAGE_NAME, accessorName),
+        entityClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Entity"),
+    )
 }

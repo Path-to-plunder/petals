@@ -28,7 +28,7 @@ internal class ConstructorSpecBuilder(private val accessorClassInfo: AccessorCla
             false -> column.kotlinType.copy(nullable = column.isNullable)
         }
 
-        val name = when (column.referencing) {
+        val name = when (column.columnReference) {
             null -> column.name
             else -> "${column.name}Id"
         }

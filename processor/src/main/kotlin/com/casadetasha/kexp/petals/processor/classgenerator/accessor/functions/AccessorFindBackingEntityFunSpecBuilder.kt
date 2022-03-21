@@ -27,5 +27,5 @@ internal class AccessorFindBackingEntityFunSpecBuilder(private val accessorClass
 }
 
 internal fun TypeSpec.Builder.addEntityDelegate(accessorClassInfo: AccessorClassInfo) = apply {
-    this.addProperty(AccessorFindBackingEntityFunSpecBuilder(accessorClassInfo).getPropertySpec())
+//    this.addProperty(NestedPetalPropertySpecListBuilder(accessorClassInfo).getPropertySpec())
 }

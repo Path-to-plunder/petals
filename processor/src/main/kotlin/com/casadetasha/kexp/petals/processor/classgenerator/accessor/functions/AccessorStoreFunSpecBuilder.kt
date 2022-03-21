@@ -20,7 +20,7 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
             .addModifiers(KModifier.PRIVATE)
             .apply {
                 accessorClassInfo.columns
-                    .filter { it.referencing != null }
+                    .filter { it.columnReference != null }
                     .forEach {
                         addStatement("${it.name}.store()")
                     }
@@ -30,15 +30,16 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
 
     fun getFunSpecs(): Iterable<FunSpec> {
         return setOf(
-            createSetValuesFunction(),
+            createStoreInsideOfTransactionFunSpec(),
             storeDependenciesFunSpec
         )
     }
 
-    private fun createSetValuesFunction(): FunSpec {
+    private fun createStoreInsideOfTransactionFunSpec(): FunSpec {
         return FunSpec.builder(STORE_METHOD_SIMPLE_NAME)
             .addModifiers(
-                KModifier.OVERRIDE
+                KModifier.OVERRIDE,
+                KModifier.PROTECTED
             )
             .addParameter(
                 ParameterSpec.builder(
@@ -56,6 +57,14 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
             accessorClassInfo.columns.filterNot { it.isId }
         }
 
+        val valueColumns: Iterable<UnprocessedPetalColumn> by lazy {
+            nonIdColumns.filter { it.columnReference == null }
+        }
+
+        val referenceColumns: Iterable<UnprocessedPetalColumn> by lazy {
+            nonIdColumns.filterNot { it.columnReference == null }
+        }
+
         val methodBody: CodeBlock by lazy {
             val codeBlockBuilder = CodeBlock.builder()
             val classSimpleName = accessorClassInfo.className.simpleName
@@ -67,9 +76,15 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
             )
                 .beginControlFlow("return dbEntity.apply ")
                 .apply {
-                    nonIdColumns.forEach { column ->
+                    valueColumns.forEach { column ->
                         val name = column.name
-                        addStatement("$name = this@${classSimpleName}.$name")
+                        addStatement("$name = this@${classSimpleName}.${name}")
+                    }
+                }
+                .apply {
+                    referenceColumns.forEach { column ->
+                        val name = column.name
+                        addStatement("if (${column.nestedPetalManagerName}.hasUpdated()) { $name = this@${classSimpleName}.${name}.dbEntity }")
                     }
                 }
                 .unindent()

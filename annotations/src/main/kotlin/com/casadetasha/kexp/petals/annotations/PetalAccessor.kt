@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.annotations
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class OptionalNestedEntityManager<ACCESSOR: EntityAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
+class OptionalNestedEntityManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
     (private val loadedPetalId: ID?, private val loadClass: () -> ACCESSOR) {
 
     private var _nestedPetalId: ID? = loadedPetalId
@@ -27,16 +27,16 @@ class OptionalNestedEntityManager<ACCESSOR: EntityAccessor<*, ENTITY, ID>, ENTIT
     }
 }
 
-class NestedEntityManager<ACCESSOR: EntityAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
-    (private val loadedPetalId: ID, private val loadEntityAccessor: () -> ACCESSOR) {
+class NestedPetalManager<PETAL_ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
+    (private val loadedPetalId: ID, private val loadEntityAccessor: () -> PETAL_ACCESSOR) {
 
     private var _nestedPetalId: ID = loadedPetalId
     public var nestedPetalId: ID
         @Synchronized get() = _nestedPetalId
         @Synchronized private set(value) { _nestedPetalId = value }
 
-    private var _nestedPetalClass: ACCESSOR? = null
-    public var nestedPetal: ACCESSOR
+    private var _nestedPetalClass: PETAL_ACCESSOR? = null
+    public var nestedPetal: PETAL_ACCESSOR
         @Synchronized get() {
             _nestedPetalClass = _nestedPetalClass ?: loadEntityAccessor()
             return _nestedPetalClass!!
@@ -51,7 +51,7 @@ class NestedEntityManager<ACCESSOR: EntityAccessor<*, ENTITY, ID>, ENTITY: Entit
     }
 }
 
-abstract class EntityAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID>> (val dbEntity: ENTITY, val id: ID) {
+abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID>> (val dbEntity: ENTITY, val id: ID) {
 
     /**
      * Update the object as is in the database. If any nested entities have changed, the associated ID will be updated.

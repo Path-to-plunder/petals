@@ -1,18 +1,17 @@
 package com.casadetasha.kexp.petals.processor.post.examples
 
 import com.casadetasha.kexp.petals.annotations.AccessorCompanion
-import com.casadetasha.kexp.petals.annotations.EntityAccessor
+import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import java.util.UUID
 import kotlin.Boolean
 import kotlin.String
-import kotlin.Unit
 import org.jetbrains.exposed.sql.transactions.transaction
 
 public class NestedPetalClass(
     dbEntity: NestedPetalClassEntity,
     id: UUID,
     public var name: String
-): EntityAccessor<NestedPetalClass, NestedPetalClassEntity, UUID>(dbEntity, id) {
+): PetalAccessor<NestedPetalClass, NestedPetalClassEntity, UUID>(dbEntity, id) {
 
     override fun storeInsideOfTransaction(updateNestedDependencies: Boolean): NestedPetalClass {
         dbEntity.name = this@NestedPetalClass.name

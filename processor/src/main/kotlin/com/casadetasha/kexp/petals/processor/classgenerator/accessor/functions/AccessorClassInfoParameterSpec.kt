@@ -28,9 +28,9 @@ internal class AccessorClassInfoParameterSpec(private val accessorClassInfo: Acc
         }
 
         private fun getNonIdTypeName(column: UnprocessedPetalColumn): TypeName {
-            return when (val reference = column.referencing) {
+            return when (column.columnReference) {
                 null -> column.kotlinType.copy(nullable = column.isNullable)
-                else -> reference.copy(nullable = column.isNullable)
+                else -> column.referencingAccessorClassName!!.copy(nullable = column.isNullable)
             }
         }
     }

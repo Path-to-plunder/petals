@@ -39,14 +39,14 @@ internal class AccessorExportFunSpecBuilder {
         private fun amendSettersForColumns() {
             accessorClassInfo.columns
                 .filterNot { it.isId }
-                .filter { it.referencing == null }
+                .filter { it.columnReference == null }
                 .forEach {
                     val constructorBlock = "\n  ${it.name} = ${it.name},"
                     codeBuilder.add(constructorBlock)
                 }
             accessorClassInfo.columns
                 .filterNot { it.isId }
-                .filter { it.referencing != null }
+                .filter { it.columnReference != null }
                 .forEach {
                     val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
                     codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)

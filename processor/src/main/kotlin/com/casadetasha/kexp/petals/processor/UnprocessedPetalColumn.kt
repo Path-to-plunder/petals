@@ -2,28 +2,40 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.annotations.PetalColumn
+import com.casadetasha.kexp.petals.processor.migration.ColumnReference
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.asClassName
 import java.util.*
 
 internal class UnprocessedPetalColumn private constructor(
     val petalColumn: PetalColumn,
-    val referencing: ClassName? = null,
+    val columnReference: ColumnReference? = null,
     val previousName: String? = null,
     val isAlteration: Boolean,
     val isId: Boolean,
-    val defaultValue: DefaultPetalValue?
+    val defaultValue: DefaultPetalValue?,
 ) : Comparable<UnprocessedPetalColumn> {
 
     val dataType = petalColumn.dataType
     val name = petalColumn.name
     val isNullable = petalColumn.isNullable
 
+    val referencingEntityClassName: ClassName? = columnReference?.entityClassName
+    val referencingAccessorClassName: ClassName? = columnReference?.accessorClassName
+    val referencingIdName: String? = when (columnReference) {
+        null -> null
+        else -> "${name}Id"
+    }
+    val nestedPetalManagerName: String? = when(columnReference) {
+        null -> null
+        else -> "${name}NestedPetalManager"
+    }
+
     constructor(
         name: String,
         dataType: String,
         isNullable: Boolean,
-        referencing: ClassName? = null,
+        columnReference: ColumnReference? = null,
         previousName: String? = null,
         isAlteration: Boolean,
         isId: Boolean,
@@ -34,11 +46,11 @@ internal class UnprocessedPetalColumn private constructor(
             dataType = dataType,
             isNullable = isNullable
         ),
-        referencing = referencing,
+        columnReference = columnReference,
         previousName = previousName,
         isAlteration = isAlteration,
         isId = isId,
-        defaultValue = defaultValue
+        defaultValue = defaultValue,
     )
 
     val kotlinType: ClassName by lazy {

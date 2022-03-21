@@ -15,7 +15,7 @@ internal class ExposedEntityGenerator(private val className: String,
 
     companion object {
         const val EXPOSED_TABLE_PACKAGE = "org.jetbrains.exposed.sql.Table.Dual"
-        private const val PACKAGE_NAME: String = "com.casadetasha.kexp.petals"
+        const val PACKAGE_NAME: String = "com.casadetasha.kexp.petals"
     }
 
     private val tableClassName: String by lazy { "${className}Table" }

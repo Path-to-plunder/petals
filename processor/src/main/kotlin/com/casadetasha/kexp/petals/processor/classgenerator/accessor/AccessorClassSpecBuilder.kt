@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor
 
-import com.casadetasha.kexp.petals.annotations.EntityAccessor
+import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.processor.DefaultPetalValue
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.*
 import com.squareup.kotlinpoet.*
@@ -12,24 +12,21 @@ import kotlin.reflect.KClass
 internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
 
     internal fun getClassSpec(): TypeSpec {
-        val classTypeBuilder = TypeSpec.classBuilder(accessorClassInfo.className)
+        return TypeSpec.classBuilder(accessorClassInfo.className)
             .addSuperclass(accessorClassInfo)
-            .addEntityDelegate(accessorClassInfo)
             .addAccessorProperties(accessorClassInfo)
-
-        classTypeBuilder
             .primaryConstructor(ConstructorSpecBuilder(accessorClassInfo).constructorSpec)
+            .addNestedPetalPropertySpec(accessorClassInfo)
             .addStoreMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)
-
-        return classTypeBuilder.build()
+            .build()
     }
 }
 
 // This will always be type EntityAccessor so asClassName() is safe here
 @OptIn(DelicateKotlinPoetApi::class)
 private fun TypeSpec.Builder.addSuperclass(accessorClassInfo: AccessorClassInfo) = apply {
-    superclass(EntityAccessor::class.java.asClassName()
+    superclass(PetalAccessor::class.java.asClassName()
         .parameterizedBy(
             accessorClassInfo.className,
             accessorClassInfo.entityClassName,
@@ -50,7 +47,7 @@ internal fun ParameterSpec.Builder.addDefaultValueIfPresent(defaultValue: Defaul
     }
 }
 
-private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: AccessorClassInfo) {
+private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: AccessorClassInfo) = apply {
     this.addType(
         TypeSpec
             .companionObjectBuilder()
@@ -59,9 +56,4 @@ private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: Acces
             .addFunction(AccessorExportFunSpecBuilder().getFunSpec(accessorClassInfo))
             .build()
     )
-}
-
-internal fun KClass<*>.asMemberName(): MemberName {
-    val className = this.asClassName()
-    return MemberName(packageName = className.packageName, simpleName = className.simpleName)
 }
