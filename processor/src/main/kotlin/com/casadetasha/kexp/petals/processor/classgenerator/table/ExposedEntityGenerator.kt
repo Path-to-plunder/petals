@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor.classgenerator.table
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.toMemberName
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.jetbrains.exposed.dao.*
@@ -53,15 +54,32 @@ internal class ExposedEntityGenerator(private val className: String,
     fun generateClassSpec(): TypeSpec = entityBuilder.build()
 
     fun addEntityColumn(column: UnprocessedPetalColumn) {
-        entityBuilder
-            .addProperty(
-                PropertySpec.builder(column.name, column.kotlinType.copy(nullable = column.isNullable))
-                    .mutable()
-                    .delegate(
-                        CodeBlock.of(
-                            "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)
-                    ).build()
-            )
+        when (column.columnReference) {
+            null -> entityBuilder
+                    .addProperty(
+                        PropertySpec.builder(column.name, column.entityPropertyClassName)
+                            .mutable()
+                            .delegate(
+                                CodeBlock.of(
+                                    "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)
+                            ).build()
+                    )
+
+            else -> entityBuilder
+                .addProperty(
+                    PropertySpec.builder(column.name, column.entityPropertyClassName)
+                        .mutable()
+                        .delegate(
+                            CodeBlock.of(
+                                "%M %L %L.%L",
+                                column.referencingEntityClassName!!.toMemberName(),
+                                "referencedOn",
+                                tableClassName,
+                                column.name,
+                        )
+                        ).build()
+                )
+        }
     }
 
     private fun getEntityClassName(): ClassName {

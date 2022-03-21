@@ -32,10 +32,13 @@ internal class NestedPetalPropertySpecListBuilder(
         CodeBlock.builder()
             .beginControlFlow("lazy")
             .addStatement(
-                "%M(%L) { dbEntity.%L.export() }",
+                "%M(%L) { dbEntity.%L.%M() }",
                 NestedPetalManager::class.asClassName().toMemberName(),
                 column.referencingIdName,
-                column.name
+                column.name,
+                ClassName( "${column.referencingAccessorClassName!!.packageName}.${column.referencingAccessorClassName.simpleName}.Companion",
+                    "export"
+                ).toMemberName()
             )
             .endControlFlow()
             .build()

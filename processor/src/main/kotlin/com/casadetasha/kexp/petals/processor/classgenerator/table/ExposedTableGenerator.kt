@@ -7,11 +7,9 @@ import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.toMemberName
 import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedEntityGenerator.Companion.EXPOSED_TABLE_PACKAGE
 import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.Column
 
 internal class ExposedTableGenerator(private val className: String,
                                      private val tableName: String,

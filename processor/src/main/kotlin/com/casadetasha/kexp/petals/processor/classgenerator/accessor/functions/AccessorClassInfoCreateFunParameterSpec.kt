@@ -6,7 +6,7 @@ import com.casadetasha.kexp.petals.processor.classgenerator.accessor.addDefaultV
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeName
 
-internal class AccessorClassInfoParameterSpec(private val accessorClassInfo: AccessorClassInfo) {
+internal class AccessorClassInfoCreateFunParameterSpec(private val accessorClassInfo: AccessorClassInfo) {
 
     val parameterSpecs: Iterable<ParameterSpec> by lazy {
         accessorClassInfo.columns
@@ -22,6 +22,10 @@ internal class AccessorClassInfoParameterSpec(private val accessorClassInfo: Acc
             }
             val propertyBuilder = ParameterSpec.builder(petalColumn.name, propertyTypeName)
 
+            when (petalColumn.isId) {
+                true -> propertyBuilder.defaultValue("null")
+                false -> propertyBuilder.addDefaultValueIfPresent(petalColumn.defaultValue)
+            }
             propertyBuilder.addDefaultValueIfPresent(petalColumn.defaultValue)
 
             return@lazy propertyBuilder.build()

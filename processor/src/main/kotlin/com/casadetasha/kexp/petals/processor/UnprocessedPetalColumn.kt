@@ -46,7 +46,13 @@ internal class UnprocessedPetalColumn private constructor(
                     EntityID::class.asClassName()
                         .parameterizedBy(kotlinType.copy(nullable = isNullable))
                 )
+        }
+    }
 
+    val entityPropertyClassName: TypeName by lazy {
+        when (columnReference) {
+            null -> kotlinType.copy(nullable = isNullable)
+            else -> referencingEntityClassName!!
         }
     }
 

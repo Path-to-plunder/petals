@@ -8,6 +8,7 @@ import com.casadetasha.kexp.petals.accessor.ParentPetalClass
 import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
 import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -42,14 +43,16 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
 
     @Test
     fun `load() loads stored data`() {
-        val parentPetalId = ParentPetalClass(
-            nestedPetal = NestedPetalClass(
+        val parentPetalId = ParentPetalClass.create(
+            nestedPetal = NestedPetalClass.create(
                 name = "Nester"
             )
         ).store().id
 
         val parentPetal = ParentPetalClass.load(parentPetalId)!!
-        assertThat(parentPetal.nestedPetal.name).isEqualTo("Nester")
+        transaction {
+            assertThat(parentPetal.nestedPetal.name).isEqualTo("Nester")
+        }
     }
 
     @Test

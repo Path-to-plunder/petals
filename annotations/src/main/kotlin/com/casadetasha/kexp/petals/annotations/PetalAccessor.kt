@@ -73,7 +73,10 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
     protected abstract fun storeInsideOfTransaction(updateNestedDependencies: Boolean = false): ACCESSOR
 
     /** Delete the object from the database. */
-    fun delete() = dbEntity.delete()
+    fun delete(performInsideStandaloneTransaction: Boolean = true) = when (performInsideStandaloneTransaction) {
+        true -> transaction { dbEntity.delete() }
+        false -> dbEntity.delete()
+    }
 }
 
 interface AccessorCompanion<ACCESSOR, in ENTITY: Entity<ID>, ID: Comparable<ID>> {

@@ -72,13 +72,13 @@ class ExposedBackingAccessorTest: ContainerizedTestBase() {
     @Test
     fun `store() without provided ID stores data with generated ID`() {
         val baseUuid = UUID.randomUUID()
-        val id: UUID = BasicPetal(
+        val id: UUID = BasicPetal.create(
             count = 1,
             sporeCount = 2,
             color = "Blue",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id!!
+        ).store().id
 
         val loadedEntity = transaction {
             checkNotNull(BasicPetalEntity.findById(id))
@@ -96,7 +96,7 @@ class ExposedBackingAccessorTest: ContainerizedTestBase() {
     fun `store() with provided ID stores data`() {
         val recordUuid = UUID.randomUUID()
         val secondUuid = UUID.randomUUID()
-        BasicPetal(
+        BasicPetal.create(
             id = recordUuid,
             count = 1,
             sporeCount = 2,
@@ -199,7 +199,7 @@ class ExposedBackingAccessorTest: ContainerizedTestBase() {
     @Test
     fun `calling delete() on non stored data does not crash`() {
         val baseUuid = UUID.randomUUID()
-        val petal = BasicPetal(
+        val petal = BasicPetal.create(
             count = 1,
             sporeCount = 2,
             color = "Blue",

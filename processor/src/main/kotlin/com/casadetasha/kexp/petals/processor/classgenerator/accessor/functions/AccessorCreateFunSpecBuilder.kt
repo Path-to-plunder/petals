@@ -1,6 +1,5 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
-import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
@@ -17,7 +16,7 @@ internal class AccessorCreateFunSpecBuilder(private val accessorClassInfo: Acces
     fun getFunSpec(): FunSpec {
         return FunSpec.builder(CREATE_METHOD_SIMPLE_NAME)
             .returns(accessorClassInfo.className)
-            .addParameters(AccessorClassInfoParameterSpec(accessorClassInfo).parameterSpecs)
+            .addParameters(AccessorClassInfoCreateFunParameterSpec(accessorClassInfo).parameterSpecs)
             .addCode(CreateFunctionParser(accessorClassInfo).methodBody)
             .build()
     }

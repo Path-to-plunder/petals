@@ -36,12 +36,12 @@ class ExposedBackingAccessorDefaultValueTest: ContainerizedTestBase() {
     @Test
     fun `store() without provided Int column value stores default value for column`() {
         val baseUuid = UUID.randomUUID()
-        val id: UUID = DefaultValuePetal(
+        val id: UUID = DefaultValuePetal.create(
             sporeCount = 2,
             color = "Blue",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id!!
+        ).store().id
 
         val loadedEntity = transaction {
             checkNotNull(DefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
@@ -58,12 +58,12 @@ class ExposedBackingAccessorDefaultValueTest: ContainerizedTestBase() {
     @Test
     fun `store() without provided Long column value stores default value for column`() {
         val baseUuid = UUID.randomUUID()
-        val id: UUID = DefaultValuePetal(
+        val id: UUID = DefaultValuePetal.create(
             count = 1,
             color = "Blue",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id!!
+        ).store().id
 
         val loadedEntity = transaction {
             checkNotNull(DefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
@@ -80,12 +80,12 @@ class ExposedBackingAccessorDefaultValueTest: ContainerizedTestBase() {
     @Test
     fun `store() without provided String column value stores default value for column`() {
         val baseUuid = UUID.randomUUID()
-        val id: UUID = DefaultValuePetal(
+        val id: UUID = DefaultValuePetal.create(
             count = 1,
             sporeCount = 2,
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id!!
+        ).store().id
 
         val loadedEntity = transaction {
             checkNotNull(DefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
