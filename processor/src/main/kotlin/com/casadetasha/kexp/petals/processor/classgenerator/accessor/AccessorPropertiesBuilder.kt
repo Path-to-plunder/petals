@@ -20,7 +20,7 @@ internal class AccessorPropertiesBuilder(val accessorClassInfo: AccessorClassInf
 
 internal fun TypeSpec.Builder.addAccessorProperties(accessorClassInfo: AccessorClassInfo) = apply {
     this.addProperty(getDbEntityPropertySpec(accessorClassInfo))
-    this.addProperties(AccessorPropertiesBuilder(accessorClassInfo).properties);
+    this.addProperties(AccessorPropertiesBuilder(accessorClassInfo).properties)
 }
 
 private fun getDbEntityPropertySpec(accessorClassInfo: AccessorClassInfo): PropertySpec = PropertySpec

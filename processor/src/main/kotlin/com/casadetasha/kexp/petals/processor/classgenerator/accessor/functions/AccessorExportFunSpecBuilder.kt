@@ -22,49 +22,45 @@ internal class AccessorExportFunSpecBuilder {
     }
 
     private class AccessorKtxFunctionParser(private val accessorClassInfo: AccessorClassInfo) {
-        private val stringBuilder = StringBuilder()
-
-        private val methodBody: String by lazy {
-            stringBuilder.append("return ${accessorClassInfo.className.simpleName}(")
-            amendSettersForColumns()
-            closeExportCreation()
-            stringBuilder.toString()
-        }
+        private val codeBuilder = CodeBlock.builder()
 
         val exportMethodStatement: CodeBlock by lazy {
-            return@lazy CodeBlock.builder()
-                .addStatement(methodBody)
-                .build()
+            codeBuilder.add("return ${accessorClassInfo.className.simpleName}(")
+            addEntity()
+            amendSettersForColumns()
+            closeExportCreation()
+            codeBuilder.build()
         }
 
-        private fun amendSettersForColumns(): StringBuilder {
+        private fun addEntity() {
+            codeBuilder.add("\n  dbEntity = this,")
+        }
+
+        private fun amendSettersForColumns() {
             accessorClassInfo.columns
                 .filterNot { it.isId }
+                .filter { it.referencing == null }
                 .forEach {
                     val constructorBlock = "\n  ${it.name} = ${it.name},"
-                    stringBuilder.append(constructorBlock)
+                    codeBuilder.add(constructorBlock)
+                }
+            accessorClassInfo.columns
+                .filterNot { it.isId }
+                .filter { it.referencing != null }
+                .forEach {
+                    val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
+                    codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
                 }
             accessorClassInfo.columns
                 .filter { it.isId }
                 .forEach {
                     val constructorBlock = "\n  ${it.name} = ${it.name}.value,"
-                    stringBuilder.append(constructorBlock)
+                    codeBuilder.add(constructorBlock)
                 }
-            return stringBuilder
         }
 
-        private fun closeExportCreation(): StringBuilder {
-            stringBuilder.removeTrailingComma()
-            stringBuilder.append("\n)")
-            return stringBuilder
-        }
-
-        private fun StringBuilder.removeTrailingComma() : StringBuilder {
-            val index = lastIndexOf(",")
-            if (index == lastIndex) {
-                deleteCharAt(index)
-            }
-            return this
+        private fun closeExportCreation() {
+            codeBuilder.add("\n)")
         }
     }
 }

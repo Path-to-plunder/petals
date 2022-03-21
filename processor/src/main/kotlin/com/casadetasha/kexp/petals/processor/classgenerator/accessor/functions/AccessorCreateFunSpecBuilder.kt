@@ -33,7 +33,7 @@ internal class AccessorCreateFunSpecBuilder(private val accessorClassInfo: Acces
                 .endControlFlow()
                 .beginControlFlow("return@transaction when (id) ")
                 .addStatement("null -> %M.new { storeValues() }", entityMemberName)
-                .addStatement("else -> ${entityMemberName.simpleName}.new(id) { storeValues() }")
+                .addStatement("else -> %M.new(id) { storeValues() }", entityMemberName)
                 .addStatement("}")
                 .unindent()
                 .unindent()

@@ -92,6 +92,7 @@ private fun UnprocessedPetalMigration.getAccessorClassInfo(): AccessorClassInfo 
         packageName = "com.casadetasha.kexp.petals.accessor",
         simpleName = className,
         entityClassName = ClassName("com.casadetasha.kexp.petals", "${className}Entity"),
+        tableClassName = ClassName("com.casadetasha.kexp.petals", "${className}Table"),
         columns = getCurrentSchema()!!.columnsAsList.toSet()
     )
 }

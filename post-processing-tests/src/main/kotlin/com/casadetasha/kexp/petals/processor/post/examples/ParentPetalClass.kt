@@ -1,58 +1,61 @@
 package com.casadetasha.kexp.petals.processor.post.examples
 
-import com.casadetasha.kexp.petals.annotations.UUIDSerializer
+import com.casadetasha.kexp.petals.annotations.AccessorCompanion
+import com.casadetasha.kexp.petals.annotations.EntityAccessor
+import com.casadetasha.kexp.petals.annotations.NestedEntityManager
 import com.casadetasha.kexp.petals.processor.post.examples.NestedPetalClass.Companion.export
-import kotlinx.serialization.SerialName
-import java.util.UUID
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
-@Serializable
+/**
+ * ### Accessor class for [ParentPetalClassEntity].
+ *
+ * * Allows modifying values inline that will not be stored to the db until [store] or [storeInsideOfTransaction] is
+ * manually called.
+ *
+ * * Provides CRUD operation methods inside self-contained [transaction]s.
+ */
 public class ParentPetalClass private constructor(
-    @Transient val petalEntity: ParentPetalClassEntity? = null,
-    @Serializable(with = UUIDSerializer::class)
-    public val id: UUID? = null,
-    @Serializable(with = UUIDSerializer::class)
-    @SerialName("nestedPetalId")
-    private var _nestedPetalId: UUID? = null
-) {
+    dbEntity: ParentPetalClassEntity,
+    id: UUID,
+    loadedNestedPetalId: UUID
+): EntityAccessor<ParentPetalClass, ParentPetalClassEntity, UUID>(dbEntity, id) {
 
-    public var nestedPetalId: UUID?
-        get() = _nestedPetalId
-        private set(value) { _nestedPetalId = value }
-
-    private val entity: ParentPetalClassEntity by lazy {
-        checkNotNull(petalEntity) { "Cannot perform DB operations on a parsed ParentPetalClass." }
+    private val nestedPetalManager by lazy {
+        NestedEntityManager(loadedNestedPetalId) { dbEntity.nestedPetal.export() }
     }
 
-    private var nestedPetal: NestedPetalClass
-        get() = entity.nestedPetal.export()
-        @Synchronized set(value) {
-            _nestedPetalId = value.id
-            entity.nestedPetal = value.petalEntity!!
-        }
+    /**
+     * The ID for an associated NestedPetal. Accessing this will never trigger a DB transaction.
+     */
+    public val nestedPetalId: UUID by nestedPetalManager::nestedPetalId
 
-    fun store(shouldStoreDependencyChain: Boolean): ParentPetalClass = transaction {
-        if (shouldStoreDependencyChain) { this@ParentPetalClass.nestedPetal.store() }
+    /**
+     * An associated NestedPetalClass. Reading this value will trigger a DB transaction the first time, unless the
+     * instance of this object was manually exported from a ParentPetalClassEntity that eager loaded this value.
+     */
+    public var nestedPetal: NestedPetalClass by nestedPetalManager::nestedPetal
 
-        return@transaction entity.apply {
-            nestedPetal = this@ParentPetalClass.nestedPetal.petalEntity!!
-        }
-    }.export()
+    override fun storeInsideOfTransaction(updateNestedDependencies: Boolean): ParentPetalClass {
+        if (updateNestedDependencies) { storeFullDependencyChain() }
 
-    fun delete(): Unit {
-        transaction { entity.delete() }
+        return dbEntity.apply {
+            if (nestedPetalManager.hasUpdated()) { nestedPetal = this@ParentPetalClass.nestedPetal.dbEntity }
+        }.export()
     }
 
-    public companion object {
+    private fun storeFullDependencyChain() {
+        nestedPetal.store()
+    }
+
+    public companion object: AccessorCompanion<ParentPetalClass, ParentPetalClassEntity, UUID> {
 
         public fun create(
             id: UUID? = null,
             nestedPetal: NestedPetalClass
         ): ParentPetalClass = transaction {
             val storeValues: ParentPetalClassEntity.() -> Unit = {
-                this.nestedPetal = nestedPetal.petalEntity!!
+                this.nestedPetal = nestedPetal.dbEntity
             }
 
             return@transaction when (id) {
@@ -61,16 +64,16 @@ public class ParentPetalClass private constructor(
             }
         }.export()
 
-        public fun load(id: UUID): ParentPetalClass? = transaction {
+        override fun load(id: UUID): ParentPetalClass? = transaction {
             ParentPetalClassEntity.findById(id)
         }?.export()
 
-        public fun ParentPetalClassEntity.export(): ParentPetalClass = transaction {
+        override fun ParentPetalClassEntity.export(): ParentPetalClass = transaction {
             val entity = this@export
             return@transaction ParentPetalClass(
-                petalEntity = entity,
-                nestedPetalId = readValues[ParentPetalClassTable.nestedPetal].value,
-                id = entity.id.value
+                dbEntity = entity,
+                id = entity.id.value,
+                loadedNestedPetalId = readValues[ParentPetalClassTable.nestedPetal].value
             )
         }
     }

@@ -6,11 +6,12 @@ import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.asClassName
 import java.util.*
 
-internal class AccessorClassInfo(
+internal class AccessorClassInfo constructor(
     packageName: String,
     simpleName: String,
     val columns: Set<UnprocessedPetalColumn>,
-    val entityClassName: ClassName
+    val entityClassName: ClassName,
+    val tableClassName: ClassName
     ) {
 
     val sortedColumns: SortedSet<UnprocessedPetalColumn> by lazy { columns.toSortedSet() }
@@ -19,5 +20,6 @@ internal class AccessorClassInfo(
     val className: ClassName = ClassName(packageName, simpleName)
 
     val entityMemberName by lazy { MemberName(entityClassName.packageName, entityClassName.simpleName) }
+    val tableMemberName by lazy { MemberName(tableClassName.packageName, tableClassName.simpleName) }
 }
 
