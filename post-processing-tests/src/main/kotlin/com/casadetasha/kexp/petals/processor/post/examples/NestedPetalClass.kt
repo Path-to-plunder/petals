@@ -19,6 +19,7 @@ public class NestedPetalClass(
     }
 
     public companion object: AccessorCompanion<NestedPetalClass, NestedPetalClassEntity, UUID> {
+
         override fun load(id: UUID): NestedPetalClass? = transaction {
             NestedPetalClassEntity.findById(id)
         }?.export()
@@ -29,5 +30,11 @@ public class NestedPetalClass(
                 name = name,
                 id = id.value
             )
+
+//        override val all: List<NestedPetalClass> = transaction { NestedPetalClass.all() }
+    }
+
+    override fun applyInsideTransaction(statement: NestedPetalClass.() -> Unit): NestedPetalClass {
+        TODO("Not yet implemented")
     }
 }

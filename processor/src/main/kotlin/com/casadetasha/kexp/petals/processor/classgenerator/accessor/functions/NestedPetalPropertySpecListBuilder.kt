@@ -53,6 +53,7 @@ internal class NestedPetalPropertySpecListBuilder(
     private val nestedPetalAccessorPropertySpec: PropertySpec by lazy {
         PropertySpec.builder(column.name, column.referencingAccessorClassName!!)
             .delegate("${column.nestedPetalManagerName}::nestedPetal")
+            .mutable()
             .build()
     }
 

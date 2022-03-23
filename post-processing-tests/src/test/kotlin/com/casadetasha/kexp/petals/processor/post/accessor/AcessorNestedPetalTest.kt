@@ -1,15 +1,16 @@
-package com.casadetasha.kexp.petals.processor.post.accessor.exposed
+package com.casadetasha.kexp.petals.processor.post.accessor
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import com.casadetasha.kexp.petals.ParentPetalClassEntity
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.NestedPetalClass
 import com.casadetasha.kexp.petals.accessor.ParentPetalClass
 import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
 import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
+import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.*
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -38,11 +39,7 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
     }
 
     @Test
-    fun `Exports to accessor`() {
-    }
-
-    @Test
-    fun `load() loads stored data`() {
+    fun `load() loads nested data`() {
         val parentPetalId = ParentPetalClass.create(
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
@@ -56,7 +53,62 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
     }
 
     @Test
-    fun `store() without provided ID stores data with generated ID`() {
+    fun `store() without updateNestedDependencies does not store nested data`() {
+        val nestedPetal = NestedPetalClass.create(name = "Nester")
+        val parentPetal = ParentPetalClass.create(nestedPetal = nestedPetal)
+
+        parentPetal.apply {
+            nestedPetal.name = "Updated name"
+        }.store(updateNestedDependencies = false)
+
+        val loadedNestedPetal = NestedPetalClass.load(nestedPetal.id)!!
+        transaction {
+            assertThat(loadedNestedPetal.name).isEqualTo("Nester")
+        }
+    }
+
+    @Test
+    fun `store() with updateNestedDependencies does stores nested data`() {
+        val nestedPetal = NestedPetalClass.create(name = "Nester")
+        val parentPetal = ParentPetalClass.create(nestedPetal = nestedPetal)
+
+        parentPetal.applyInsideTransaction {
+            this.nestedPetal.name = "Updated name"
+        }.store(updateNestedDependencies = true)
+
+        val loadedNestedPetal = NestedPetalClass.load(nestedPetal.id)!!
+        assertThat(loadedNestedPetal.name).isEqualTo("Updated name")
+    }
+
+    @Test
+    fun `store() with new nested petal updates reference id`() {
+        val parentPetal = ParentPetalClass.create(
+            nestedPetal = NestedPetalClass.create(name = "Nester")
+        )
+        val secondNestedPetal = NestedPetalClass.create(name = "SecondNester")
+
+        parentPetal.apply {
+            nestedPetal = secondNestedPetal
+        }.store()
+
+        val loadedParentPetalClass = ParentPetalClass.load(parentPetal.id)!!
+        assertThat(loadedParentPetalClass.nestedPetalId).isEqualTo(secondNestedPetal.id)
+    }
+
+    @Test
+    fun `store() with new nested petal without updateNestedDependencies does not store changes to the newly assigned petal`() {
+        val parentPetal = ParentPetalClass.create(
+            nestedPetal = NestedPetalClass.create(name = "Nester")
+        )
+        val secondNestedPetal = NestedPetalClass.create(name = "SecondNester")
+
+        secondNestedPetal.name = "RenamedSecondNester"
+        parentPetal.apply {
+            nestedPetal = secondNestedPetal
+        }.store()
+
+        val loadedSecondNestedPetal = NestedPetalClass.load(secondNestedPetal.id)!!
+        assertThat(loadedSecondNestedPetal.name).isEqualTo("SecondNester")
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.annotations
 
+import kotlinx.coroutines.flow.Flow
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -53,6 +54,8 @@ class NestedPetalManager<PETAL_ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: E
 
 abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID>> (val dbEntity: ENTITY, val id: ID) {
 
+    abstract fun applyInsideTransaction(statement: ACCESSOR.() -> Unit): ACCESSOR
+
     /**
      * Update the object as is in the database. If any nested entities have changed, the associated ID will be updated.
      *
@@ -63,19 +66,23 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
      * dependencies. This will only update first level nested dependencies, if you wish to update deeply nested
      * dependencies it must be done manually.
      */
-    fun store(performInsideStandaloneTransaction: Boolean = true, updateNestedDependencies: Boolean = false): ACCESSOR {
-        return when (performInsideStandaloneTransaction) {
-            true -> transaction { storeInsideOfTransaction(updateNestedDependencies) }
-            false -> storeInsideOfTransaction(updateNestedDependencies)
+    fun store(performInsideStandaloneTransaction: Boolean = true, updateNestedDependencies: Boolean = false): ACCESSOR =
+        performWithTransactionType(performInsideStandaloneTransaction) {
+            storeInsideOfTransaction(updateNestedDependencies)
         }
-    }
 
     protected abstract fun storeInsideOfTransaction(updateNestedDependencies: Boolean = false): ACCESSOR
 
     /** Delete the object from the database. */
-    fun delete(performInsideStandaloneTransaction: Boolean = true) = when (performInsideStandaloneTransaction) {
-        true -> transaction { dbEntity.delete() }
-        false -> dbEntity.delete()
+    fun delete(performInsideStandaloneTransaction: Boolean = true) =
+        performWithTransactionType(performInsideStandaloneTransaction) { dbEntity.delete() }
+
+    companion object {
+        fun <RESULT> performWithTransactionType(performInsideStandaloneTransaction: Boolean, function: () -> RESULT): RESULT =
+            when (performInsideStandaloneTransaction) {
+                true -> transaction { function() }
+                false -> function()
+            }
     }
 }
 
@@ -83,4 +90,5 @@ interface AccessorCompanion<ACCESSOR, in ENTITY: Entity<ID>, ID: Comparable<ID>>
 
     fun load(id: ID): ACCESSOR?
     fun ENTITY.export(): ACCESSOR
+//    val loadAll: Flow<ACCESSOR>
 }

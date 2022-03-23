@@ -20,6 +20,7 @@ dependencies {
     kapt(project(":kexp:petals:processor"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
 
     implementation("com.zaxxer:HikariCP:5.0.0")
 

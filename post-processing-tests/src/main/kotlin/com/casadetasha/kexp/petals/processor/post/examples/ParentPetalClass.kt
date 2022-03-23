@@ -4,6 +4,8 @@ import com.casadetasha.kexp.petals.annotations.AccessorCompanion
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.annotations.NestedPetalManager
 import com.casadetasha.kexp.petals.processor.post.examples.NestedPetalClass.Companion.export
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -45,10 +47,15 @@ public class ParentPetalClass private constructor(
     }
 
     private fun storeFullDependencyChain() {
-        nestedPetal.store()
+        nestedPetal.store(performInsideStandaloneTransaction = false)
     }
 
     public companion object: AccessorCompanion<ParentPetalClass, ParentPetalClassEntity, UUID> {
+
+//        override val all: Flow<ParentPetalClass>
+//            get() = flow {
+//                ParentPetalClassEntity.all().forEach { emit(it.export()) }
+//            }
 
         public fun create(
             id: UUID? = null,
@@ -76,5 +83,9 @@ public class ParentPetalClass private constructor(
                 nestedPetalId = readValues[ParentPetalClassTable.nestedPetal].value
             )
         }
+    }
+
+    override fun applyInsideTransaction(statement: ParentPetalClass.() -> Unit): ParentPetalClass {
+        TODO("Not yet implemented")
     }
 }
