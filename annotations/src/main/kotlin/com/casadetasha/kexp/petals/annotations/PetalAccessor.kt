@@ -1,7 +1,9 @@
 package com.casadetasha.kexp.petals.annotations
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.jetbrains.exposed.dao.Entity
+import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class OptionalNestedEntityManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
@@ -89,6 +91,8 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
 interface AccessorCompanion<ACCESSOR, in ENTITY: Entity<ID>, ID: Comparable<ID>> {
 
     fun load(id: ID): ACCESSOR?
+    fun loadAll(): SizedIterable<ACCESSOR>
     fun ENTITY.export(): ACCESSOR
-//    val loadAll: Flow<ACCESSOR>
+
+//    suspend fun flowAll(): Flow<ACCESSOR> = flow { loadAll().forEach { emit(it) } }
 }

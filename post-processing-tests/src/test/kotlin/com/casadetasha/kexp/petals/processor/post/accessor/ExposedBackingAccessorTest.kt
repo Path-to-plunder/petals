@@ -9,6 +9,7 @@ import com.casadetasha.kexp.petals.accessor.BasicPetal
 import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.export
 import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
+import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.test.AfterTest
@@ -67,6 +68,28 @@ class ExposedBackingAccessorTest: ContainerizedTestBase() {
         assertThat(loadedPetal.color).isEqualTo("Blue")
         assertThat(loadedPetal.secondColor).isEqualTo("Yellow")
         assertThat(loadedPetal.uuid).isEqualTo(baseUuid)
+    }
+
+    @Test
+    fun `loadAll() loads all created objects`() {
+        transaction {
+            repeat(times = 10) { petalNumber ->
+                BasicPetalEntity.new {
+                    count = petalNumber
+                    sporeCount = 2
+                    color = "Blue"
+                    secondColor = "Yellow"
+                    uuid = UUID.randomUUID()
+                }
+            }
+        }
+
+        val petalList: List<BasicPetal> = transaction {
+            BasicPetal.loadAll().toList()
+        }
+
+        assertThat(petalList.size).isEqualTo(10)
+        repeat(times = 10) { time -> assertThat(petalList[time].count).isEqualTo(time) }
     }
 
     @Test

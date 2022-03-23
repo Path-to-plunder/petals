@@ -52,7 +52,7 @@ private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: Acces
         TypeSpec
             .companionObjectBuilder()
             .addCreateMethod(accessorClassInfo)
-            .addFunction(AccessorLoadFunSpecBuilder().getFunSpec(accessorClassInfo))
+            .addFunctions(AccessorLoadFunSpecBuilder(accessorClassInfo).loadFunSpecs)
             .addFunction(AccessorExportFunSpecBuilder().getFunSpec(accessorClassInfo))
             .build()
     )

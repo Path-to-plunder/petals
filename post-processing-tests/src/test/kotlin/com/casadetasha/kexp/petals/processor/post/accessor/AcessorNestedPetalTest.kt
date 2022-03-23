@@ -62,9 +62,7 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
         }.store(updateNestedDependencies = false)
 
         val loadedNestedPetal = NestedPetalClass.load(nestedPetal.id)!!
-        transaction {
-            assertThat(loadedNestedPetal.name).isEqualTo("Nester")
-        }
+        assertThat(loadedNestedPetal.name).isEqualTo("Nester")
     }
 
     @Test
@@ -109,10 +107,6 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
 
         val loadedSecondNestedPetal = NestedPetalClass.load(secondNestedPetal.id)!!
         assertThat(loadedSecondNestedPetal.name).isEqualTo("SecondNester")
-    }
-
-    @Test
-    fun `store() with provided ID stores data`() {
     }
 
     @Test

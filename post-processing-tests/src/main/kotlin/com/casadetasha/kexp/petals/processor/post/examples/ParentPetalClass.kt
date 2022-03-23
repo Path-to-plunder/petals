@@ -6,6 +6,7 @@ import com.casadetasha.kexp.petals.annotations.NestedPetalManager
 import com.casadetasha.kexp.petals.processor.post.examples.NestedPetalClass.Companion.export
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -82,6 +83,10 @@ public class ParentPetalClass private constructor(
                 id = entity.id.value,
                 nestedPetalId = readValues[ParentPetalClassTable.nestedPetal].value
             )
+        }
+
+        override fun loadAll(): SizedIterable<ParentPetalClass> {
+            TODO("Not yet implemented")
         }
     }
 

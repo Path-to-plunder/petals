@@ -2,6 +2,7 @@ package com.casadetasha.kexp.petals.processor.post.examples
 
 import com.casadetasha.kexp.petals.annotations.AccessorCompanion
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
+import org.jetbrains.exposed.sql.SizedIterable
 import java.util.UUID
 import kotlin.Boolean
 import kotlin.String
@@ -30,6 +31,10 @@ public class NestedPetalClass(
                 name = name,
                 id = id.value
             )
+
+        override fun loadAll(): SizedIterable<NestedPetalClass> {
+            TODO("Not yet implemented")
+        }
 
 //        override val all: List<NestedPetalClass> = transaction { NestedPetalClass.all() }
     }
