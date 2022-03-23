@@ -84,12 +84,35 @@ class ExposedBackingAccessorTest: ContainerizedTestBase() {
             }
         }
 
-        val petalList: List<BasicPetal> = transaction {
-            BasicPetal.loadAll().toList()
-        }
+        val petalList: List<BasicPetal> = BasicPetal.loadAll()
 
         assertThat(petalList.size).isEqualTo(10)
-        repeat(times = 10) { time -> assertThat(petalList[time].count).isEqualTo(time) }
+        repeat(times = petalList.size) { petalIndex ->
+            assertThat(petalList[petalIndex].count).isEqualTo(petalIndex)
+        }
+    }
+
+    @Test
+    fun `lazyLoadAll() loads all created objects`() {
+        transaction {
+            repeat(times = 10) { petalNumber ->
+                BasicPetalEntity.new {
+                    count = petalNumber
+                    sporeCount = 2
+                    color = "Blue"
+                    secondColor = "Yellow"
+                    uuid = UUID.randomUUID()
+                }
+            }
+        }
+
+        val petalIterable: SizedIterable<BasicPetal> = BasicPetal.lazyLoadAll()
+        val petalList = transaction { petalIterable.toList() }
+
+        assertThat(petalList.size).isEqualTo(10)
+        repeat(times = 10) { petalIndex ->
+            assertThat(petalList[petalIndex].count).isEqualTo(petalIndex)
+        }
     }
 
     @Test

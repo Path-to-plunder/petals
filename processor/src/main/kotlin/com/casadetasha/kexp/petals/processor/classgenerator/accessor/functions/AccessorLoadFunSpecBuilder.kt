@@ -10,6 +10,14 @@ import org.jetbrains.exposed.sql.SizedIterable
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class AccessorLoadFunSpecBuilder(accessorClassInfo: AccessorClassInfo) {
 
+    private val loadFunSpec by lazy {
+        FunSpec.builder(LOAD_METHOD_SIMPLE_NAME)
+            .addParameter(ParameterSpec.builder("id", accessorClassInfo.idKotlinClassName).build())
+            .returns(accessorClassInfo.className.copy(nullable = true))
+            .addCode(loadMethodBody)
+            .build()
+    }
+
     private val loadMethodBody: CodeBlock by lazy {
         CodeBlock.builder()
             .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
@@ -19,44 +27,58 @@ internal class AccessorLoadFunSpecBuilder(accessorClassInfo: AccessorClassInfo) 
             .build()
     }
 
-    private val loadAllMethodBody: CodeBlock by lazy {
-        CodeBlock.builder()
-            .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-            .addStatement(
-                "%M.all().%M { it.export() }",
-                accessorClassInfo.entityMemberName,
-                MAP_LAZY_MEMBER_NAME
-            )
-            .endControlFlow()
-            .build()
-    }
-
-    private val loadFunSpec by lazy {
-        FunSpec.builder(LOAD_METHOD_SIMPLE_NAME)
-            .addParameter(ParameterSpec.builder("id", accessorClassInfo.idKotlinClassName).build())
-            .returns(accessorClassInfo.className.copy(nullable = true))
-            .addCode(loadMethodBody)
-            .build()
-    }
 
     private val loadAllFunSpec by lazy {
         FunSpec.builder(LOAD_ALL_METHOD_SIMPLE_NAME)
             .returns(
-                SizedIterable::class.asClassName()
+                List::class.asClassName()
                     .parameterizedBy(accessorClassInfo.className)
             )
             .addCode(loadAllMethodBody)
             .build()
     }
 
+    private val loadAllMethodBody: CodeBlock by lazy {
+        CodeBlock.builder()
+            .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
+            .addStatement(
+                "%M.all().map { it.export() }",
+                accessorClassInfo.entityMemberName,
+            )
+            .endControlFlow()
+            .build()
+    }
+
+    private val lazyLoadAllFunSpec by lazy {
+        FunSpec.builder(LAZY_LOAD_ALL_METHOD_SIMPLE_NAME)
+            .returns(
+                SizedIterable::class.asClassName()
+                    .parameterizedBy(accessorClassInfo.className)
+            )
+            .addCode(lazyLoadAllMethodBody)
+            .build()
+    }
+
+    private val lazyLoadAllMethodBody: CodeBlock by lazy {
+        CodeBlock.builder()
+            .addStatement(
+                "return %M.all().%M { it.export() }",
+                accessorClassInfo.entityMemberName,
+                MAP_LAZY_MEMBER_NAME
+            )
+            .build()
+    }
+
     val loadFunSpecs = listOf(
         loadFunSpec,
-        loadAllFunSpec
+        loadAllFunSpec,
+        lazyLoadAllFunSpec
     )
 
     companion object {
         const val LOAD_METHOD_SIMPLE_NAME = "load"
         const val LOAD_ALL_METHOD_SIMPLE_NAME = "loadAll"
+        const val LAZY_LOAD_ALL_METHOD_SIMPLE_NAME = "lazyLoadAll"
         val MAP_LAZY_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql", "mapLazy")
     }
 }
