@@ -6,7 +6,7 @@ import assertk.assertions.isNull
 import com.casadetasha.kexp.petals.BasicPetalEntity
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.BasicPetal
-import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.export
+import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.toPetal
 import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.SizedIterable
@@ -42,7 +42,7 @@ class AccessorBasicIOTest: ContainerizedTestBase() {
                 color = "Blue"
                 secondColor = "Yellow"
                 uuid = baseUuid
-            }.export()
+            }.toPetal()
         }
 
         assertThat(petalEntity.count).isEqualTo(1)
@@ -178,7 +178,7 @@ class AccessorBasicIOTest: ContainerizedTestBase() {
 
         val loadedPetal = transaction {
             checkNotNull(BasicPetalEntity.findById(petalId))
-        }.export()
+        }.toPetal()
 
         loadedPetal.color = "Orange"
 
@@ -204,7 +204,7 @@ class AccessorBasicIOTest: ContainerizedTestBase() {
 
         val loadedPetal = transaction {
             checkNotNull(BasicPetalEntity.findById(petalId))
-        }.export()
+        }.toPetal()
 
         loadedPetal.color = "Orange"
         loadedPetal.store()
@@ -231,7 +231,7 @@ class AccessorBasicIOTest: ContainerizedTestBase() {
 
         val loadedPetal = transaction {
             checkNotNull(BasicPetalEntity.findById(petalId))
-        }.export()
+        }.toPetal()
 
         loadedPetal.delete()
 

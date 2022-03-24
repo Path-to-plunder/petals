@@ -59,6 +59,6 @@ internal class AccessorExportFunSpecBuilder(private val accessorClassInfo: Acces
     }
 
     companion object {
-        const val EXPORT_METHOD_SIMPLE_NAME = "export"
+        const val EXPORT_METHOD_SIMPLE_NAME = "toPetal"
     }
 }

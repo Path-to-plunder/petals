@@ -1,6 +1,7 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
@@ -36,7 +37,7 @@ internal class AccessorCreateFunSpecBuilder(private val accessorClassInfo: Acces
                 .addStatement("}")
                 .unindent()
                 .unindent()
-                .add("}.export()")
+                .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
                 .build()
         }
     }

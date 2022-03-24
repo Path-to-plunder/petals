@@ -4,6 +4,7 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.annotations.NestedPetalManager
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
@@ -37,7 +38,7 @@ internal class NestedPetalPropertySpecListBuilder(
                 column.referencingIdName,
                 column.name,
                 ClassName( "${column.referencingAccessorClassName!!.packageName}.${column.referencingAccessorClassName.simpleName}.Companion",
-                    "export"
+                    EXPORT_METHOD_SIMPLE_NAME
                 ).toMemberName()
             )
             .endControlFlow()

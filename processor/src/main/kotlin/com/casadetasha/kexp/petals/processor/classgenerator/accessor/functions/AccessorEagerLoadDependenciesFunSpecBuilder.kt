@@ -1,11 +1,10 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.kotlinpoet.createParameter
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
 @OptIn(KotlinPoetMetadataPreview::class)
@@ -51,12 +50,12 @@ internal class AccessorEagerLoadDependenciesFunSpecBuilder(private val accessorC
                         add("\n  %M::${it.name},", accessorClassInfo.entityMemberName)
                     }
             }
-            .add("\n).export().eagerLoadDependencies()")
+            .add("\n).$EXPORT_METHOD_SIMPLE_NAME().eagerLoadDependencies()")
             .build()
     }
 
     companion object {
-        const val COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "exportWithEagerLoadedDependencies"
+        const val COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "toPetalWithEagerLoadedDependencies"
         const val PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "eagerLoadDependenciesInsideTransaction"
     }
 

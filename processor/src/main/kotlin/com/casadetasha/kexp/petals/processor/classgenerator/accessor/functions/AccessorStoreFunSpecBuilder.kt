@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
@@ -68,7 +69,7 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
                 }
             }
             .unindent()
-            .add("}.export()")
+            .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
             .build()
     }
 

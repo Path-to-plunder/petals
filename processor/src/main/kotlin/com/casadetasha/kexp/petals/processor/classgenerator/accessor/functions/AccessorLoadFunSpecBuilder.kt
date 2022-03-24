@@ -2,6 +2,8 @@ package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorEagerLoadDependenciesFunSpecBuilder.Companion.COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.kotlinpoet.createParameter
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
@@ -37,8 +39,10 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassIn
             true -> CodeBlock.builder()
                     .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
                     .beginControlFlow("when (eagerLoad)")
-                    .addStatement("true -> %M.findById(id)?.exportWithEagerLoadedDependencies()", accessorClassInfo.entityMemberName)
-                    .addStatement("false -> %M.findById(id)?.export()", accessorClassInfo.entityMemberName)
+                    .addStatement(
+                        "true -> %M.findById(id)?.$COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME()",
+                        accessorClassInfo.entityMemberName)
+                    .addStatement("false -> %M.findById(id)?.$EXPORT_METHOD_SIMPLE_NAME()", accessorClassInfo.entityMemberName)
                     .endControlFlow()
                     .endControlFlow()
                     .build()
@@ -46,7 +50,7 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassIn
                 .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
                 .addStatement("%M.findById(id)", accessorClassInfo.entityMemberName)
                 .unindent()
-                .add("}?.export()")
+                .add("}?.$EXPORT_METHOD_SIMPLE_NAME()")
                 .build()
         }
     }
@@ -66,7 +70,7 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassIn
         CodeBlock.builder()
             .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
             .addStatement(
-                "%M.all().map { it.export() }",
+                "%M.all().map { it.$EXPORT_METHOD_SIMPLE_NAME() }",
                 accessorClassInfo.entityMemberName,
             )
             .endControlFlow()
@@ -86,7 +90,7 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassIn
     private val lazyLoadAllMethodBody: CodeBlock by lazy {
         CodeBlock.builder()
             .addStatement(
-                "return %M.all().%M { it.export() }",
+                "return %M.all().%M { it.$EXPORT_METHOD_SIMPLE_NAME() }",
                 accessorClassInfo.entityMemberName,
                 MAP_LAZY_MEMBER_NAME
             )
