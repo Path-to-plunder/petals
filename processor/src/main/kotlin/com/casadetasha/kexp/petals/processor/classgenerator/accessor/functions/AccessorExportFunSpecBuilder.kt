@@ -6,61 +6,59 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
 @OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorExportFunSpecBuilder {
+internal class AccessorExportFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
-    companion object {
-        const val EXPORT_METHOD_SIMPLE_NAME = "export"
-    }
+    private val codeBuilder = CodeBlock.builder()
 
-    fun getFunSpec(accessorClassInfo: AccessorClassInfo): FunSpec {
-        val statementParser = AccessorKtxFunctionParser(accessorClassInfo)
-        return FunSpec.builder(EXPORT_METHOD_SIMPLE_NAME)
-            .returns(accessorClassInfo.className)
+    val exportFunSpec by lazy {
+        FunSpec.builder(EXPORT_METHOD_SIMPLE_NAME)
             .receiver(accessorClassInfo.entityClassName)
-            .addCode(statementParser.exportMethodStatement)
+            .returns(accessorClassInfo.className)
+            .addCode(exportMethodStatement)
             .build()
     }
 
-    private class AccessorKtxFunctionParser(private val accessorClassInfo: AccessorClassInfo) {
-        private val codeBuilder = CodeBlock.builder()
+    private val exportMethodStatement: CodeBlock by lazy {
+        codeBuilder.add("return ${accessorClassInfo.className.simpleName}(")
+        addEntity()
+        amendSettersForColumns()
+        closeExportCreation()
 
-        val exportMethodStatement: CodeBlock by lazy {
-            codeBuilder.add("return ${accessorClassInfo.className.simpleName}(")
-            addEntity()
-            amendSettersForColumns()
-            closeExportCreation()
-            codeBuilder.build()
-        }
+        return@lazy codeBuilder.build()
+    }
 
-        private fun addEntity() {
-            codeBuilder.add("\n  dbEntity = this,")
-        }
+    private fun addEntity() {
+        codeBuilder.add("\n  dbEntity = this,")
+    }
 
-        private fun amendSettersForColumns() {
-            accessorClassInfo.columns
-                .filterNot { it.isId }
-                .filter { it.columnReference == null }
-                .forEach {
-                    val constructorBlock = "\n  ${it.name} = ${it.name},"
-                    codeBuilder.add(constructorBlock)
-                }
-            accessorClassInfo.columns
-                .filterNot { it.isId }
-                .filter { it.columnReference != null }
-                .forEach {
-                    val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
-                    codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
-                }
-            accessorClassInfo.columns
-                .filter { it.isId }
-                .forEach {
-                    val constructorBlock = "\n  ${it.name} = ${it.name}.value,"
-                    codeBuilder.add(constructorBlock)
-                }
-        }
+    private fun amendSettersForColumns() {
+        accessorClassInfo.columns
+            .filterNot { it.isId }
+            .filter { it.columnReferenceInfo == null }
+            .forEach {
+                val constructorBlock = "\n  ${it.name} = ${it.name},"
+                codeBuilder.add(constructorBlock)
+            }
+        accessorClassInfo.columns
+            .filterNot { it.isId }
+            .filter { it.columnReferenceInfo != null }
+            .forEach {
+                val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
+                codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
+            }
+        accessorClassInfo.columns
+            .filter { it.isId }
+            .forEach {
+                val constructorBlock = "\n  ${it.name} = ${it.name}.value,"
+                codeBuilder.add(constructorBlock)
+            }
+    }
 
-        private fun closeExportCreation() {
-            codeBuilder.add("\n)")
-        }
+    private fun closeExportCreation() {
+        codeBuilder.add("\n)")
+    }
+
+    companion object {
+        const val EXPORT_METHOD_SIMPLE_NAME = "export"
     }
 }

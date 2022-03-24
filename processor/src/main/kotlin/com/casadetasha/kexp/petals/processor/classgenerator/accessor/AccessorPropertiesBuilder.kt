@@ -9,7 +9,7 @@ internal class AccessorPropertiesBuilder(val accessorClassInfo: AccessorClassInf
     val properties: Iterable<PropertySpec> by lazy {
         accessorClassInfo.sortedColumns
             .filterNot { it.isId }
-            .filter { it.columnReference == null }
+            .filter { it.columnReferenceInfo == null }
             .map { it.toPropertySpec() }
     }
 }

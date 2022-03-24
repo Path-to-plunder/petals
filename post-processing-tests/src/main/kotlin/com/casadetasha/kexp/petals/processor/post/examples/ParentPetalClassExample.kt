@@ -3,9 +3,8 @@ package com.casadetasha.kexp.petals.processor.post.examples
 import com.casadetasha.kexp.petals.annotations.AccessorCompanion
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.annotations.NestedPetalManager
-import com.casadetasha.kexp.petals.processor.post.examples.NestedPetalClass.Companion.export
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.casadetasha.kexp.petals.processor.post.examples.NestedPetalClassExample.Companion.export
+import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -18,11 +17,11 @@ import java.util.*
  *
  * * Provides CRUD operation methods inside self-contained [transaction]s.
  */
-public class ParentPetalClass private constructor(
+public class ParentPetalClassExample private constructor(
     dbEntity: ParentPetalClassEntity,
     id: UUID,
     nestedPetalId: UUID
-): PetalAccessor<ParentPetalClass, ParentPetalClassEntity, UUID>(dbEntity, id) {
+): PetalAccessor<ParentPetalClassExample, ParentPetalClassEntity, UUID>(dbEntity, id) {
 
     private val nestedPetalManager by lazy {
         NestedPetalManager(nestedPetalId) { dbEntity.nestedPetal.export() }
@@ -37,13 +36,13 @@ public class ParentPetalClass private constructor(
      * An associated NestedPetalClass. Reading this value will trigger a DB transaction the first time, unless the
      * instance of this object was manually exported from a ParentPetalClassEntity that eager loaded this value.
      */
-    public var nestedPetal: NestedPetalClass by nestedPetalManager::nestedPetal
+    public var nestedPetal: NestedPetalClassExample by nestedPetalManager::nestedPetal
 
-    override fun storeInsideOfTransaction(updateNestedDependencies: Boolean): ParentPetalClass {
+    override fun storeInsideOfTransaction(updateNestedDependencies: Boolean): ParentPetalClassExample {
         if (updateNestedDependencies) { storeFullDependencyChain() }
 
         return dbEntity.apply {
-            if (nestedPetalManager.hasUpdated()) { nestedPetal = this@ParentPetalClass.nestedPetal.dbEntity }
+            if (nestedPetalManager.hasUpdated) { nestedPetal = this@ParentPetalClassExample.nestedPetal.dbEntity }
         }.export()
     }
 
@@ -51,7 +50,7 @@ public class ParentPetalClass private constructor(
         nestedPetal.store(performInsideStandaloneTransaction = false)
     }
 
-    public companion object: AccessorCompanion<ParentPetalClass, ParentPetalClassEntity, UUID> {
+    public companion object: AccessorCompanion<ParentPetalClassExample, ParentPetalClassEntity, UUID> {
 
 //        override val all: Flow<ParentPetalClass>
 //            get() = flow {
@@ -60,8 +59,8 @@ public class ParentPetalClass private constructor(
 
         public fun create(
             id: UUID? = null,
-            nestedPetal: NestedPetalClass
-        ): ParentPetalClass = transaction {
+            nestedPetal: NestedPetalClassExample
+        ): ParentPetalClassExample = transaction {
             val storeValues: ParentPetalClassEntity.() -> Unit = {
                 this.nestedPetal = nestedPetal.dbEntity
             }
@@ -72,25 +71,32 @@ public class ParentPetalClass private constructor(
             }
         }.export()
 
-        override fun load(id: UUID): ParentPetalClass? = transaction {
+        override fun load(id: UUID): ParentPetalClassExample? = transaction {
             ParentPetalClassEntity.findById(id)
         }?.export()
 
-        override fun ParentPetalClassEntity.export(): ParentPetalClass = transaction {
+        fun ParentPetalClassEntity.eagerLoadDependencies(): ParentPetalClassEntity =
+            load(ParentPetalClassEntity::nestedPetal)
+
+        override fun ParentPetalClassEntity.export(): ParentPetalClassExample = transaction {
             val entity = this@export
-            return@transaction ParentPetalClass(
+            return@transaction ParentPetalClassExample(
                 dbEntity = entity,
                 id = entity.id.value,
                 nestedPetalId = readValues[ParentPetalClassTable.nestedPetal].value
             )
         }
 
-        override fun loadAll(): SizedIterable<ParentPetalClass> {
+        override fun loadAll(): SizedIterable<ParentPetalClassExample> {
             TODO("Not yet implemented")
         }
     }
 
-    override fun applyInsideTransaction(statement: ParentPetalClass.() -> Unit): ParentPetalClass {
+    override fun applyInsideTransaction(statement: ParentPetalClassExample.() -> Unit): ParentPetalClassExample {
+        TODO("Not yet implemented")
+    }
+
+    override fun eagerLoadDependenciesInsideTransaction(): ParentPetalClassExample {
         TODO("Not yet implemented")
     }
 }

@@ -1,23 +1,19 @@
-package com.casadetasha.kexp.petals.processor.post.accessor
+package com.casadetasha.kexp.petals.processor.post.tests.accessor
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import assertk.assertions.isNull
-import com.casadetasha.kexp.petals.BasicPetalEntity
 import com.casadetasha.kexp.petals.DefaultValuePetalEntity
 import com.casadetasha.kexp.petals.PetalTables
-import com.casadetasha.kexp.petals.accessor.BasicPetal
-import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.export
 import com.casadetasha.kexp.petals.accessor.DefaultValuePetal
 import com.casadetasha.kexp.petals.migration.`TableMigrations$default_value_petal`
-import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
+import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class ExposedBackingAccessorDefaultValueTest: ContainerizedTestBase() {
+class AccessorDefaultValueTest: ContainerizedTestBase() {
 
     private val tableName: String by lazy { `TableMigrations$default_value_petal`().tableName }
 

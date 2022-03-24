@@ -13,7 +13,7 @@ import java.util.*
 
 internal class UnprocessedPetalColumn private constructor(
     val petalColumn: PetalColumn,
-    val columnReference: ColumnReference? = null,
+    val columnReferenceInfo: ColumnReference? = null,
     val previousName: String? = null,
     val isAlteration: Boolean,
     val isId: Boolean,
@@ -24,20 +24,21 @@ internal class UnprocessedPetalColumn private constructor(
     val name = petalColumn.name
     val isNullable = petalColumn.isNullable
 
-    val referencingTableClassName: ClassName? = columnReference?.tableClassName
-    val referencingEntityClassName: ClassName? = columnReference?.entityClassName
-    val referencingAccessorClassName: ClassName? = columnReference?.accessorClassName
-    val referencingIdName: String? = when (columnReference) {
+    val isReferenceColumn = columnReferenceInfo != null
+    val referencingTableClassName: ClassName? = columnReferenceInfo?.tableClassName
+    val referencingEntityClassName: ClassName? = columnReferenceInfo?.entityClassName
+    val referencingAccessorClassName: ClassName? = columnReferenceInfo?.accessorClassName
+    val referencingIdName: String? = when (columnReferenceInfo) {
         null -> null
         else -> "${name}Id"
     }
-    val nestedPetalManagerName: String? = when(columnReference) {
+    val nestedPetalManagerName: String? = when(columnReferenceInfo) {
         null -> null
         else -> "${name}NestedPetalManager"
     }
 
     val tablePropertyClassName: TypeName by lazy {
-        when (columnReference) {
+        when (columnReferenceInfo) {
             null -> Column::class.asClassName()
                 .parameterizedBy(kotlinType.copy(nullable = isNullable))
 
@@ -50,7 +51,7 @@ internal class UnprocessedPetalColumn private constructor(
     }
 
     val entityPropertyClassName: TypeName by lazy {
-        when (columnReference) {
+        when (columnReferenceInfo) {
             null -> kotlinType.copy(nullable = isNullable)
             else -> referencingEntityClassName!!
         }
@@ -71,7 +72,7 @@ internal class UnprocessedPetalColumn private constructor(
             dataType = dataType,
             isNullable = isNullable
         ),
-        columnReference = columnReference,
+        columnReferenceInfo = columnReference,
         previousName = previousName,
         isAlteration = isAlteration,
         isId = isId,

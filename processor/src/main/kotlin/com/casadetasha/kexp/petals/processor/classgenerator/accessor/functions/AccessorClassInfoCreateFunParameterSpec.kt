@@ -32,7 +32,7 @@ internal class AccessorClassInfoCreateFunParameterSpec(private val accessorClass
         }
 
         private fun getNonIdTypeName(column: UnprocessedPetalColumn): TypeName {
-            return when (column.columnReference) {
+            return when (column.columnReferenceInfo) {
                 null -> column.kotlinType.copy(nullable = column.isNullable)
                 else -> column.referencingAccessorClassName!!.copy(nullable = column.isNullable)
             }

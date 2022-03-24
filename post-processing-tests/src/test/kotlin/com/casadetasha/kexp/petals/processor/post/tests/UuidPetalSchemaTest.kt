@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.post
+package com.casadetasha.kexp.petals.processor.post.tests
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -6,7 +6,7 @@ import assertk.assertions.isNotEqualTo
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.UuidIdPetalEntity
 import com.casadetasha.kexp.petals.migration.`TableMigrations$uuid_id_petal`
-import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
+import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.test.AfterTest

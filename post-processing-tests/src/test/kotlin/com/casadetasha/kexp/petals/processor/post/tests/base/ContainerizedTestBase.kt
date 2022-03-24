@@ -1,22 +1,12 @@
-package com.casadetasha.kexp.petals.processor.post.base
+package com.casadetasha.kexp.petals.processor.post.tests.base
 
-import assertk.assertThat
-import assertk.assertions.*
-import com.casadetasha.kexp.petals.BasicPetalEntity
-import com.casadetasha.kexp.petals.PetalTables
-import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.ClassRule
 import org.junit.rules.ExternalResource
 import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.PostgreSQLContainer
-import java.util.*
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 open class ContainerizedTestBase {
 

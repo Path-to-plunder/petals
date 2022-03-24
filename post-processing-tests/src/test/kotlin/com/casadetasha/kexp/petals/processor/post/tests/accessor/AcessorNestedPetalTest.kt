@@ -1,21 +1,20 @@
-package com.casadetasha.kexp.petals.processor.post.accessor
+package com.casadetasha.kexp.petals.processor.post.tests.accessor
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import com.casadetasha.kexp.petals.ParentPetalClassEntity
+import assertk.assertions.isLessThan
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.NestedPetalClass
 import com.casadetasha.kexp.petals.accessor.ParentPetalClass
 import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
-import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
-import org.jetbrains.exposed.dao.load
-import org.jetbrains.exposed.sql.transactions.transaction
+import com.casadetasha.kexp.petals.processor.post.countMilliseconds
+import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class AccessorNestedPetalTest: ContainerizedTestBase() {
+class AccessorNestedPetalTest : ContainerizedTestBase() {
 
     private val tableNames: Set<String> by lazy {
         setOf(
@@ -39,7 +38,7 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
     }
 
     @Test
-    fun `load() loads nested data`() {
+    fun `load() loads nested dependencies`() {
         val parentPetalId = ParentPetalClass.create(
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
@@ -47,13 +46,51 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
         ).store().id
 
         val parentPetal = ParentPetalClass.load(parentPetalId)!!
-        transaction {
-            assertThat(parentPetal.nestedPetal.name).isEqualTo("Nester")
-        }
+        assertThat(parentPetal.nestedPetal.name).isEqualTo("Nester")
     }
 
     @Test
-    fun `store() without updateNestedDependencies does not store nested data`() {
+    fun `loading petals with eagerLoad=false is faster than with eagerLoad=true`() {
+        val parentPetalId = ParentPetalClass.create(
+            nestedPetal = NestedPetalClass.create(
+                name = "Nester"
+            )
+        ).store().id
+
+        val lazyLoadTime = countMilliseconds {
+            ParentPetalClass.load(parentPetalId, eagerLoad = false)!!
+        }
+
+        val eagerLoadTime = countMilliseconds {
+            ParentPetalClass.load(parentPetalId, eagerLoad = true)!!
+        }
+
+        assertThat(lazyLoadTime).isLessThan(eagerLoadTime)
+    }
+
+    @Test
+    fun `accessing nested petals with loaded with eagerLoad=true is faster than with eagerLoad = false`() {
+        val parentPetalId = ParentPetalClass.create(
+            nestedPetal = NestedPetalClass.create(
+                name = "Nester"
+            )
+        ).store().id
+
+        val eagerLoadTime = countMilliseconds {
+            val eagerLoadedParentPetal = ParentPetalClass.load(parentPetalId, eagerLoad = true)!!
+            eagerLoadedParentPetal.nestedPetal
+        }
+
+        val lazyLoadTime = countMilliseconds {
+            val lazyLoadedParentPetal = ParentPetalClass.load(parentPetalId, eagerLoad = false)!!
+            lazyLoadedParentPetal.nestedPetal
+        }
+
+        assertThat(eagerLoadTime).isLessThan(lazyLoadTime)
+    }
+
+    @Test
+    fun `store() with updateNestedDependencies=false does not store nested data`() {
         val nestedPetal = NestedPetalClass.create(name = "Nester")
         val parentPetal = ParentPetalClass.create(nestedPetal = nestedPetal)
 
@@ -66,11 +103,11 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
     }
 
     @Test
-    fun `store() with updateNestedDependencies does stores nested data`() {
+    fun `store() with updateNestedDependencies=true stores nested data`() {
         val nestedPetal = NestedPetalClass.create(name = "Nester")
         val parentPetal = ParentPetalClass.create(nestedPetal = nestedPetal)
 
-        parentPetal.applyInsideTransaction {
+        parentPetal.apply {
             this.nestedPetal.name = "Updated name"
         }.store(updateNestedDependencies = true)
 
@@ -94,7 +131,7 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
     }
 
     @Test
-    fun `store() with new nested petal without updateNestedDependencies does not store changes to the newly assigned petal`() {
+    fun `store() with new nested petal with updateNestedDependencies=false does not store changes to the newly assigned petal`() {
         val parentPetal = ParentPetalClass.create(
             nestedPetal = NestedPetalClass.create(name = "Nester")
         )
@@ -103,25 +140,9 @@ class AccessorNestedPetalTest: ContainerizedTestBase() {
         secondNestedPetal.name = "RenamedSecondNester"
         parentPetal.apply {
             nestedPetal = secondNestedPetal
-        }.store()
+        }.store(updateNestedDependencies = false)
 
         val loadedSecondNestedPetal = NestedPetalClass.load(secondNestedPetal.id)!!
         assertThat(loadedSecondNestedPetal.name).isEqualTo("SecondNester")
-    }
-
-    @Test
-    fun `changing values on loaded data without calling store() does not update data`() {
-    }
-
-    @Test
-    fun `calling store() after changing values on loaded data updates data`() {
-    }
-
-    @Test
-    fun `calling delete() on stored data deletes the data`() {
-    }
-
-    @Test
-    fun `calling delete() on non stored data does not crash`() {
     }
 }

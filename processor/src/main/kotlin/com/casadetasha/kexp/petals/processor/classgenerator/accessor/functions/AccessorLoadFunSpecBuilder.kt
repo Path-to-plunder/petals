@@ -2,29 +2,53 @@ package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
-import com.squareup.kotlinpoet.*
+import com.casadetasha.kexp.petals.processor.kotlinpoet.createParameter
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 import org.jetbrains.exposed.sql.SizedIterable
 
 @OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorLoadFunSpecBuilder(accessorClassInfo: AccessorClassInfo) {
+internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
 
     private val loadFunSpec by lazy {
         FunSpec.builder(LOAD_METHOD_SIMPLE_NAME)
-            .addParameter(ParameterSpec.builder("id", accessorClassInfo.idKotlinClassName).build())
+            .addParameters(loadMethodParameters)
             .returns(accessorClassInfo.className.copy(nullable = true))
             .addCode(loadMethodBody)
             .build()
     }
 
+    private val loadMethodParameters by lazy {
+        listOf(
+            createParameter("id", accessorClassInfo.idKotlinClassName),
+            createParameter(
+                name = "eagerLoad",
+                className = Boolean::class.asClassName(),
+                defaultValue = CodeBlock.of("false"))
+        )
+    }
+
     private val loadMethodBody: CodeBlock by lazy {
-        CodeBlock.builder()
-            .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-            .addStatement("%M.findById(id)", accessorClassInfo.entityMemberName)
-            .unindent()
-            .add("}?.export()")
-            .build()
+        when (accessorClassInfo.columns.any { it.isReferenceColumn }) {
+            true -> CodeBlock.builder()
+                    .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
+                    .beginControlFlow("when (eagerLoad)")
+                    .addStatement("true -> %M.findById(id)?.exportWithEagerLoadedDependencies()", accessorClassInfo.entityMemberName)
+                    .addStatement("false -> %M.findById(id)?.export()", accessorClassInfo.entityMemberName)
+                    .endControlFlow()
+                    .endControlFlow()
+                    .build()
+            false -> CodeBlock.builder()
+                .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
+                .addStatement("%M.findById(id)", accessorClassInfo.entityMemberName)
+                .unindent()
+                .add("}?.export()")
+                .build()
+        }
     }
 
 

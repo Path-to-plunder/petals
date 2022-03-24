@@ -6,7 +6,6 @@ import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.*
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
-import kotlin.reflect.KClass
 
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
@@ -18,9 +17,14 @@ internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo
             .primaryConstructor(ConstructorSpecBuilder(accessorClassInfo).constructorSpec)
             .addNestedPetalPropertySpec(accessorClassInfo)
             .addStoreMethod(accessorClassInfo)
+            .addEagerLoadMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)
             .build()
     }
+}
+
+private fun TypeSpec.Builder.addEagerLoadMethod(accessorClassInfo: AccessorClassInfo) = apply {
+    addFunction(AccessorEagerLoadDependenciesFunSpecBuilder(accessorClassInfo).petalEagerLoadDependenciesFunSpec)
 }
 
 // This will always be type EntityAccessor so asClassName() is safe here
@@ -53,7 +57,12 @@ private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: Acces
             .companionObjectBuilder()
             .addCreateMethod(accessorClassInfo)
             .addFunctions(AccessorLoadFunSpecBuilder(accessorClassInfo).loadFunSpecs)
-            .addFunction(AccessorExportFunSpecBuilder().getFunSpec(accessorClassInfo))
+            .addFunction(AccessorExportFunSpecBuilder(accessorClassInfo).exportFunSpec)
+            .apply {
+                if (accessorClassInfo.columns.any { it.isReferenceColumn }) {
+                    addFunction(AccessorEagerLoadDependenciesFunSpecBuilder(accessorClassInfo).companionEagerLoadDependenciesFunSpec)
+                }
+            }
             .build()
     )
 }

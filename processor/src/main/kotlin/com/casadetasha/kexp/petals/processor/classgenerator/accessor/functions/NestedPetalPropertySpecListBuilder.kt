@@ -70,7 +70,7 @@ internal class NestedPetalPropertySpecListBuilder(
     }
 
     private fun checkReferenceNotNull() {
-        if (column.columnReference == null) {
+        if (column.columnReferenceInfo == null) {
             AnnotationParser.printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Attempting to add delegate properties to column without a" +
                         " reference. Petal name ${accessorClassInfo.className}, column name: ${column.name}.")
@@ -82,7 +82,7 @@ internal fun ClassName.toMemberName(): MemberName = MemberName(packageName, simp
 
 internal fun TypeSpec.Builder.addNestedPetalPropertySpec(accessorClassInfo: AccessorClassInfo) = apply {
     accessorClassInfo.columns
-        .filter { it.columnReference != null }
+        .filter { it.columnReferenceInfo != null }
         .forEach {
             addProperties(NestedPetalPropertySpecListBuilder(accessorClassInfo, it).getPropertySpecs())
         }

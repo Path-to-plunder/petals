@@ -16,6 +16,7 @@ internal class AccessorClassFileGenerator(
             fileName = accessorClassInfo.className.simpleName
         )
             .addType(AccessorClassSpecBuilder(accessorClassInfo).getClassSpec())
+            .addImport("org.jetbrains.exposed.dao", "load")
             .build()
 
         fileSpec.writeTo(File(kaptKotlinGeneratedDir))

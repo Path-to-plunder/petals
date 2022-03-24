@@ -1,7 +1,5 @@
 package com.casadetasha.kexp.petals.annotations
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -41,7 +39,7 @@ class NestedPetalManager<PETAL_ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: E
     private var _nestedPetalClass: PETAL_ACCESSOR? = null
     public var nestedPetal: PETAL_ACCESSOR
         @Synchronized get() {
-            _nestedPetalClass = _nestedPetalClass ?: loadEntityAccessor()
+            _nestedPetalClass = _nestedPetalClass ?: transaction { loadEntityAccessor() }
             return _nestedPetalClass!!
         }
         @Synchronized set(value) {
@@ -49,8 +47,10 @@ class NestedPetalManager<PETAL_ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: E
             _nestedPetalClass = value
         }
 
-    fun hasUpdated(): Boolean {
-        return loadedPetalId != nestedPetalId
+    val hasUpdated: Boolean get() { return loadedPetalId != nestedPetalId }
+
+    fun eagerLoadAccessor() {
+        _nestedPetalClass = loadEntityAccessor()
     }
 }
 
@@ -69,18 +69,24 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
      * dependencies it must be done manually.
      */
     fun store(performInsideStandaloneTransaction: Boolean = true, updateNestedDependencies: Boolean = false): ACCESSOR =
-        performWithTransactionType(performInsideStandaloneTransaction) {
+        runTransactionStatement(performInsideStandaloneTransaction) {
             storeInsideOfTransaction(updateNestedDependencies)
         }
 
-    protected abstract fun storeInsideOfTransaction(updateNestedDependencies: Boolean = false): ACCESSOR
-
     /** Delete the object from the database. */
     fun delete(performInsideStandaloneTransaction: Boolean = true) =
-        performWithTransactionType(performInsideStandaloneTransaction) { dbEntity.delete() }
+        runTransactionStatement(performInsideStandaloneTransaction) { dbEntity.delete() }
+
+    /** Prepare nested dependencies so they can be accessed outside a transaction. */
+    fun eagerLoadDependencies(performInsideStandaloneTransaction: Boolean = true): ACCESSOR =
+        runTransactionStatement(performInsideStandaloneTransaction) { eagerLoadDependenciesInsideTransaction() }
+
+    protected abstract fun eagerLoadDependenciesInsideTransaction(): ACCESSOR
+
+    protected abstract fun storeInsideOfTransaction(updateNestedDependencies: Boolean = false): ACCESSOR
 
     companion object {
-        fun <RESULT> performWithTransactionType(performInsideStandaloneTransaction: Boolean, function: () -> RESULT): RESULT =
+        fun <RESULT> runTransactionStatement(performInsideStandaloneTransaction: Boolean, function: () -> RESULT): RESULT =
             when (performInsideStandaloneTransaction) {
                 true -> transaction { function() }
                 false -> function()

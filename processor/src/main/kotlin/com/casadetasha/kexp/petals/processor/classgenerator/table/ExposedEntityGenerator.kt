@@ -54,7 +54,7 @@ internal class ExposedEntityGenerator(private val className: String,
     fun generateClassSpec(): TypeSpec = entityBuilder.build()
 
     fun addEntityColumn(column: UnprocessedPetalColumn) {
-        when (column.columnReference) {
+        when (column.columnReferenceInfo) {
             null -> entityBuilder
                     .addProperty(
                         PropertySpec.builder(column.name, column.entityPropertyClassName)

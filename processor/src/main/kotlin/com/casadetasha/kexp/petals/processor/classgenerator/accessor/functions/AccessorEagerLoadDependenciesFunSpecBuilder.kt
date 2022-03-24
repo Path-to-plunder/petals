@@ -1,0 +1,71 @@
+package com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions
+
+import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.kotlinpoet.createParameter
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.asClassName
+import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
+
+@OptIn(KotlinPoetMetadataPreview::class)
+internal class AccessorEagerLoadDependenciesFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
+
+    val petalEagerLoadDependenciesFunSpec by lazy {
+        FunSpec.builder(PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME)
+            .returns(accessorClassInfo.className)
+            .addModifiers(KModifier.OVERRIDE, KModifier.PROTECTED)
+            .addCode(petalEagerLoadMethodBody)
+            .build()
+    }
+
+    val companionEagerLoadDependenciesFunSpec by lazy {
+        FunSpec.builder(COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME)
+            .receiver(accessorClassInfo.entityClassName)
+            .returns(accessorClassInfo.className)
+            .addCode(companionEagerLoadMethodBody)
+            .build()
+    }
+
+    private val petalEagerLoadMethodBody: CodeBlock by lazy {
+        CodeBlock.builder()
+            .beginControlFlow("return apply")
+            .apply {
+                accessorClassInfo.columns
+                    .filter { it.isReferenceColumn }
+                    .forEach {
+                        addStatement("${it.name}NestedPetalManager.eagerLoadAccessor()")
+                    }
+            }
+            .endControlFlow()
+            .build()
+    }
+
+    private val companionEagerLoadMethodBody: CodeBlock by lazy {
+        CodeBlock.builder()
+            .add("return load(")
+            .apply {
+                accessorClassInfo.columns
+                    .filter { it.isReferenceColumn }
+                    .forEach {
+                        add("\n  %M::${it.name},", accessorClassInfo.entityMemberName)
+                    }
+            }
+            .add("\n).export().eagerLoadDependencies()")
+            .build()
+    }
+
+    companion object {
+        const val COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "exportWithEagerLoadedDependencies"
+        const val PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "eagerLoadDependenciesInsideTransaction"
+    }
+
+//    override fun eagerLoadDependenciesInsideTransaction(): ParentPetalClass = apply {
+//        nestedPetalNestedPetalManager.eagerLoadAccessor()
+//    }
+
+//    public fun ParentPetalClassEntity.exportWithEagerLoadedDependencies(): ParentPetalClass =
+//        load(
+//            com.casadetasha.kexp.petals.ParentPetalClassEntity::nestedPetal,
+//        ).export().eagerLoadDependencies()
+}

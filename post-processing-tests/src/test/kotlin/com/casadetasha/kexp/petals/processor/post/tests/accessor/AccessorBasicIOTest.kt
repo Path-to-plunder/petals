@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.post.accessor
+package com.casadetasha.kexp.petals.processor.post.tests.accessor
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -8,7 +8,7 @@ import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.BasicPetal
 import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.export
 import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
-import com.casadetasha.kexp.petals.processor.post.base.ContainerizedTestBase
+import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -16,7 +16,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class ExposedBackingAccessorTest: ContainerizedTestBase() {
+class AccessorBasicIOTest: ContainerizedTestBase() {
 
     private val tableName: String by lazy { `TableMigrations$basic_petal`().tableName }
 

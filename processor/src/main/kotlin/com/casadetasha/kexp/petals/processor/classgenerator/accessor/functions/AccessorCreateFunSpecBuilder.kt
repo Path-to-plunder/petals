@@ -46,8 +46,8 @@ private class AssignAccessorValuesCodeBlockBuilder(accessorClassInfo: AccessorCl
 
     val assignValuesCodeBlock: CodeBlock by lazy {
         val nonIdColumns = accessorClassInfo.columns.filterNot { it.isId }
-        val valueColumns = nonIdColumns.filter { it.columnReference == null }
-        val referenceColumns = nonIdColumns.filterNot { it.columnReference == null }
+        val valueColumns = nonIdColumns.filter { it.columnReferenceInfo == null }
+        val referenceColumns = nonIdColumns.filterNot { it.columnReferenceInfo == null }
 
         val builder = CodeBlock.builder()
 
