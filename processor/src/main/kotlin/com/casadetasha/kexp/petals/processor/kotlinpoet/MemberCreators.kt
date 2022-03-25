@@ -11,8 +11,18 @@ internal fun createParameter(name: String, typeName: TypeName, defaultValue: Cod
         .defaultValue(defaultValue)
         .build()
 
-internal fun createConstructorProperty(name: String, typeName: TypeName, isMutable: Boolean = false) =
+internal fun createConstructorProperty(
+    name: String,
+    typeName: TypeName,
+    isMutable: Boolean = false,
+    annotations: List<AnnotationSpec> = emptyList()
+) =
     PropertySpec.builder(name, typeName)
         .mutable(mutable = isMutable)
         .initializer(name)
+        .apply {
+            if (annotations.isNotEmpty()) {
+                addAnnotations(annotations)
+            }
+        }
         .build()
