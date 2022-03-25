@@ -29,7 +29,7 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassIn
             createParameter("id", accessorClassInfo.idKotlinClassName),
             createParameter(
                 name = "eagerLoad",
-                className = Boolean::class.asClassName(),
+                typeName = Boolean::class.asClassName(),
                 defaultValue = CodeBlock.of("false"))
         )
     }

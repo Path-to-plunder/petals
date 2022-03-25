@@ -18,6 +18,7 @@ internal class UnprocessedPetalColumn private constructor(
     val isAlteration: Boolean,
     val isId: Boolean,
     val defaultValue: DefaultPetalValue?,
+    val isMutable: Boolean,
 ) : Comparable<UnprocessedPetalColumn> {
 
     val dataType = petalColumn.dataType
@@ -66,6 +67,7 @@ internal class UnprocessedPetalColumn private constructor(
         isAlteration: Boolean,
         isId: Boolean,
         defaultValue: DefaultPetalValue?,
+        isMutable: Boolean
     ) : this(
         petalColumn = PetalColumn(
             name = name,
@@ -77,6 +79,7 @@ internal class UnprocessedPetalColumn private constructor(
         isAlteration = isAlteration,
         isId = isId,
         defaultValue = defaultValue,
+        isMutable = isMutable,
     )
 
     val kotlinType: ClassName by lazy {

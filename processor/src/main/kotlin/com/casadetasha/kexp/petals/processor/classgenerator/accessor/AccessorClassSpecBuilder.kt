@@ -14,7 +14,7 @@ internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo
         return TypeSpec.classBuilder(accessorClassInfo.className)
             .addSuperclass(accessorClassInfo)
             .addAccessorProperties(accessorClassInfo)
-            .primaryConstructor(ConstructorSpecBuilder(accessorClassInfo).constructorSpec)
+            .primaryConstructor(AccessorConstructorSpecBuilder(accessorClassInfo).constructorSpec)
             .addNestedPetalPropertySpec(accessorClassInfo)
             .addStoreMethod(accessorClassInfo)
             .addEagerLoadMethod(accessorClassInfo)

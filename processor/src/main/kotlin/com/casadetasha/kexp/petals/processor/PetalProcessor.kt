@@ -9,6 +9,7 @@ import com.casadetasha.kexp.petals.processor.PetalClasses.SCHEMA_CLASSES
 import com.casadetasha.kexp.petals.processor.PetalClasses.SUPPORTED_PROPERTY_ANNOTATIONS
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.classgenerator.data.DataClassFileGenerator
 import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedClassesFileGenerator
 import com.casadetasha.kexp.petals.processor.migration.MigrationGenerator
 import com.casadetasha.kexp.petals.processor.migration.PetalMigrationSetupGenerator
@@ -55,8 +56,10 @@ class PetalProcessor : AbstractProcessor() {
         tableMap.values.forEach { migration ->
             MigrationGenerator(migration).createMigrationForTable()
             migration.getCurrentSchema()?.let {
+                val accessorClassInfo = migration.getAccessorClassInfo()
                 ExposedClassesFileGenerator(migration.className, migration.tableName, it).generateFile()
-                AccessorClassFileGenerator(migration.getAccessorClassInfo()).generateFile()
+                AccessorClassFileGenerator(accessorClassInfo).generateFile()
+                DataClassFileGenerator(accessorClassInfo).generateFile()
             }
         }
 

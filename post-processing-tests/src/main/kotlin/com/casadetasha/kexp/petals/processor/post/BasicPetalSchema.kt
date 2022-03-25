@@ -12,8 +12,8 @@ interface BasicPetal
 @PetalSchema(petal = BasicPetal::class)
 interface BasicPetalSchemaV1 {
     val uuid: UUID
-    val color: String?
-    @VarChar(charLimit = 10) val secondColor: String
-    val count: Int
-    val sporeCount: Long
+    var color: String?
+    @VarChar(charLimit = 10) var secondColor: String
+    var count: Int
+    var sporeCount: Long
 }

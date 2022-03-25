@@ -71,7 +71,8 @@ internal object PetalMigrationColumnParser {
             isNullable = false,
             isAlteration = false,
             isId = true,
-            defaultValue = null
+            defaultValue = null,
+            isMutable = false
         )
     }
 
@@ -89,7 +90,8 @@ internal object PetalMigrationColumnParser {
             isNullable = kotlinProperty.isNullable,
             isAlteration = alterColumnAnnotation?.renameFrom != null,
             isId = false,
-            defaultValue = defaultPetalValue
+            defaultValue = defaultPetalValue,
+            isMutable = kotlinProperty.isMutable
         )
     }
 

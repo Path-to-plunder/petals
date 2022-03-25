@@ -5,7 +5,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 
-internal class ConstructorSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
+internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
     val constructorSpec: FunSpec by lazy {
         val constructorBuilder = FunSpec.constructorBuilder()
