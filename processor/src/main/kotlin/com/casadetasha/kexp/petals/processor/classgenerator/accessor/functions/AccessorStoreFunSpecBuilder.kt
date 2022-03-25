@@ -39,11 +39,12 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
     }
 
     private val valueColumns: Iterable<UnprocessedPetalColumn> by lazy {
-        nonIdColumns.filter { it.columnReferenceInfo == null }
+        nonIdColumns.filterNot { it.isReferenceColumn }
+            .filterNot { it.isReferencedByColumn }
     }
 
     private val referenceColumns: Iterable<UnprocessedPetalColumn> by lazy {
-        nonIdColumns.filterNot { it.columnReferenceInfo == null }
+        nonIdColumns.filter { it.isReferenceColumn }
     }
 
     private val storeMethodBody: CodeBlock by lazy {
@@ -78,7 +79,7 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
             .addModifiers(KModifier.PRIVATE)
             .apply {
                 accessorClassInfo.columns
-                    .filter { it.columnReferenceInfo != null }
+                    .filter { it.isReferenceColumn }
                     .forEach {
                         addStatement("${it.name}.store(performInsideStandaloneTransaction = false)")
                     }

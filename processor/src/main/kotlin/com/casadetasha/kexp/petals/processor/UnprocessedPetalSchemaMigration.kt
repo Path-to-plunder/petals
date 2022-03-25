@@ -5,7 +5,8 @@ import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 
 internal data class UnprocessedPetalSchemaMigration(
     val primaryKeyType: PetalPrimaryKey,
-    val columnMigrations:HashMap<String, UnprocessedPetalColumn>) {
+    val columnMigrations: Map<String, UnprocessedPetalColumn>
+) {
 
     var migrationSql: String? = null
     var migrationAlterationSql: List<String>? = null

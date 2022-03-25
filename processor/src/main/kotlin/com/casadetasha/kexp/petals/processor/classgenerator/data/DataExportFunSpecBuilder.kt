@@ -43,16 +43,18 @@ internal class DataExportFunSpecBuilder(private val accessorClassInfo: AccessorC
     }
 
     private fun amendSettersForEntityColumns() {
-        val nonIdColumns = accessorClassInfo.columns.filterNot { it.isId }
+        val entityColumns = accessorClassInfo.columns
+            .filterNot { it.isId }
+            .filterNot { it.isReferencedByColumn }
 
-        nonIdColumns.filterNot { it.isReferenceColumn }
+        entityColumns.filterNot { it.isReferenceColumn }
             .forEach {
                 val constructorBlock = "\n  ${it.name} = ${it.name},"
                 codeBuilder.add(constructorBlock)
             }
 
-        nonIdColumns
-            .filter { it.columnReferenceInfo != null }
+        entityColumns
+            .filter { it.isReferenceColumn }
             .forEach {
                 val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
                 codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
@@ -68,6 +70,7 @@ internal class DataExportFunSpecBuilder(private val accessorClassInfo: AccessorC
 
     private fun amendSettersForAccessorColumns() {
         accessorClassInfo.columns
+            .filterNot { it.isReferencedByColumn }
             .map {
                 when (it.isReferenceColumn) {
                     true -> "${it.name}Id"

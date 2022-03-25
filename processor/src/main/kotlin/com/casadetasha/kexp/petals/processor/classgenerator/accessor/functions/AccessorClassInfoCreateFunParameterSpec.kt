@@ -10,6 +10,7 @@ internal class AccessorClassInfoCreateFunParameterSpec(private val accessorClass
 
     val parameterSpecs: Iterable<ParameterSpec> by lazy {
         accessorClassInfo.columns
+            .filterNot { it.isReferencedByColumn }
             .map { AccessorParameterSpecBuilder(it).parameterSpec }
     }
 
@@ -32,9 +33,9 @@ internal class AccessorClassInfoCreateFunParameterSpec(private val accessorClass
         }
 
         private fun getNonIdTypeName(column: UnprocessedPetalColumn): TypeName {
-            return when (column.columnReferenceInfo) {
-                null -> column.kotlinType.copy(nullable = column.isNullable)
-                else -> column.referencingAccessorClassName!!.copy(nullable = column.isNullable)
+            return when (column.isReferenceColumn) {
+                true -> column.referencingAccessorClassName!!.copy(nullable = column.isNullable)
+                else -> column.kotlinType.copy(nullable = column.isNullable)
             }
         }
     }

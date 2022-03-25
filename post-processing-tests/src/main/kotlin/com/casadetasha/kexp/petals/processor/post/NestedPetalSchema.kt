@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor.post
 import com.casadetasha.kexp.petals.annotations.Petal
 import com.casadetasha.kexp.petals.annotations.PetalSchema
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
+import com.casadetasha.kexp.petals.annotations.ReferencedBy
 
 @Petal(tableName = "parent_petal", className = "ParentPetalClass", primaryKeyType = PetalPrimaryKey.UUID)
 interface ParentPetal
@@ -18,4 +19,5 @@ interface ParentPetalSchema {
 @PetalSchema(petal = NestedPetal::class)
 interface NestedPetalSchema {
     val name: String
+    @ReferencedBy("nestedPetal") val parents: ParentPetal
 }

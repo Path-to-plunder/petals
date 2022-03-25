@@ -54,18 +54,8 @@ internal class ExposedEntityGenerator(private val className: String,
     fun generateClassSpec(): TypeSpec = entityBuilder.build()
 
     fun addEntityColumn(column: UnprocessedPetalColumn) {
-        when (column.columnReferenceInfo) {
-            null -> entityBuilder
-                    .addProperty(
-                        PropertySpec.builder(column.name, column.entityPropertyClassName)
-                            .mutable()
-                            .delegate(
-                                CodeBlock.of(
-                                    "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)
-                            ).build()
-                    )
-
-            else -> entityBuilder
+        when (column.isReferenceColumn) {
+            true -> entityBuilder
                 .addProperty(
                     PropertySpec.builder(column.name, column.entityPropertyClassName)
                         .mutable()
@@ -76,9 +66,19 @@ internal class ExposedEntityGenerator(private val className: String,
                                 "referencedOn",
                                 tableClassName,
                                 column.name,
-                        )
+                            )
                         ).build()
                 )
+
+            false -> entityBuilder
+                    .addProperty(
+                        PropertySpec.builder(column.name, column.entityPropertyClassName)
+                            .mutable()
+                            .delegate(
+                                CodeBlock.of(
+                                    "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)
+                            ).build()
+                    )
         }
     }
 

@@ -32,6 +32,8 @@ annotation class AlterColumn(val renameFrom: String = "")
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 annotation class VarChar(val charLimit: Int)
 
+annotation class ReferencedBy(val referencePropertyName: String)
+
 enum class PetalPrimaryKey(val dataType: String?) {
     INT("SERIAL"),
     LONG("BIGSERIAL"),

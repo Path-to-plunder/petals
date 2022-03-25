@@ -83,7 +83,7 @@ internal fun ClassName.toMemberName(): MemberName = MemberName(packageName, simp
 
 internal fun TypeSpec.Builder.addNestedPetalPropertySpec(accessorClassInfo: AccessorClassInfo) = apply {
     accessorClassInfo.columns
-        .filter { it.columnReferenceInfo != null }
+        .filter { it.isReferenceColumn }
         .forEach {
             addProperties(NestedPetalPropertySpecListBuilder(accessorClassInfo, it).getPropertySpecs())
         }

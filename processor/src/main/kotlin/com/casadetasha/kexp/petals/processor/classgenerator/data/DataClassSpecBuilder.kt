@@ -29,7 +29,9 @@ internal class DataClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
         return@lazy constructorBuilder.build()
     }
 
-    private val parameterSpecs: Iterable<ParameterSpec> = accessorClassInfo.sortedColumns.map { column ->
+    private val parameterSpecs: Iterable<ParameterSpec> = accessorClassInfo.sortedColumns
+        .filterNot { it.isReferencedByColumn }
+        .map { column ->
         val typeName = when (column.isId) {
             true -> column.kotlinType
             false -> column.kotlinType.copy(nullable = column.isNullable)
@@ -43,15 +45,17 @@ internal class DataClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
         return@map createParameter(name, typeName)
     }
 
-    private val propertySpecs: Iterable<PropertySpec> = accessorClassInfo.sortedColumns.map { column ->
+    private val propertySpecs: Iterable<PropertySpec> = accessorClassInfo.sortedColumns
+        .filterNot { it.isReferencedByColumn }
+        .map { column ->
         val typeName = when (column.isId) {
             true -> column.kotlinType
             false -> column.kotlinType.copy(nullable = column.isNullable)
         }
 
-        val name = when (column.columnReferenceInfo) {
-            null -> column.name
-            else -> "${column.name}Id"
+        val name = when (column.isReferenceColumn) {
+            false -> column.name
+            true -> "${column.name}Id"
         }
 
         val annotations = when (column.kotlinType) {

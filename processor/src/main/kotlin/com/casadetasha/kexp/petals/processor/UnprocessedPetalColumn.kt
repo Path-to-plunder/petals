@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.annotations.PetalColumn
 import com.casadetasha.kexp.petals.processor.migration.ColumnReference
+import com.casadetasha.kexp.petals.processor.migration.ReferencedByColumn
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
@@ -19,13 +20,17 @@ internal class UnprocessedPetalColumn private constructor(
     val isId: Boolean,
     val defaultValue: DefaultPetalValue?,
     val isMutable: Boolean,
+    val referencedByColumn: ReferencedByColumn?
 ) : Comparable<UnprocessedPetalColumn> {
 
     val dataType = petalColumn.dataType
     val name = petalColumn.name
     val isNullable = petalColumn.isNullable
 
-    val isReferenceColumn = columnReferenceInfo != null
+    val isReferencedByColumn: Boolean = referencedByColumn != null
+    val isLocalColumn: Boolean = !isReferencedByColumn
+    val isReferenceColumn: Boolean = isLocalColumn && columnReferenceInfo != null
+
     val referencingTableClassName: ClassName? = columnReferenceInfo?.tableClassName
     val referencingEntityClassName: ClassName? = columnReferenceInfo?.entityClassName
     val referencingAccessorClassName: ClassName? = columnReferenceInfo?.accessorClassName
@@ -33,28 +38,28 @@ internal class UnprocessedPetalColumn private constructor(
         null -> null
         else -> "${name}Id"
     }
-    val nestedPetalManagerName: String? = when(columnReferenceInfo) {
-        null -> null
-        else -> "${name}NestedPetalManager"
+    val nestedPetalManagerName: String? = when(isReferenceColumn) {
+        true -> "${name}NestedPetalManager"
+        false -> null
     }
 
     val tablePropertyClassName: TypeName by lazy {
-        when (columnReferenceInfo) {
-            null -> Column::class.asClassName()
-                .parameterizedBy(kotlinType.copy(nullable = isNullable))
-
-            else -> Column::class.asClassName()
+        when (isReferenceColumn) {
+            true -> Column::class.asClassName()
                 .parameterizedBy(
                     EntityID::class.asClassName()
                         .parameterizedBy(kotlinType.copy(nullable = isNullable))
                 )
+
+            false -> Column::class.asClassName()
+                .parameterizedBy(kotlinType.copy(nullable = isNullable))
         }
     }
 
     val entityPropertyClassName: TypeName by lazy {
-        when (columnReferenceInfo) {
-            null -> kotlinType.copy(nullable = isNullable)
-            else -> referencingEntityClassName!!
+        when (isReferenceColumn) {
+            true -> referencingEntityClassName!!
+            else -> kotlinType.copy(nullable = isNullable)
         }
     }
 
@@ -67,7 +72,8 @@ internal class UnprocessedPetalColumn private constructor(
         isAlteration: Boolean,
         isId: Boolean,
         defaultValue: DefaultPetalValue?,
-        isMutable: Boolean
+        isMutable: Boolean,
+        referencedByColumn: ReferencedByColumn?
     ) : this(
         petalColumn = PetalColumn(
             name = name,
@@ -80,6 +86,7 @@ internal class UnprocessedPetalColumn private constructor(
         isId = isId,
         defaultValue = defaultValue,
         isMutable = isMutable,
+        referencedByColumn = referencedByColumn
     )
 
     val kotlinType: ClassName by lazy {

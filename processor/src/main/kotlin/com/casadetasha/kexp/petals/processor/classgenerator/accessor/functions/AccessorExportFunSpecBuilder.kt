@@ -34,14 +34,15 @@ internal class AccessorExportFunSpecBuilder(private val accessorClassInfo: Acces
     private fun amendSettersForColumns() {
         accessorClassInfo.columns
             .filterNot { it.isId }
-            .filter { it.columnReferenceInfo == null }
+            .filterNot { it.isReferenceColumn }
+            .filterNot { it.isReferencedByColumn }
             .forEach {
                 val constructorBlock = "\n  ${it.name} = ${it.name},"
                 codeBuilder.add(constructorBlock)
             }
         accessorClassInfo.columns
             .filterNot { it.isId }
-            .filter { it.columnReferenceInfo != null }
+            .filter { it.isReferenceColumn }
             .forEach {
                 val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
                 codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)

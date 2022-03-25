@@ -39,9 +39,9 @@ internal class ExposedTableGenerator(private val className: String,
     }
 
     private fun getColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
-        return when (column.columnReferenceInfo) {
-            null -> getValueColumnInitializationBlock(column)
-            else -> getReferenceColumnInitializationBlock(column)
+        return when (column.isReferenceColumn) {
+            true -> getReferenceColumnInitializationBlock(column)
+            false -> getValueColumnInitializationBlock(column)
         }
     }
 

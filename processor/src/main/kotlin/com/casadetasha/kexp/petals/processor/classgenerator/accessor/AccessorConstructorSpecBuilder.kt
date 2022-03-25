@@ -12,7 +12,9 @@ internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: Acc
             .addModifiers(KModifier.PRIVATE)
             .addParameter(getDbEntityParamSpec())
 
-        accessorClassInfo.sortedColumns.forEach {
+        accessorClassInfo.sortedColumns
+            .filterNot { it.isReferencedByColumn }
+            .forEach {
             constructorBuilder.addParameter(getParameterSpec(it))
         }
         return@lazy constructorBuilder.build()

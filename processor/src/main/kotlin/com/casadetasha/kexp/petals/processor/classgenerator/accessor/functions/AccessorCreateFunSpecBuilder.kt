@@ -46,9 +46,12 @@ internal class AccessorCreateFunSpecBuilder(private val accessorClassInfo: Acces
 private class AssignAccessorValuesCodeBlockBuilder(accessorClassInfo: AccessorClassInfo) {
 
     val assignValuesCodeBlock: CodeBlock by lazy {
-        val nonIdColumns = accessorClassInfo.columns.filterNot { it.isId }
-        val valueColumns = nonIdColumns.filter { it.columnReferenceInfo == null }
-        val referenceColumns = nonIdColumns.filterNot { it.columnReferenceInfo == null }
+        val entityColumns = accessorClassInfo.columns
+            .filterNot { it.isId }
+            .filterNot { it.isReferencedByColumn }
+
+        val valueColumns = entityColumns.filterNot { it.isReferenceColumn }
+        val referenceColumns = entityColumns.filter { it.isReferenceColumn }
 
         val builder = CodeBlock.builder()
 

@@ -34,20 +34,21 @@ internal object PetalSchemaMigrationParser {
     private fun parsePetalColumns(
         kotlinClass: KotlinClass,
         primaryKeyType: PetalPrimaryKey
-    ): HashMap<String, UnprocessedPetalColumn> {
+    ): Map<String, UnprocessedPetalColumn> {
         val columns = parsePetalPropertyColumns(kotlinClass.kotlinProperties)
         columns["id"] = PetalMigrationColumnParser.parseIdColumn(primaryKeyType)
 
         return columns
     }
 
-    private fun parsePetalPropertyColumns(kotlinProperties: List<KotlinProperty>): HashMap<String, UnprocessedPetalColumn> {
+    private fun parsePetalPropertyColumns(kotlinProperties: List<KotlinProperty>): MutableMap<String, UnprocessedPetalColumn> {
         val columnMap = HashMap<String, UnprocessedPetalColumn>()
         kotlinProperties.forEach {
             columnMap[it.simpleName] = PetalMigrationColumnParser.parseFromKotlinProperty(it)
         }
 
-        return columnMap
+        return columnMap.filterValues { it.isLocalColumn }
+            .toMutableMap()
     }
 }
 
@@ -72,7 +73,8 @@ internal object PetalMigrationColumnParser {
             isAlteration = false,
             isId = true,
             defaultValue = null,
-            isMutable = false
+            isMutable = false,
+            referencedByColumn = null
         )
     }
 
@@ -81,6 +83,7 @@ internal object PetalMigrationColumnParser {
         val name = kotlinProperty.simpleName
         val defaultPetalValue = DefaultPetalValue(kotlinProperty)
         val reference = getReferencingClassName(kotlinProperty)
+        val referencedBy: ReferencedByColumn? = getReferencedByColumn(kotlinProperty)
 
         return UnprocessedPetalColumn(
             columnReference = reference,
@@ -91,7 +94,8 @@ internal object PetalMigrationColumnParser {
             isAlteration = alterColumnAnnotation?.renameFrom != null,
             isId = false,
             defaultValue = defaultPetalValue,
-            isMutable = kotlinProperty.isMutable
+            isMutable = kotlinProperty.isMutable,
+            referencedByColumn = referencedBy
         )
     }
 
@@ -121,6 +125,16 @@ internal object PetalMigrationColumnParser {
                 "Column type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}"
             )
         }?.asReference()
+    }
+
+    private fun getReferencedByColumn(kotlinProperty: KotlinProperty): ReferencedByColumn? {
+        val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(ReferencedBy::class.java)
+        return when(alterColumnAnnotation) {
+            null -> null
+            else -> PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
+                "Column type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}"
+            )
+        }?.asReferencedBy(alterColumnAnnotation!!.referencePropertyName)
     }
 
     private fun getStringTypeName(annotatedElement: Element?): String {
@@ -162,5 +176,12 @@ private fun KotlinClass.asReference(): ColumnReference {
         accessorClassName = ClassName(AccessorClassFileGenerator.PACKAGE_NAME, accessorName),
         tableClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Table"),
         entityClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Entity"),
+    )
+}
+
+private fun KotlinClass.asReferencedBy(columnName: String): ReferencedByColumn {
+    return ReferencedByColumn(
+        columnReference = asReference(),
+        columnName = columnName
     )
 }

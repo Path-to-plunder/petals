@@ -27,5 +27,6 @@ internal object PetalClasses {
             DefaultInt::class,
             DefaultString::class,
             DefaultLong::class,
+            ReferencedBy::class,
         )
 }
