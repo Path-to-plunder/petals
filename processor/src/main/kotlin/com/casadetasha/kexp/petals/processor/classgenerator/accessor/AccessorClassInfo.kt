@@ -11,7 +11,8 @@ internal class AccessorClassInfo constructor(
     simpleName: String,
     val columns: Set<UnprocessedPetalColumn>,
     val entityClassName: ClassName,
-    val tableClassName: ClassName
+    val tableClassName: ClassName,
+    val dataClassName: ClassName
     ) {
 
     val sortedColumns: SortedSet<UnprocessedPetalColumn> by lazy { columns.toSortedSet() }

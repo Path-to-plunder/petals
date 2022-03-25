@@ -17,6 +17,8 @@ internal class DataClassFileGenerator(
             fileName = accessorClassInfo.className.simpleName + "Data"
         )
             .addType(DataClassSpecBuilder(accessorClassInfo).getClassSpec())
+            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).entityExportFunSpec)
+            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).accessorExportFunSpec)
             .build()
 
         fileSpec.writeTo(File(kaptKotlinGeneratedDir))

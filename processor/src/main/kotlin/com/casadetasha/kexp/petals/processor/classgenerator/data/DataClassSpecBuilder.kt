@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 internal class DataClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
 
     internal fun getClassSpec(): TypeSpec {
-        return TypeSpec.classBuilder(accessorClassInfo.className)
+        return TypeSpec.classBuilder(accessorClassInfo.dataClassName)
             .addAnnotation(serializableAnnotation)
             .addModifiers(KModifier.DATA)
             .primaryConstructor(constructorSpec)
@@ -78,7 +78,5 @@ internal class DataClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
     }
 }
 
-private fun KClass<*>.asMemberName(): MemberName {
-    val className = asClassName()
-    return MemberName(className.packageName, className.simpleName)
-}
+private fun KClass<*>.asMemberName(): MemberName =
+    asClassName().run { MemberName(packageName, simpleName) }
