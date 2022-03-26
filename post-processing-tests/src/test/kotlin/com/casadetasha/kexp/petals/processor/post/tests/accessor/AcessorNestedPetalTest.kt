@@ -2,6 +2,7 @@ package com.casadetasha.kexp.petals.processor.post.tests.accessor
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isLessThan
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.NestedPetalClass
@@ -40,6 +41,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
     @Test
     fun `load() loads nested dependencies`() {
         val parentPetalId = ParentPetalClass.create(
+            name = "Parenter",
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
             )
@@ -52,6 +54,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
     @Test
     fun `loading petals with eagerLoad=false is faster than with eagerLoad=true`() {
         val parentPetalId = ParentPetalClass.create(
+            name = "Parenter",
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
             )
@@ -71,6 +74,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
     @Test
     fun `accessing nested petals with loaded with eagerLoad=true is faster than with eagerLoad = false`() {
         val parentPetalId = ParentPetalClass.create(
+            name = "Parenter",
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
             )
@@ -92,7 +96,10 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
     @Test
     fun `store() with updateNestedDependencies=false does not store nested data`() {
         val nestedPetal = NestedPetalClass.create(name = "Nester")
-        val parentPetal = ParentPetalClass.create(nestedPetal = nestedPetal)
+        val parentPetal = ParentPetalClass.create(
+            name = "Parenter",
+            nestedPetal = nestedPetal
+        )
 
         parentPetal.apply {
             nestedPetal.name = "Updated name"
@@ -105,7 +112,9 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
     @Test
     fun `store() with updateNestedDependencies=true stores nested data`() {
         val nestedPetal = NestedPetalClass.create(name = "Nester")
-        val parentPetal = ParentPetalClass.create(nestedPetal = nestedPetal)
+        val parentPetal = ParentPetalClass.create(
+            name = "Parenter",
+            nestedPetal = nestedPetal)
 
         parentPetal.apply {
             this.nestedPetal.name = "Updated name"
@@ -118,6 +127,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
     @Test
     fun `store() with new nested petal updates reference id`() {
         val parentPetal = ParentPetalClass.create(
+            name = "Parenter",
             nestedPetal = NestedPetalClass.create(name = "Nester")
         )
         val secondNestedPetal = NestedPetalClass.create(name = "SecondNester")
@@ -133,6 +143,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
     @Test
     fun `store() with new nested petal with updateNestedDependencies=false does not store changes to the newly assigned petal`() {
         val parentPetal = ParentPetalClass.create(
+            name = "Parenter",
             nestedPetal = NestedPetalClass.create(name = "Nester")
         )
         val secondNestedPetal = NestedPetalClass.create(name = "SecondNester")
@@ -144,5 +155,25 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
 
         val loadedSecondNestedPetal = NestedPetalClass.load(secondNestedPetal.id)!!
         assertThat(loadedSecondNestedPetal.name).isEqualTo("SecondNester")
+    }
+
+    @Test
+    fun `loading parents from @ReferencedBy property loads all parents that reference the child on that field`() {
+        val nestedPetal = NestedPetalClass.create(name = "Nester")
+        val createdParents = listOf(
+            ParentPetalClass.create(
+                name = "Parenter1",
+                nestedPetal = nestedPetal),
+            ParentPetalClass.create(
+                name = "Parenter2",
+                nestedPetal = nestedPetal)
+        )
+
+        val loadedParents = nestedPetal.loadParents()
+        val createdNames = createdParents.map { it.name }
+        val loadedNames = loadedParents.map { it.name }
+
+        assertThat(loadedParents.size).isEqualTo(createdParents.size)
+        assertThat(loadedNames).isEqualTo(createdNames)
     }
 }

@@ -62,12 +62,6 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassIn
                 List::class.asClassName()
                     .parameterizedBy(accessorClassInfo.className)
             )
-            .addCode(loadAllMethodBody)
-            .build()
-    }
-
-    private val loadAllMethodBody: CodeBlock by lazy {
-        CodeBlock.builder()
             .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
             .addStatement(
                 "%M.all().map { it.$EXPORT_METHOD_SIMPLE_NAME() }",
@@ -83,12 +77,6 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: AccessorClassIn
                 SizedIterable::class.asClassName()
                     .parameterizedBy(accessorClassInfo.className)
             )
-            .addCode(lazyLoadAllMethodBody)
-            .build()
-    }
-
-    private val lazyLoadAllMethodBody: CodeBlock by lazy {
-        CodeBlock.builder()
             .addStatement(
                 "return %M.all().%M { it.$EXPORT_METHOD_SIMPLE_NAME() }",
                 accessorClassInfo.entityMemberName,

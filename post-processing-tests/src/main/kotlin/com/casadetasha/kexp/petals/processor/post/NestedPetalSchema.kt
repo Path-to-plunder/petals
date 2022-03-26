@@ -13,6 +13,7 @@ interface NestedPetal
 
 @PetalSchema(petal = ParentPetal::class)
 interface ParentPetalSchema {
+    val name: String
     val nestedPetal: NestedPetal
 }
 
