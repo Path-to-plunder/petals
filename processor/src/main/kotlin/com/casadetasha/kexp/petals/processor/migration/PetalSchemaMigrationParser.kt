@@ -47,8 +47,7 @@ internal object PetalSchemaMigrationParser {
             columnMap[it.simpleName] = PetalMigrationColumnParser.parseFromKotlinProperty(it)
         }
 
-        return columnMap.filterValues { it.isLocalColumn }
-            .toMutableMap()
+        return columnMap
     }
 }
 

@@ -29,9 +29,9 @@ internal class ReferencingPetalPropertySpecListBuilder(
 }
 
 internal fun TypeSpec.Builder.addReferencingPetalPropertySpec(accessorClassInfo: AccessorClassInfo) = apply {
-//    addFunctions(
-//        accessorClassInfo.columns
-//            .filter { it.referencedByColumn != null }
-//            .map { ReferencingPetalPropertySpecListBuilder(it).referencedByFunSpec }
-//    )
+    addFunctions(
+        accessorClassInfo.columns
+            .filter { it.isReferencedByColumn }
+            .map { ReferencingPetalPropertySpecListBuilder(it).referencedByFunSpec }
+    )
 }

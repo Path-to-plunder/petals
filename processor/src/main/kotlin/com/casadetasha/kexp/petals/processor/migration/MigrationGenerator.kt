@@ -85,7 +85,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
             else -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
         }
 
-        petalSchemaMigration.columnMigrations.values
+        petalSchemaMigration.localColumnMigrations.values
             .filter { !it.isId }
             .forEach {
                 tableCreationSql += " ${parseNewColumnSql(it)},"
@@ -103,7 +103,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     ): String? {
         val previousMigration = previousMigrationInfo.second
         val currentMigration = currentMigrationInfo.second
-        checkColumnConsistency(previousMigration.columnMigrations, currentMigrationInfo)
+        checkColumnConsistency(previousMigration.localColumnMigrations, currentMigrationInfo)
 
         val alteredColumns: Map<String, AlterColumnMigration> = getAlteredColumns(previousMigration, currentMigration)
         val addedColumns: List<UnprocessedPetalColumn> = getAddedColumns(previousMigration, currentMigration)
@@ -132,7 +132,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
         val currentMigrationVersion = currentMigrationInfo.first
         val currentMigration = currentMigrationInfo.second
 
-        currentMigration.columnMigrations.values
+        currentMigration.localColumnMigrations.values
             .filter { !it.isId }
             .forEach {
                 val previousColumn = previousMigrationColumns[it.name]
@@ -159,9 +159,9 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
         currentMigration: UnprocessedPetalSchemaMigration,
         alteredColumns: Map<String, AlterColumnMigration>
     ): List<UnprocessedPetalColumn> {
-        return previousMigration.columnMigrations.values.filter {
+        return previousMigration.localColumnMigrations.values.filter {
             !alteredColumns.containsKey(it.name)
-                    && !currentMigration.columnMigrations.containsKey(it.name)
+                    && !currentMigration.localColumnMigrations.containsKey(it.name)
                     && !it.isId
         }
     }
@@ -171,8 +171,8 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
         currentMigration: UnprocessedPetalSchemaMigration
     ):
             List<UnprocessedPetalColumn> {
-        return currentMigration.columnMigrations.values.filter {
-            !it.isAlteration && !previousMigration.columnMigrations.containsKey(it.name)
+        return currentMigration.localColumnMigrations.values.filter {
+            !it.isAlteration && !previousMigration.localColumnMigrations.containsKey(it.name)
         }
     }
 
@@ -180,12 +180,12 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
         previousMigration: UnprocessedPetalSchemaMigration,
         currentMigration: UnprocessedPetalSchemaMigration
     ): Map<String, AlterColumnMigration> {
-        return currentMigration.columnMigrations.values.filter { it.isAlteration }
+        return currentMigration.localColumnMigrations.values.filter { it.isAlteration }
             .map {
-                checkNotNull(previousMigration.columnMigrations[it.previousName]) {
+                checkNotNull(previousMigration.localColumnMigrations[it.previousName]) {
                     "Attempting to alter non existent column ${it.previousName} for table ${petalMigration.tableName}"
                 }
-                AlterColumnMigration(previousMigration.columnMigrations[it.previousName]!!, it)
+                AlterColumnMigration(previousMigration.localColumnMigrations[it.previousName]!!, it)
             }
             .associateBy { it.previousColumnState.name }
     }
