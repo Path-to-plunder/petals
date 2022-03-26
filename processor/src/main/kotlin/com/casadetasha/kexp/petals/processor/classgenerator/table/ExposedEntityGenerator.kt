@@ -8,6 +8,7 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.SizedIterable
 import java.util.*
 
 internal class ExposedEntityGenerator(private val className: String,
@@ -24,12 +25,10 @@ internal class ExposedEntityGenerator(private val className: String,
 
     private val entityBuilder: TypeSpec.Builder by lazy {
         TypeSpec.Companion.classBuilder(entityClassName)
-            .primaryConstructor(primaryConstructor
-            )
+            .primaryConstructor(primaryConstructor)
             .superclass(getEntitySuperclass())
             .addSuperclassConstructorParameter("id")
-            .addType(entityType
-            )
+            .addType(entityType)
     }
 
     private val primaryConstructor: FunSpec by lazy {
@@ -54,32 +53,57 @@ internal class ExposedEntityGenerator(private val className: String,
     fun generateClassSpec(): TypeSpec = entityBuilder.build()
 
     fun addEntityColumn(column: UnprocessedPetalColumn) {
-        when (column.isReferenceColumn) {
-            true -> entityBuilder
-                .addProperty(
-                    PropertySpec.builder(column.name, column.entityPropertyClassName)
-                        .mutable()
-                        .delegate(
-                            CodeBlock.of(
-                                "%M %L %L.%L",
-                                column.referencingEntityClassName!!.toMemberName(),
-                                "referencedOn",
-                                tableClassName,
-                                column.name,
-                            )
-                        ).build()
-                )
-
-            false -> entityBuilder
-                    .addProperty(
-                        PropertySpec.builder(column.name, column.entityPropertyClassName)
-                            .mutable()
-                            .delegate(
-                                CodeBlock.of(
-                                    "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)
-                            ).build()
-                    )
+        when  {
+            column.isReferenceColumn -> addReferenceColumn(column)
+            column.isReferencedByColumn -> addReferencedByColumn(column)
+            else -> addValueColumn(column)
         }
+    }
+
+    private fun addReferenceColumn(column: UnprocessedPetalColumn) {
+        entityBuilder
+            .addProperty(
+                PropertySpec.builder(column.name, column.entityPropertyClassName)
+                    .mutable()
+                    .delegate(
+                        CodeBlock.of(
+                            "%M %L %L.%L",
+                            column.referencingEntityClassName!!.toMemberName(),
+                            "referencedOn",
+                            tableClassName,
+                            column.name,
+                        )
+                    ).build()
+            )
+    }
+
+    private fun addReferencedByColumn(column: UnprocessedPetalColumn) {
+        val referencedByColumnInfo = column.referencedByColumn!!.columnReference
+        entityBuilder
+            .addProperty(
+                PropertySpec.builder(column.name, SizedIterable::class.asClassName().parameterizedBy(referencedByColumnInfo.entityClassName))
+                    .delegate(
+                        CodeBlock.of(
+                            "%M %L %M.%L",
+                            referencedByColumnInfo.entityClassName.toMemberName(),
+                            "referrersOn",
+                            referencedByColumnInfo.tableClassName.toMemberName(),
+                            column.referencedByColumn.columnName,
+                        )
+                    ).build()
+            )
+    }
+
+    private fun addValueColumn(column: UnprocessedPetalColumn) {
+        entityBuilder
+            .addProperty(
+                PropertySpec.builder(column.name, column.entityPropertyClassName)
+                    .mutable()
+                    .delegate(
+                        CodeBlock.of(
+                            "%M.%L", MemberName(PACKAGE_NAME, tableClassName), column.name)
+                    ).build()
+            )
     }
 
     private fun getEntityClassName(): ClassName {

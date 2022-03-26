@@ -9,23 +9,23 @@ import kotlin.String
 import org.jetbrains.exposed.sql.transactions.transaction
 
 public class NestedPetalClassExample(
-    dbEntity: NestedPetalClassEntity,
+    dbEntity: ExampleNestedPetalClassEntity,
     id: UUID,
     public var name: String
-): PetalAccessor<NestedPetalClassExample, NestedPetalClassEntity, UUID>(dbEntity, id) {
+): PetalAccessor<NestedPetalClassExample, ExampleNestedPetalClassEntity, UUID>(dbEntity, id) {
 
     override fun storeInsideOfTransaction(updateNestedDependencies: Boolean): NestedPetalClassExample {
         dbEntity.name = this@NestedPetalClassExample.name
         return this
     }
 
-    public companion object: AccessorCompanion<NestedPetalClassExample, NestedPetalClassEntity, UUID> {
+    public companion object: AccessorCompanion<NestedPetalClassExample, ExampleNestedPetalClassEntity, UUID> {
 
         override fun load(id: UUID): NestedPetalClassExample? = transaction {
-            NestedPetalClassEntity.findById(id)
+            ExampleNestedPetalClassEntity.findById(id)
         }?.export()
 
-        override fun NestedPetalClassEntity.export(): NestedPetalClassExample =
+        override fun ExampleNestedPetalClassEntity.export(): NestedPetalClassExample =
             NestedPetalClassExample(
                 dbEntity = this,
                 name = name,

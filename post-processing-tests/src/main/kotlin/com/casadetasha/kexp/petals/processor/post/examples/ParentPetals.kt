@@ -8,13 +8,13 @@ import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.Column
 
 public object ParentPetalClassTable : UUIDTable(name = "parent_petal") {
-    public val nestedPetal: Column<EntityID<UUID>> = reference("nested_petal", NestedPetalClassTable)
+    public val nestedPetal: Column<EntityID<UUID>> = reference("nested_petal", ExampleNestedPetalClassTable)
 }
 
 public class ParentPetalClassEntity(
     id: EntityID<UUID>
 ) : UUIDEntity(id) {
-    public var nestedPetal: NestedPetalClassEntity by NestedPetalClassEntity referencedOn ParentPetalClassTable.nestedPetal
+    public var nestedPetal: ExampleNestedPetalClassEntity by ExampleNestedPetalClassEntity referencedOn ParentPetalClassTable.nestedPetal
 
     public companion object : UUIDEntityClass<ParentPetalClassEntity>(ParentPetalClassTable)
 }

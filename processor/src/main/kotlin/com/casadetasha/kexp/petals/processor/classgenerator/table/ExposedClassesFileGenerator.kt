@@ -43,11 +43,10 @@ internal class ExposedClassesFileGenerator(private val className: String,
     }
 
     private fun addColumnsToGenerators() {
-        schema.localColumnMigrations.values
+        schema.columnsAsList
             .filter { !it.isId }
-            .filterNot { it.isReferencedByColumn }
             .forEach { column ->
-                tableGenerator.addTableColumn(column)
+                if (column.isLocalColumn) { tableGenerator.addTableColumn(column) }
                 entityGenerator.addEntityColumn(column)
             }
     }
