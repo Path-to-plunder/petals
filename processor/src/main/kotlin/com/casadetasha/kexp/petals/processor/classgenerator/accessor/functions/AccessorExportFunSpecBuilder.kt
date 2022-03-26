@@ -44,7 +44,8 @@ internal class AccessorExportFunSpecBuilder(private val accessorClassInfo: Acces
             .filterNot { it.isId }
             .filter { it.isReferenceColumn }
             .forEach {
-                val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
+                val nullabilityState = if (it.isNullable) { "?" } else { "" }
+                val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}]$nullabilityState.value,"
                 codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
             }
         accessorClassInfo.columns

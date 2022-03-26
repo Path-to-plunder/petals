@@ -61,15 +61,16 @@ internal class ExposedEntityGenerator(private val className: String,
     }
 
     private fun addReferenceColumn(column: UnprocessedPetalColumn) {
+        val referencedOnMethod: String = if (column.isNullable) { "optionalReferencedOn" } else { "referencedOn" }
         entityBuilder
             .addProperty(
-                PropertySpec.builder(column.name, column.entityPropertyClassName)
+                PropertySpec.builder(column.name, column.entityPropertyClassName.copy(nullable = column.isNullable))
                     .mutable()
                     .delegate(
                         CodeBlock.of(
-                            "%M %L %L.%L",
+                            "%M·%L·%L.%L",
                             column.referencingEntityClassName!!.toMemberName(),
-                            "referencedOn",
+                            referencedOnMethod,
                             tableClassName,
                             column.name,
                         )
@@ -79,14 +80,15 @@ internal class ExposedEntityGenerator(private val className: String,
 
     private fun addReferencedByColumn(column: UnprocessedPetalColumn) {
         val referencedByColumnInfo = column.referencedByColumn!!.columnReference
+        val referrersOnMethod: String = if (column.isNullable) { "optionalReferrersOn" } else { "referrersOn" }
         entityBuilder
             .addProperty(
                 PropertySpec.builder(column.name, SizedIterable::class.asClassName().parameterizedBy(referencedByColumnInfo.entityClassName))
                     .delegate(
                         CodeBlock.of(
-                            "%M %L %M.%L",
+                            "%M·%L·%M.%L",
                             referencedByColumnInfo.entityClassName.toMemberName(),
-                            "referrersOn",
+                            referrersOnMethod,
                             referencedByColumnInfo.tableClassName.toMemberName(),
                             column.referencedByColumn.columnName,
                         )

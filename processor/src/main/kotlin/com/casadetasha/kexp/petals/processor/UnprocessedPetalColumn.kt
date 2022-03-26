@@ -48,7 +48,8 @@ internal class UnprocessedPetalColumn private constructor(
             true -> Column::class.asClassName()
                 .parameterizedBy(
                     EntityID::class.asClassName()
-                        .parameterizedBy(kotlinType.copy(nullable = isNullable))
+                        .parameterizedBy(kotlinType.copy(nullable = false))
+                        .copy(nullable = isNullable)
                 )
 
             false -> Column::class.asClassName()

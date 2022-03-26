@@ -56,7 +56,8 @@ internal class DataExportFunSpecBuilder(private val accessorClassInfo: AccessorC
         entityColumns
             .filter { it.isReferenceColumn }
             .forEach {
-                val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}].value,"
+                val nullibleState = if (it.isNullable) { "?" } else { "" }
+                val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}]$nullibleState.value,"
                 codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
             }
 

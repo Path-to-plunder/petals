@@ -81,11 +81,13 @@ internal class ExposedTableGenerator(private val className: String,
     private fun getReferenceColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
         val builder = CodeBlock.builder()
             .add(
-                "%M(%S, %M)",
+                "%M(%S,·%M)",
                 getReferenceColumnCreationMemberName(),
                 column.name,
                 column.referencingTableClassName!!.toMemberName(),
-            )
+            ).apply {
+                if (column.isNullable) { add(".nullable()") }
+            }
 
         return builder.build()
     }

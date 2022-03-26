@@ -14,7 +14,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class AccessorNestedPetalTest : ContainerizedTestBase() {
+class AccessorOptionalNestedPetalTest : ContainerizedTestBase() {
 
     private val tableNames: Set<String> by lazy {
         setOf(
@@ -47,7 +47,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
         ).store().id
 
         val parentPetal = ParentPetalClass.load(parentPetalId)!!
-        assertThat(parentPetal.nestedPetal.name).isEqualTo("Nester")
+        assertThat(parentPetal.nestedPetal!!.name).isEqualTo("Nester")
     }
 
     @Test
@@ -116,7 +116,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
             nestedPetal = nestedPetal)
 
         parentPetal.apply {
-            this.nestedPetal.name = "Updated name"
+            this.nestedPetal!!.name = "Updated name"
         }.store(updateNestedDependencies = true)
 
         val loadedNestedPetal = NestedPetalClass.load(nestedPetal.id)!!

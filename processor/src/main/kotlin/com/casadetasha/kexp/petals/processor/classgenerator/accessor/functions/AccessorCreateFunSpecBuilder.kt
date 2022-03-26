@@ -62,8 +62,9 @@ private class AssignAccessorValuesCodeBlockBuilder(accessorClassInfo: AccessorCl
 
         referenceColumns
             .forEach { column ->
-            builder.addStatement("this.%L = %L", column.name, "${column.name}.dbEntity")
-        }
+                val name = column.name + if (column.isNullable) { "?" } else { "" }
+                builder.addStatement("this.%L = %L", column.name, "$name.dbEntity")
+            }
 
         return@lazy builder.build()
     }

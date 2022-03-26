@@ -4,18 +4,18 @@ import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class OptionalNestedEntityManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
-    (private val loadedPetalId: ID?, private val loadClass: () -> ACCESSOR) {
+class OptionalNestedPetalManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
+    (private val loadedPetalId: ID?, private val loadEntityAccessor: () -> ACCESSOR?) {
 
     private var _nestedPetalId: ID? = loadedPetalId
-    public var nestedPetalId: ID?
+    var nestedPetalId: ID?
         @Synchronized get() = _nestedPetalId
         @Synchronized private set(value) { _nestedPetalId = value }
 
     private var _nestedPetalClass: ACCESSOR? = null
-    public var nestedPetal: ACCESSOR?
+    var nestedPetal: ACCESSOR?
         @Synchronized get() {
-            _nestedPetalClass = _nestedPetalClass ?: loadClass()
+            _nestedPetalClass = _nestedPetalClass ?: loadEntityAccessor()
             return _nestedPetalClass!!
         }
         @Synchronized set(value) {
@@ -23,8 +23,10 @@ class OptionalNestedEntityManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY
             _nestedPetalClass = value
         }
 
-    fun hasUpdated(): Boolean {
-        return loadedPetalId != nestedPetalId
+    val hasUpdated: Boolean get() { return loadedPetalId != nestedPetalId }
+
+    fun eagerLoadAccessor() {
+        _nestedPetalClass = loadEntityAccessor()
     }
 }
 
@@ -32,12 +34,12 @@ class NestedPetalManager<PETAL_ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: E
     (private val loadedPetalId: ID, private val loadEntityAccessor: () -> PETAL_ACCESSOR) {
 
     private var _nestedPetalId: ID = loadedPetalId
-    public var nestedPetalId: ID
+    var nestedPetalId: ID
         @Synchronized get() = _nestedPetalId
         @Synchronized private set(value) { _nestedPetalId = value }
 
     private var _nestedPetalClass: PETAL_ACCESSOR? = null
-    public var nestedPetal: PETAL_ACCESSOR
+    var nestedPetal: PETAL_ACCESSOR
         @Synchronized get() {
             _nestedPetalClass = _nestedPetalClass ?: transaction { loadEntityAccessor() }
             return _nestedPetalClass!!

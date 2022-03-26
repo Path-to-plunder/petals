@@ -66,7 +66,8 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
             .apply {
                 referenceColumns.forEach { column ->
                     val name = column.name
-                    addStatement("if (${column.nestedPetalManagerName}.hasUpdated) { $name = this@${classSimpleName}.${name}.dbEntity }")
+                    val entityName = "${classSimpleName}.${name}" + if (column.isNullable) { "?" } else { "" }
+                    addStatement("if (${column.nestedPetalManagerName}.hasUpdated) { $name = this@${entityName}.dbEntity }")
                 }
             }
             .unindent()
@@ -81,7 +82,8 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: Access
                 accessorClassInfo.columns
                     .filter { it.isReferenceColumn }
                     .forEach {
-                        addStatement("${it.name}.store(performInsideStandaloneTransaction = false)")
+                        val name = it.name + if (it.isNullable) { "?" } else { "" }
+                        addStatement("${name}.store(performInsideStandaloneTransaction = false)")
                     }
             }
             .build()
