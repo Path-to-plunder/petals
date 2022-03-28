@@ -18,6 +18,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -81,30 +82,32 @@ class DataPetalTest: ContainerizedTestBase() {
     }
 
     @Test
-    fun `entity parses to json`() {
-        val baseUuid = UUID.randomUUID()
-        val expectedJsonString = """
-            {
-               "count":3,
-               "sporeCount":4,
-               "color":"Black",
-               "secondColor":"Red",
-               "uuid":44444-4444,
-            }
-        """.trimIndent()
+    fun `data petal parses to json`() {
+        val expectedJson = Json.decodeFromString<JsonElement>(
+            """
+               {
+                   "id":"737856fa-c99a-446d-b4bc-5c3383e6e00d",
+                   "count":3,
+                   "sporeCount":4,
+                   "color":"Black",
+                   "secondColor":"Red",
+                   "uuid":"737856fa-c99a-446d-b4bc-5c3383e6e00d"
+               }
+           """.trimIndent()
+        ).jsonObject
 
-        val petalData = transaction {
-            DataPetalEntity.new {
-                count = 3
-                sporeCount = 4
-                color = "Black"
-                secondColor = "Red"
-                uuid = baseUuid
-            }.asData()
-        }
 
-        val expectedJson = Json.decodeFromString<JsonElement>(expectedJsonString)
-        val jsonValue = Json.encodeToJsonElement(petalData)
+        val jsonValue = Json.encodeToJsonElement(
+            DataPetal.create(
+                id = UUID.fromString("737856fa-c99a-446d-b4bc-5c3383e6e00d"),
+                count = 3,
+                sporeCount = 4,
+                color = "Black",
+                secondColor = "Red",
+                uuid = UUID.fromString("737856fa-c99a-446d-b4bc-5c3383e6e00d")
+            ).asData()
+        ).jsonObject
+
         assertThat(jsonValue).isEqualTo(expectedJson)
     }
 }
