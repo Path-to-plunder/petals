@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.post.tests.accessor
+package com.casadetasha.kexp.petals.processor.post.tests.petal
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo

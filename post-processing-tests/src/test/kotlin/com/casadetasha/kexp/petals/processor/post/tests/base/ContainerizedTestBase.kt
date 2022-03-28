@@ -25,10 +25,10 @@ open class ContainerizedTestBase {
 
             override fun before() {
                 dbContainer.start()
-                runMigrations()
+                connectDb()
             }
 
-            private fun runMigrations() {
+            private fun connectDb() {
                 datasource = HikariDataSource(
                     HikariConfig().apply {
                         jdbcUrl = dbContainer.jdbcUrl;

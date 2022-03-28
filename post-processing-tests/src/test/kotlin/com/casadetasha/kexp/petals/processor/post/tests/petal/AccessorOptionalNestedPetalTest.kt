@@ -1,16 +1,17 @@
-package com.casadetasha.kexp.petals.processor.post.tests.accessor
+package com.casadetasha.kexp.petals.processor.post.tests.petal
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isLessThan
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
-import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.OptionalNestedPetalClass
 import com.casadetasha.kexp.petals.accessor.OptionalParentPetalClass
+import com.casadetasha.kexp.petals.annotations.BasePetalMigration
 import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
 import com.casadetasha.kexp.petals.processor.post.countMilliseconds
+import com.casadetasha.kexp.petals.processor.post.ktx.runForEach
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -18,16 +19,20 @@ import kotlin.test.Test
 
 class AccessorOptionalNestedPetalTest : ContainerizedTestBase() {
 
-    private val tableNames: Set<String> by lazy {
-        setOf(
-            `TableMigrations$parent_petal`().tableName,
-            `TableMigrations$nested_petal`().tableName
+    private val tableMigrations: Set<BasePetalMigration> = setOf(
+            `TableMigrations$parent_petal`(),
+            `TableMigrations$nested_petal`(),
         )
+
+    private val tableNames: Set<String> by lazy {
+        tableMigrations
+            .map { it.tableName }
+            .toSet()
     }
 
     @BeforeTest
     fun setup() {
-        PetalTables.setupAndMigrateTables(datasource)
+        tableMigrations.runForEach { migrateToLatest(datasource) }
     }
 
     @AfterTest
@@ -85,6 +90,22 @@ class AccessorOptionalNestedPetalTest : ContainerizedTestBase() {
         val loadedParentPetal = OptionalParentPetalClass.load(parentPetal.id)!!
         assertThat(loadedParentPetal.nestedPetal).isNull()
         assertThat(loadedParentPetal.nestedPetalId).isNull()
+    }
+
+    @Test
+    fun `store() with null dependency does not delete the referenced petal`() {
+        val nestedPetal = OptionalNestedPetalClass.create(name = "Nester")
+        val parentPetal = OptionalParentPetalClass.create(
+            name = "Parenter",
+            nestedPetal = nestedPetal
+        )
+
+        parentPetal.apply {
+            this.nestedPetal = null
+        }.store(updateNestedDependencies = false)
+
+        val loadedNestedPetal = OptionalNestedPetalClass.load(nestedPetal.id)
+        assertThat(loadedNestedPetal).isNotNull()
     }
 
     // This is not good behavior. If this test fails because we have fixed this, please delete this test and update

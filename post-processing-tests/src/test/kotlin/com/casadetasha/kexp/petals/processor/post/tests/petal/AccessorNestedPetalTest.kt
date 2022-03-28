@@ -1,14 +1,15 @@
-package com.casadetasha.kexp.petals.processor.post.tests.accessor
+package com.casadetasha.kexp.petals.processor.post.tests.petal
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isLessThan
-import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.NestedPetalClass
 import com.casadetasha.kexp.petals.accessor.ParentPetalClass
+import com.casadetasha.kexp.petals.annotations.BasePetalMigration
 import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
 import com.casadetasha.kexp.petals.processor.post.countMilliseconds
+import com.casadetasha.kexp.petals.processor.post.ktx.runForEach
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -16,16 +17,20 @@ import kotlin.test.Test
 
 class AccessorNestedPetalTest : ContainerizedTestBase() {
 
+    private val tableMigrations: Set<BasePetalMigration> = setOf(
+        `TableMigrations$parent_petal`(),
+        `TableMigrations$nested_petal`()
+    )
+
     private val tableNames: Set<String> by lazy {
-        setOf(
-            `TableMigrations$parent_petal`().tableName,
-            `TableMigrations$nested_petal`().tableName
-        )
+        tableMigrations
+            .map { it.tableName }
+            .toSet()
     }
 
     @BeforeTest
     fun setup() {
-        PetalTables.setupAndMigrateTables(datasource)
+        tableMigrations.runForEach { migrateToLatest(datasource) }
     }
 
     @AfterTest

@@ -1,10 +1,12 @@
-package com.casadetasha.kexp.petals.processor.post.tests
+package com.casadetasha.kexp.petals.processor.post.tests.exposed
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotEqualTo
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.UuidIdPetalEntity
+import com.casadetasha.kexp.petals.annotations.BasePetalMigration
+import com.casadetasha.kexp.petals.migration.`TableMigrations$default_value_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$uuid_id_petal`
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -15,11 +17,15 @@ import kotlin.test.Test
 
 class UuidPetalSchemaTest: ContainerizedTestBase() {
 
-    private val tableName: String by lazy { `TableMigrations$uuid_id_petal`().tableName }
+    private val tableMigration: BasePetalMigration = `TableMigrations$uuid_id_petal`()
+
+    private val tableName: String by lazy {
+        tableMigration.tableName
+    }
 
     @BeforeTest
     fun setup() {
-        PetalTables.setupAndMigrateTables(datasource)
+        tableMigration.migrateToLatest(datasource)
     }
 
     @AfterTest
