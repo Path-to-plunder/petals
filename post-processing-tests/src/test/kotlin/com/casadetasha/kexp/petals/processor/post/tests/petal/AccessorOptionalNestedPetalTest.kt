@@ -139,7 +139,7 @@ class AccessorOptionalNestedPetalTest : ContainerizedTestBase() {
         assertThat(loadedParentPetal.nestedPetalId).isNull()
     }
 
-    // Below this line should be identical to tests for AccessorNestedPetalTest tests
+    // Below this line should be identical to tests for AccessorNestedPetalTest tests with optional versions
 
     @Test
     fun `load() loads nested dependencies`() {
