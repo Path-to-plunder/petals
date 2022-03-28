@@ -9,6 +9,8 @@ import com.casadetasha.kexp.petals.accessor.OptionalNestedPetalClass
 import com.casadetasha.kexp.petals.accessor.OptionalParentPetalClass
 import com.casadetasha.kexp.petals.annotations.BasePetalMigration
 import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
+import com.casadetasha.kexp.petals.migration.`TableMigrations$optional_nested_petal`
+import com.casadetasha.kexp.petals.migration.`TableMigrations$optional_parent_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
 import com.casadetasha.kexp.petals.processor.post.countMilliseconds
 import com.casadetasha.kexp.petals.processor.post.ktx.runForEach
@@ -20,8 +22,8 @@ import kotlin.test.Test
 class AccessorOptionalNestedPetalTest : ContainerizedTestBase() {
 
     private val tableMigrations: Set<BasePetalMigration> = setOf(
-            `TableMigrations$parent_petal`(),
-            `TableMigrations$nested_petal`(),
+            `TableMigrations$optional_parent_petal`(),
+            `TableMigrations$optional_nested_petal`(),
         )
 
     private val tableNames: Set<String> by lazy {

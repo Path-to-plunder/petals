@@ -3,9 +3,7 @@ package com.casadetasha.kexp.petals.processor.post.tests.exposed
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.casadetasha.kexp.petals.LongIdPetalEntity
-import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.annotations.BasePetalMigration
-import com.casadetasha.kexp.petals.migration.`TableMigrations$default_value_petal`
 import com.casadetasha.kexp.petals.migration.`TableMigrations$long_id_petal`
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -13,7 +11,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class LongIdPetalSchemaTest: ContainerizedTestBase() {
+class LongIdPetalEntityTest: ContainerizedTestBase() {
 
     private val tableMigration: BasePetalMigration = `TableMigrations$long_id_petal`()
 
