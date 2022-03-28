@@ -4,9 +4,6 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.*
-import com.casadetasha.kexp.petals.processor.PetalClasses.PETAL_CLASSES
-import com.casadetasha.kexp.petals.processor.PetalClasses.SCHEMA_CLASSES
-import com.casadetasha.kexp.petals.processor.PetalClasses.SUPPORTED_PROPERTY_ANNOTATIONS
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.classgenerator.data.DataClassFileGenerator
@@ -26,11 +23,13 @@ import javax.lang.model.type.MirroredTypeException
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 class PetalProcessor : AbstractProcessor() {
 
+    private val petalClasses = PetalClasses()
+
     override fun getSupportedAnnotationTypes() : MutableSet<String> {
         val supportedAnnotationTypes = setOf(
             Petal::class.java.canonicalName,
             PetalSchema::class.java.canonicalName
-        ) + SUPPORTED_PROPERTY_ANNOTATIONS.map { it.java.canonicalName }
+        ) + petalClasses.SUPPORTED_PROPERTY_ANNOTATIONS.map { it.java.canonicalName }
 
         return supportedAnnotationTypes.toMutableSet()
     }
@@ -49,11 +48,11 @@ class PetalProcessor : AbstractProcessor() {
     private fun generateClasses() {
         val tableMap = UnprocessedPetalMigrationMap()
 
-        SCHEMA_CLASSES.forEach {
+        petalClasses.SCHEMA_CLASSES.forEach {
             tableMap.insertMigrationForPetalSchema(it)
         }
 
-        PetalClasses.RUNTIME_SCHEMAS = tableMap.values
+        petalClasses.RUNTIME_SCHEMAS = tableMap.values
             .map { it.schemaMigrations.values.last() }
             .associateBy { it.petalClass }
 
@@ -61,7 +60,7 @@ class PetalProcessor : AbstractProcessor() {
             MigrationGenerator(migration).createMigrationForTable()
             migration.getCurrentSchema()?.let {
                 val accessorClassInfo = migration.getAccessorClassInfo()
-                ExposedClassesFileGenerator(migration.className, migration.tableName, it).generateFile()
+                ExposedClassesFileGenerator(petalClasses, migration.className, migration.tableName, it).generateFile()
                 AccessorClassFileGenerator(accessorClassInfo).generateFile()
                 DataClassFileGenerator(accessorClassInfo).generateFile()
             }
@@ -76,7 +75,7 @@ class PetalProcessor : AbstractProcessor() {
         val petalSchemaAnnotation: PetalSchema = it.getAnnotation(PetalSchema::class)!!
         val petalClassName = petalSchemaAnnotation.petalTypeName
         val petal: KotlinContainer.KotlinClass =
-            checkNotNull(PETAL_CLASSES[petalClassName]) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
+            checkNotNull(petalClasses.PETAL_CLASSES[petalClassName]) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
         val petalAnnotation =
             checkNotNull(petal.getAnnotation(Petal::class)) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
         val tableName = petalAnnotation.tableName
@@ -87,7 +86,7 @@ class PetalProcessor : AbstractProcessor() {
             className = className
         )
 
-        this[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser
+        this[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser(petalClasses)
             .parseFromClass(petalClassName, it, petalAnnotation.primaryKeyType)
     }
 }

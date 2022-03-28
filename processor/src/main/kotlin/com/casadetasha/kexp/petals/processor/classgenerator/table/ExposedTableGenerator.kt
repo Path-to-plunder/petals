@@ -2,6 +2,7 @@ package com.casadetasha.kexp.petals.processor.classgenerator.table
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
+import com.casadetasha.kexp.petals.processor.PetalClasses
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.toMemberName
@@ -11,9 +12,10 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.dao.id.UUIDTable
 
-internal class ExposedTableGenerator(private val className: String,
-                                     private val tableName: String,
-                                     private val schema: UnprocessedPetalSchemaMigration
+internal class ExposedTableGenerator(
+    private val className: String,
+    private val tableName: String,
+    private val schema: UnprocessedPetalSchemaMigration,
 ) {
 
     private val tableClassName: String by lazy { "${className}Table" }

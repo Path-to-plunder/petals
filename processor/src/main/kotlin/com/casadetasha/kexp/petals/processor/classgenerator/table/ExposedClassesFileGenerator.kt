@@ -1,13 +1,16 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.table
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
+import com.casadetasha.kexp.petals.processor.PetalClasses
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.squareup.kotlinpoet.*
 import java.io.File
 
-internal class ExposedClassesFileGenerator(private val className: String,
-                                  private val tableName: String,
-                                  private val schema: UnprocessedPetalSchemaMigration
+internal class ExposedClassesFileGenerator(
+    private val petalClasses: PetalClasses,
+    private val className: String,
+    private val tableName: String,
+    private val schema: UnprocessedPetalSchemaMigration
 ) {
 
     companion object {
@@ -25,6 +28,7 @@ internal class ExposedClassesFileGenerator(private val className: String,
 
     private val entityGenerator: ExposedEntityGenerator by lazy {
         ExposedEntityGenerator(
+            petalClasses = petalClasses,
             className = className,
             schema = schema
         )

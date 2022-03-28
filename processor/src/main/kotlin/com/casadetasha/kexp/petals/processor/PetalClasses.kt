@@ -6,7 +6,7 @@ import com.casadetasha.kexp.petals.annotations.*
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 
-internal object PetalClasses {
+internal class PetalClasses {
 
     val PETAL_CLASSES: Map<ClassName, KotlinContainer.KotlinClass> by lazy {
         AnnotationParser.getClassesAnnotatedWith(

@@ -13,6 +13,51 @@ import java.lang.reflect.Method
 
 class IdColumnSqlTest {
 
+    @Test
+    fun `Creates table with int id`() {
+        val petalSchemaMigration = generateSchemaMigrations(intIdPetalSchema, "int_id_petal")
+        assertThat(petalSchemaMigration[1]!!.migrationSql)
+            .isEqualTo("CREATE TABLE \"int_id_petal\" (" +
+                    " id SERIAL PRIMARY KEY," +
+                    " \"column\" TEXT NOT NULL" +
+                    " )"
+            )
+    }
+    @Test
+    fun `Creates table with long id`() {
+        val petalSchemaMigration = generateSchemaMigrations(longIdPetalSchema, "long_id_petal")
+        assertThat(petalSchemaMigration[1]!!.migrationSql)
+            .isEqualTo("CREATE TABLE \"long_id_petal\" (" +
+                    " id BIGSERIAL PRIMARY KEY," +
+                    " \"column\" TEXT NOT NULL" +
+                    " )"
+            )
+    }
+
+
+    @Test
+    fun `Creates table with uuid id`() {
+        val petalSchemaMigration = generateSchemaMigrations(uuidIdPetalSchema, "uuid_id_petal")
+        assertThat(petalSchemaMigration[1]!!.migrationSql)
+            .isEqualTo("CREATE TABLE \"uuid_id_petal\" (" +
+                    " id uuid PRIMARY KEY," +
+                    " \"column\" TEXT NOT NULL" +
+                    " )"
+            )
+    }
+
+    private fun generateSchemaMigrations(sourceFile: SourceFile, tableName: String): Map<Int, PetalSchemaMigration> {
+        val compilationResult = compileSources(sourceFile)
+        val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$$tableName")
+
+        val migrationClassInstance = generatedMigrationClass.getDeclaredConstructor().newInstance()
+        val petalJsonGetter: Method = migrationClassInstance.javaClass.getDeclaredMethod("getPetalJson")
+        val petalJson: String = petalJsonGetter.invoke(migrationClassInstance) as String
+        val petalMigration: PetalMigration = Json.decodeFromString(petalJson)
+
+        return petalMigration.schemaMigrations
+    }
+
     companion object {
 
         private val intIdPetalSchema = SourceFile.kotlin(
@@ -68,50 +113,5 @@ class IdColumnSqlTest {
             }
             """.trimIndent()
         )
-    }
-
-    @Test
-    fun `Creates table with int id`() {
-        val petalSchemaMigration = generateSchemaMigrations(intIdPetalSchema, "int_id_petal")
-        assertThat(petalSchemaMigration[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE \"int_id_petal\" (" +
-                    " id SERIAL PRIMARY KEY," +
-                    " \"column\" TEXT NOT NULL" +
-                    " )"
-            )
-    }
-    @Test
-    fun `Creates table with long id`() {
-        val petalSchemaMigration = generateSchemaMigrations(longIdPetalSchema, "long_id_petal")
-        assertThat(petalSchemaMigration[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE \"long_id_petal\" (" +
-                    " id BIGSERIAL PRIMARY KEY," +
-                    " \"column\" TEXT NOT NULL" +
-                    " )"
-            )
-    }
-
-
-    @Test
-    fun `Creates table with uuid id`() {
-        val petalSchemaMigration = generateSchemaMigrations(uuidIdPetalSchema, "uuid_id_petal")
-        assertThat(petalSchemaMigration[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE \"uuid_id_petal\" (" +
-                    " id uuid PRIMARY KEY," +
-                    " \"column\" TEXT NOT NULL" +
-                    " )"
-            )
-    }
-
-    private fun generateSchemaMigrations(sourceFile: SourceFile, tableName: String): Map<Int, PetalSchemaMigration> {
-        val compilationResult = compileSources(sourceFile)
-        val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$$tableName")
-
-        val migrationClassInstance = generatedMigrationClass.getDeclaredConstructor().newInstance()
-        val petalJsonGetter: Method = migrationClassInstance.javaClass.getDeclaredMethod("getPetalJson")
-        val petalJson: String = petalJsonGetter.invoke(migrationClassInstance) as String
-        val petalMigration: PetalMigration = Json.decodeFromString(petalJson)
-
-        return petalMigration.schemaMigrations
     }
 }

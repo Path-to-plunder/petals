@@ -5,7 +5,7 @@ import com.casadetasha.kexp.annotationparser.KotlinContainer.KotlinClass
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
 import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.DefaultPetalValue
-import com.casadetasha.kexp.petals.processor.PetalClasses.PETAL_CLASSES
+import com.casadetasha.kexp.petals.processor.PetalClasses
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
@@ -17,7 +17,7 @@ import java.util.*
 import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
-internal object PetalSchemaMigrationParser {
+internal class PetalSchemaMigrationParser(private val petalClasses: PetalClasses) {
     fun parseFromClass(petalClass: TypeName, kotlinClass: KotlinClass, primaryKeyType: PetalPrimaryKey): UnprocessedPetalSchemaMigration {
         kotlinClass.getAnnotation(PetalSchema::class)
             ?: printThenThrowError(
@@ -37,7 +37,7 @@ internal object PetalSchemaMigrationParser {
         primaryKeyType: PetalPrimaryKey
     ): Map<String, UnprocessedPetalColumn> {
         val columns = parsePetalPropertyColumns(kotlinClass.kotlinProperties)
-        columns["id"] = PetalMigrationColumnParser.parseIdColumn(primaryKeyType)
+        columns["id"] = PetalMigrationColumnParser(petalClasses).parseIdColumn(primaryKeyType)
 
         return columns
     }
@@ -45,14 +45,14 @@ internal object PetalSchemaMigrationParser {
     private fun parsePetalPropertyColumns(kotlinProperties: List<KotlinProperty>): MutableMap<String, UnprocessedPetalColumn> {
         val columnMap = HashMap<String, UnprocessedPetalColumn>()
         kotlinProperties.forEach {
-            columnMap[it.simpleName] = PetalMigrationColumnParser.parseFromKotlinProperty(it)
+            columnMap[it.simpleName] = PetalMigrationColumnParser(petalClasses).parseFromKotlinProperty(it)
         }
 
         return columnMap
     }
 }
 
-internal object PetalMigrationColumnParser {
+internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses) {
     private val SUPPORTED_TYPES = listOf<KClass<*>>(
         String::class,
         Int::class,
@@ -115,7 +115,7 @@ internal object PetalMigrationColumnParser {
     }
 
     private fun getPetalReferenceIdTypeName(typeName: TypeName): String {
-        return PETAL_CLASSES[typeName.copy(nullable = false)]?.getAnnotation(Petal::class)?.primaryKeyType?.dataType
+        return petalClasses.PETAL_CLASSES[typeName.copy(nullable = false)]?.getAnnotation(Petal::class)?.primaryKeyType?.dataType
             ?: printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Type $typeName was left out of new column sql generation block."
             )
@@ -124,7 +124,7 @@ internal object PetalMigrationColumnParser {
     private fun getReferencingClassName(kotlinProperty: KotlinProperty): ColumnReference? {
         return when (SUPPORTED_TYPES.contains(kotlinProperty.typeName.copy(nullable = false))) {
             true -> null
-            false -> PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
+            false -> petalClasses.PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
                 "Column type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}"
             )
         }?.asReference()
@@ -134,7 +134,7 @@ internal object PetalMigrationColumnParser {
         val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(ReferencedBy::class.java)
         return when(alterColumnAnnotation) {
             null -> null
-            else -> PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
+            else -> petalClasses.PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
                 "Column type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}"
             )
         }?.asReferencedBy(alterColumnAnnotation!!.referencePropertyName)
@@ -153,7 +153,7 @@ internal object PetalMigrationColumnParser {
     private fun checkTypeValidity(typeName: TypeName) {
         val deNulledTypeName = typeName.copy(nullable = false)
         val isBasicPetalType = SUPPORTED_TYPES.contains(deNulledTypeName)
-        val isPetalReference = PETAL_CLASSES[deNulledTypeName] != null
+        val isPetalReference = petalClasses.PETAL_CLASSES[deNulledTypeName] != null
         if (!isBasicPetalType && !isPetalReference) {
             printThenThrowError(
                 "$deNulledTypeName is not a valid column type. Only petal reference and the following types" +
