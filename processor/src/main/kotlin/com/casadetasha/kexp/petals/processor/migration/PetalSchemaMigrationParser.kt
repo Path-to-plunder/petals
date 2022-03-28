@@ -18,7 +18,7 @@ import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
 internal object PetalSchemaMigrationParser {
-    fun parseFromClass(kotlinClass: KotlinClass, primaryKeyType: PetalPrimaryKey): UnprocessedPetalSchemaMigration {
+    fun parseFromClass(petalClass: TypeName, kotlinClass: KotlinClass, primaryKeyType: PetalPrimaryKey): UnprocessedPetalSchemaMigration {
         kotlinClass.getAnnotation(PetalSchema::class)
             ?: printThenThrowError(
                 "INTERNAL LIBRARY ERROR: Cannot parse petal migration from class ${kotlinClass.className}:" +
@@ -26,8 +26,9 @@ internal object PetalSchemaMigrationParser {
             )
 
         return UnprocessedPetalSchemaMigration(
+            petalClass = petalClass,
             primaryKeyType = primaryKeyType,
-            columnMigrations = parsePetalColumns(kotlinClass, primaryKeyType)
+            columnMigrationMap = parsePetalColumns(kotlinClass, primaryKeyType)
         )
     }
 
@@ -80,9 +81,12 @@ internal object PetalMigrationColumnParser {
     fun parseFromKotlinProperty(kotlinProperty: KotlinProperty): UnprocessedPetalColumn {
         val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
         val name = kotlinProperty.simpleName
-        val defaultPetalValue = DefaultPetalValue(kotlinProperty)
         val reference = getReferencingClassName(kotlinProperty)
         val referencedBy: ReferencedByColumn? = getReferencedByColumn(kotlinProperty)
+        val defaultPetalValue = when (reference) {
+            null -> DefaultPetalValue.parseDefaultValueForValueColumn(kotlinProperty)
+            else -> DefaultPetalValue.parseDefaultValueForReferenceColumn(kotlinProperty)
+        }
 
         return UnprocessedPetalColumn(
             columnReference = reference,
@@ -172,6 +176,7 @@ private fun KotlinClass.asReference(): ColumnReference {
     val accessorName = getAnnotation(Petal::class)!!.className
 
     return ColumnReference(
+        kotlinTypeName = this.className,
         accessorClassName = ClassName(AccessorClassFileGenerator.PACKAGE_NAME, accessorName),
         tableClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Table"),
         entityClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Entity"),

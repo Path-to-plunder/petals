@@ -20,5 +20,5 @@ interface OptionalParentPetalSchema {
 @PetalSchema(petal = OptionalNestedPetal::class)
 interface OptionalNestedPetalSchema {
     val name: String
-    @ReferencedBy("nestedPetal") val parents: OptionalParentPetal?
+    @ReferencedBy("nestedPetal") val parents: OptionalParentPetal
 }

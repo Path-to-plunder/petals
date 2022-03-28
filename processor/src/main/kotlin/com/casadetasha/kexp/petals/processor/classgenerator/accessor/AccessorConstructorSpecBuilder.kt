@@ -30,9 +30,9 @@ internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: Acc
             false -> column.kotlinType.copy(nullable = column.isNullable)
         }
 
-        val name = when (column.columnReferenceInfo) {
-            null -> column.name
-            else -> "${column.name}Id"
+        val name = when (column.isReferenceColumn) {
+            true -> "${column.name}Id"
+            false -> column.name
         }
 
         val builder = ParameterSpec.builder(name, propertyTypeName)

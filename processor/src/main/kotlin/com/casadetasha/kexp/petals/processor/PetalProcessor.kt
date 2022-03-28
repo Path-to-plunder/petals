@@ -53,6 +53,10 @@ class PetalProcessor : AbstractProcessor() {
             tableMap.insertMigrationForPetalSchema(it)
         }
 
+        PetalClasses.RUNTIME_SCHEMAS = tableMap.values
+            .map { it.schemaMigrations.values.last() }
+            .associateBy { it.petalClass }
+
         tableMap.values.forEach { migration ->
             MigrationGenerator(migration).createMigrationForTable()
             migration.getCurrentSchema()?.let {
@@ -84,7 +88,7 @@ class PetalProcessor : AbstractProcessor() {
         )
 
         this[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser
-            .parseFromClass(it, petalAnnotation.primaryKeyType)
+            .parseFromClass(petalClassName, it, petalAnnotation.primaryKeyType)
     }
 }
 

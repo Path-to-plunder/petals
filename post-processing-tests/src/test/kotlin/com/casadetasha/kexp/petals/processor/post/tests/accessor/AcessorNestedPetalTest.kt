@@ -79,13 +79,13 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
             )
         ).store().id
 
+        val eagerLoadedParentPetal = ParentPetalClass.load(parentPetalId, eagerLoad = true)!!
         val eagerLoadTime = countMilliseconds {
-            val eagerLoadedParentPetal = ParentPetalClass.load(parentPetalId, eagerLoad = true)!!
             eagerLoadedParentPetal.nestedPetal
         }
 
+        val lazyLoadedParentPetal = ParentPetalClass.load(parentPetalId, eagerLoad = false)!!
         val lazyLoadTime = countMilliseconds {
-            val lazyLoadedParentPetal = ParentPetalClass.load(parentPetalId, eagerLoad = false)!!
             lazyLoadedParentPetal.nestedPetal
         }
 

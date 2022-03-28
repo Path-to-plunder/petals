@@ -19,99 +19,6 @@ import java.lang.reflect.Method
 
 class ColumnMigrationSqlTest {
 
-    companion object {
-
-        private val createAndRenameTableSource = SourceFile.kotlin(
-            "PetalSchema.kt", """
-            package com.casadetasha.kexp.petals.processor.post
-            
-            import com.casadetasha.kexp.petals.annotations.AlterColumn
-            import com.casadetasha.kexp.petals.annotations.Petal
-            import com.casadetasha.kexp.petals.annotations.PetalSchema
-            import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-            import com.casadetasha.kexp.petals.annotations.VarChar
-            import java.util.*
-            
-            @Petal(tableName = "basic_petal", className = "BasicPetal", primaryKeyType = PetalPrimaryKey.INT)
-            interface BasicPetal
-            
-            @PetalSchema(petal = BasicPetal::class, version = 1)
-            interface BasicPetalSchemaV1 {
-                val checkingInt: Int
-                val checkingLong: Long
-                val checkingString: String
-                @VarChar(charLimit = 10) val checkingVarChar: String
-                val checkingUUID: UUID
-            }
-            
-            @PetalSchema(petal = BasicPetal::class, version = 2)
-            interface BasicPetalSchemaV2 {
-                val uuid: UUID
-                val color: String
-                @VarChar(charLimit = 10) val secondColor: String
-                val count: Int
-                val sporeCount: Long
-            }
-            
-            @PetalSchema(petal = BasicPetal::class, version = 3)
-            abstract class BasicPetalSchemaV3 {
-                @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
-                @AlterColumn(renameFrom = "color") abstract val renamed_color: String
-                @AlterColumn(renameFrom = "secondColor") @VarChar(charLimit = 10) abstract val renamed_secondColor: String
-                @AlterColumn(renameFrom = "count") abstract val renamed_count: Int
-                @AlterColumn(renameFrom = "sporeCount") abstract val renamed_sporeCount: Long
-            }
-            """.trimIndent()
-        )
-
-        private val unAnnotatedAlteredColumnSource = SourceFile.kotlin(
-            "PetalSchema.kt", """
-            package com.casadetasha
-            
-            import com.casadetasha.kexp.petals.annotations.AlterColumn
-            import com.casadetasha.kexp.petals.annotations.Petal
-            import com.casadetasha.kexp.petals.annotations.PetalSchema
-            import java.util.*
-            
-            @Petal(tableName = "basic_petal", className = "BasicPetal")
-            interface BasicPetal
-            
-            @PetalSchema(petal = BasicPetal::class, version = 1)
-            interface BasicPetalSchemaV1 {
-                val uuid: UUID
-            }
-            
-            @PetalSchema(petal = BasicPetal::class, version = 2)
-            interface BasicPetalSchemaV2 {
-                val uuid: UUID?
-            }
-        """.trimIndent())
-
-        private lateinit var petalSchemaMigrations: Map<Int, PetalSchemaMigration>
-
-        @ClassRule
-        @JvmField
-        val resource: ExternalResource = object : ExternalResource() {
-
-            override fun before() {
-                val compilationResult = compileSources(createAndRenameTableSource)
-                check(compilationResult.exitCode == KotlinCompilation.ExitCode.OK)
-                parsePetalMigrations(compilationResult)
-            }
-
-            private fun parsePetalMigrations(compilationResult: KotlinCompilation.Result) {
-                val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$basic_petal")
-
-                val migrationClassInstance = generatedMigrationClass.getDeclaredConstructor().newInstance()
-                val petalJsonGetter: Method = migrationClassInstance.javaClass.getDeclaredMethod("getPetalJson")
-                val petalJson: String = petalJsonGetter.invoke(migrationClassInstance) as String
-                val petalMigration: PetalMigration = Json.decodeFromString(petalJson)
-
-                petalSchemaMigrations = petalMigration.schemaMigrations
-            }
-        }
-    }
-
     @Test
     fun `Creates table creation migration with all supported types`() {
         assertThat(petalSchemaMigrations[1]!!.migrationSql)
@@ -168,9 +75,72 @@ class ColumnMigrationSqlTest {
         )
     }
 
-    @Test
-    fun `compiling migration with updated column info and no AlterColumn annotation fails`() {
-        val compilationResult = compileSources(unAnnotatedAlteredColumnSource)
-        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
+    companion object {
+
+        private val createAndRenameTableSource = SourceFile.kotlin(
+            "PetalSchema.kt", """
+            package com.casadetasha.kexp.petals.processor.post
+            
+            import com.casadetasha.kexp.petals.annotations.AlterColumn
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
+            import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
+            import com.casadetasha.kexp.petals.annotations.VarChar
+            import java.util.*
+            
+            @Petal(tableName = "basic_petal", className = "BasicPetal", primaryKeyType = PetalPrimaryKey.INT)
+            interface BasicPetal
+            
+            @PetalSchema(petal = BasicPetal::class, version = 1)
+            interface BasicPetalSchemaV1 {
+                val checkingInt: Int
+                val checkingLong: Long
+                val checkingString: String
+                @VarChar(charLimit = 10) val checkingVarChar: String
+                val checkingUUID: UUID
+            }
+            
+            @PetalSchema(petal = BasicPetal::class, version = 2)
+            interface BasicPetalSchemaV2 {
+                val uuid: UUID
+                val color: String
+                @VarChar(charLimit = 10) val secondColor: String
+                val count: Int
+                val sporeCount: Long
+            }
+            
+            @PetalSchema(petal = BasicPetal::class, version = 3)
+            abstract class BasicPetalSchemaV3 {
+                @AlterColumn(renameFrom = "uuid") abstract val renamed_uuid: UUID
+                @AlterColumn(renameFrom = "color") abstract val renamed_color: String
+                @AlterColumn(renameFrom = "secondColor") @VarChar(charLimit = 10) abstract val renamed_secondColor: String
+                @AlterColumn(renameFrom = "count") abstract val renamed_count: Int
+                @AlterColumn(renameFrom = "sporeCount") abstract val renamed_sporeCount: Long
+            }
+            """.trimIndent()
+        )
+
+        private lateinit var petalSchemaMigrations: Map<Int, PetalSchemaMigration>
+
+        @ClassRule @JvmField
+        val resource: ExternalResource = object : ExternalResource() {
+
+            override fun before() {
+                val compilationResult = compileSources(createAndRenameTableSource)
+                check(compilationResult.exitCode == KotlinCompilation.ExitCode.OK)
+                parsePetalMigrations(compilationResult)
+            }
+
+            private fun parsePetalMigrations(compilationResult: KotlinCompilation.Result) {
+                val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$basic_petal")
+
+                val migrationClassInstance = generatedMigrationClass.getDeclaredConstructor().newInstance()
+                val petalJsonGetter: Method = migrationClassInstance.javaClass.getDeclaredMethod("getPetalJson")
+                val petalJson: String = petalJsonGetter.invoke(migrationClassInstance) as String
+                val petalMigration: PetalMigration = Json.decodeFromString(petalJson)
+
+                petalSchemaMigrations = petalMigration.schemaMigrations
+            }
+        }
     }
 }

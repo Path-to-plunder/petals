@@ -2,18 +2,20 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
+import com.squareup.kotlinpoet.TypeName
 
 internal class UnprocessedPetalSchemaMigration constructor(
-    columnMigrations: Map<String, UnprocessedPetalColumn>,
+    val columnMigrationMap: Map<String, UnprocessedPetalColumn>,
+    val petalClass: TypeName,
     val primaryKeyType: PetalPrimaryKey,
 ) {
 
     val localColumnMigrations by lazy {
-        columnMigrations.filterValues { it.isLocalColumn }
+        columnMigrationMap.filterValues { it.isLocalColumn }
     }
     var migrationSql: String? = null
     var migrationAlterationSql: List<String>? = null
-    val columnsAsList: List<UnprocessedPetalColumn> by lazy { columnMigrations.values.toList() }
+    val columnsAsList: List<UnprocessedPetalColumn> by lazy { columnMigrationMap.values.toList() }
 
     fun process(): PetalSchemaMigration {
         return PetalSchemaMigration(

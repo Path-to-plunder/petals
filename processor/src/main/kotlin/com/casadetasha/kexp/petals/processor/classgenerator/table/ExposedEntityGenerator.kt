@@ -1,6 +1,8 @@
 package com.casadetasha.kexp.petals.processor.classgenerator.table
 
+import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
+import com.casadetasha.kexp.petals.processor.PetalClasses.RUNTIME_SCHEMAS
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.UnprocessedPetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.classgenerator.accessor.functions.toMemberName
@@ -80,7 +82,12 @@ internal class ExposedEntityGenerator(private val className: String,
 
     private fun addReferencedByColumn(column: UnprocessedPetalColumn) {
         val referencedByColumnInfo = column.referencedByColumn!!.columnReference
-        val referrersOnMethod: String = if (column.isNullable) { "optionalReferrersOn" } else { "referrersOn" }
+        val referencedByColumnType = column.referencedByColumn.columnReference.kotlinTypeName
+        val externalReferenceColumn = RUNTIME_SCHEMAS[referencedByColumnType]
+            ?: printThenThrowError("Petal type $referencedByColumnType not found when creating load references method for column ${column.name} for petal $className")
+        val referencedByColumn = externalReferenceColumn.columnMigrationMap[column.referencedByColumn.columnName]
+            ?: printThenThrowError("ReferencedBy column with name ${column.referencedByColumn.columnName} not found for petal type $referencedByColumnType when constructing load references method for column ${column.name} for petal $className")
+        val referrersOnMethod: String = if (referencedByColumn.isNullable) { "optionalReferrersOn" } else { "referrersOn" }
         entityBuilder
             .addProperty(
                 PropertySpec.builder(column.name, SizedIterable::class.asClassName().parameterizedBy(referencedByColumnInfo.entityClassName))

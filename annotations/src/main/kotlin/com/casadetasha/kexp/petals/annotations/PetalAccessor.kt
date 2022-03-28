@@ -3,9 +3,12 @@ package com.casadetasha.kexp.petals.annotations
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.concurrent.atomic.AtomicBoolean
 
 class OptionalNestedPetalManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
     (private val loadedPetalId: ID?, private val loadEntityAccessor: () -> ACCESSOR?) {
+
+    private val hasLoaded = AtomicBoolean(false)
 
     private var _nestedPetalId: ID? = loadedPetalId
     var nestedPetalId: ID?
@@ -15,18 +18,23 @@ class OptionalNestedPetalManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY:
     private var _nestedPetalClass: ACCESSOR? = null
     var nestedPetal: ACCESSOR?
         @Synchronized get() {
-            _nestedPetalClass = _nestedPetalClass ?: loadEntityAccessor()
-            return _nestedPetalClass!!
+            if (hasLoaded.compareAndSet(false, true)) {
+                _nestedPetalClass = _nestedPetalClass ?: transaction { loadEntityAccessor() }
+                nestedPetalId = _nestedPetalClass?.id
+            }
+            return _nestedPetalClass
         }
         @Synchronized set(value) {
             _nestedPetalId = value?.id
             _nestedPetalClass = value
+            hasLoaded.set(true)
         }
 
     val hasUpdated: Boolean get() { return loadedPetalId != nestedPetalId }
 
     fun eagerLoadAccessor() {
         _nestedPetalClass = loadEntityAccessor()
+        hasLoaded.set(true)
     }
 }
 
@@ -42,6 +50,7 @@ class NestedPetalManager<PETAL_ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: E
     var nestedPetal: PETAL_ACCESSOR
         @Synchronized get() {
             _nestedPetalClass = _nestedPetalClass ?: transaction { loadEntityAccessor() }
+            nestedPetalId = _nestedPetalClass!!.id
             return _nestedPetalClass!!
         }
         @Synchronized set(value) {
@@ -77,7 +86,9 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
 
     /** Delete the object from the database. */
     fun delete(performInsideStandaloneTransaction: Boolean = true) =
-        runTransactionStatement(performInsideStandaloneTransaction) { dbEntity.delete() }
+        runTransactionStatement(performInsideStandaloneTransaction) {
+            dbEntity.delete()
+        }
 
     /** Prepare nested dependencies so they can be accessed outside a transaction. */
     fun eagerLoadDependencies(performInsideStandaloneTransaction: Boolean = true): ACCESSOR =

@@ -4,40 +4,59 @@ import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
 import com.casadetasha.kexp.petals.annotations.DefaultInt
 import com.casadetasha.kexp.petals.annotations.DefaultLong
 import com.casadetasha.kexp.petals.annotations.DefaultString
+import com.casadetasha.kexp.petals.annotations.Petal
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
 import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
-internal class DefaultPetalValue(kotlinProperty: KotlinProperty) {
-    private val annotatedElement = kotlinProperty.annotatedElement
-
-    val typeName = kotlinProperty.typeName
+internal class DefaultPetalValue private constructor(
+    val typeName: TypeName,
+    val defaultValue: String?
+) {
 
     val hasDefaultValue: Boolean by lazy {
         if (typeName.copy(nullable = false) == UUID::class.asTypeName()) {
             false
         } else {
-            defaultAnnotation != null
+            defaultValue != null
         }
     }
 
-    val defaultValue: String? by lazy {
-        when (val annotation = defaultAnnotation) {
-            null -> null
-            is DefaultInt -> annotation.value.toString()
-            is DefaultLong -> annotation.value.toString()
-            is DefaultString -> annotation.value
-            else -> throw IllegalStateException("INTERNAL LIBRARY ERROR: Unsupported default value annotation: ${annotation.annotationClass}")
-        }
-    }
+    companion object {
+        fun parseDefaultValueForValueColumn(kotlinProperty: KotlinProperty): DefaultPetalValue {
+            val annotatedElement = kotlinProperty.annotatedElement
+            val typeName = kotlinProperty.typeName
 
-    private val defaultAnnotation: Annotation? by lazy {
-        when(typeName.copy(nullable = false)) {
-            Int::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultInt::class)
-            Long::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultLong::class)
-            String::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultString::class)
-            else -> null
+            val defaultAnnotation: Annotation? = when(typeName.copy(nullable = false)) {
+                    Int::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultInt::class)
+                    Long::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultLong::class)
+                    String::class.asTypeName() -> annotatedElement.getDefaultAnnotation(DefaultString::class)
+                    else -> null
+                }
+
+            val value = when (defaultAnnotation) {
+                is DefaultInt -> defaultAnnotation.value.toString()
+                is DefaultLong -> defaultAnnotation.value.toString()
+                is DefaultString -> defaultAnnotation.value
+                null -> null
+                else -> throw IllegalStateException("INTERNAL LIBRARY ERROR: Unsupported default value annotation: ${defaultAnnotation.annotationClass}")
+            }
+
+            return DefaultPetalValue(
+                typeName = typeName,
+                defaultValue = value
+            )
+        }
+
+        fun parseDefaultValueForReferenceColumn(kotlinProperty: KotlinProperty): DefaultPetalValue {
+            val typeName = Petal::class.asClassName()
+            return when (kotlinProperty.isNullable) {
+                true -> DefaultPetalValue(typeName = typeName, defaultValue = "null")
+                false -> DefaultPetalValue(typeName = typeName, defaultValue = null)
+            }
         }
     }
 }

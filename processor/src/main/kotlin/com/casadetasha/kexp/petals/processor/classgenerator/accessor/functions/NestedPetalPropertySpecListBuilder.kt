@@ -21,7 +21,6 @@ internal class NestedPetalPropertySpecListBuilder(
             false -> NestedPetalManager::class.asClassName()
             true -> OptionalNestedPetalManager::class.asClassName()
         }
-
     }
 
     private val nestedPetalManagerPropertySpec: PropertySpec by lazy {
