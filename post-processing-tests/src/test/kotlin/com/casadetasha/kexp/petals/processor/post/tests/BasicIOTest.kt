@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.post.tests.petal
+package com.casadetasha.kexp.petals.processor.post.tests
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -16,7 +16,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class AccessorBasicIOTest: ContainerizedTestBase() {
+class BasicIOTest: ContainerizedTestBase() {
 
     private val tableName: String by lazy { `TableMigrations$basic_petal`().tableName }
 
@@ -243,7 +243,7 @@ class AccessorBasicIOTest: ContainerizedTestBase() {
     }
 
     @Test
-    fun `calling delete() on non stored data does not crash`() {
+    fun `calling delete() on non stored data does nothing`() {
         val baseUuid = UUID.randomUUID()
         val petal = BasicPetal.create(
             count = 1,
