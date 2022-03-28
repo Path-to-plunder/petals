@@ -71,8 +71,20 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
             .forEach { (_, migration) ->
                 renameSqlList += createRenameColumnSql(migration)
             }
+        alteredColumns.filter { it.value.previousColumnState.name == it.value.updatedColumnState.name }
+            .forEach { (_, migration) -> checkForNoOpNameChanges(migration) }
 
         return renameSqlList
+    }
+
+    private fun checkForNoOpNameChanges(alteredColumn: AlterColumnMigration) {
+        if (alteredColumn.previousColumnState.name == alteredColumn.updatedColumnState.name) {
+            printThenThrowError(
+                "Attempting to rename column ${alteredColumn.previousColumnState.name} for table" +
+                        " ${petalMigration.tableName}, however no name change has occurred. If you are not attempting" +
+                        " to change the name, remove the name field from the AlterColumn annotation."
+            )
+        }
     }
 
     private fun buildCreateTableSql(petalSchemaMigration: UnprocessedPetalSchemaMigration): String {
@@ -183,7 +195,8 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
         return currentMigration.localColumnMigrations.values.filter { it.isAlteration }
             .map {
                 checkNotNull(previousMigration.localColumnMigrations[it.previousName]) {
-                    "Attempting to alter non existent column ${it.previousName} for table ${petalMigration.tableName}"
+                    "Attempting to rename non existent column ${it.previousName} for new column ${it.name} for table" +
+                            " ${petalMigration.tableName}"
                 }
                 AlterColumnMigration(previousMigration.localColumnMigrations[it.previousName]!!, it)
             }
@@ -192,13 +205,6 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
 
 
     private fun createRenameColumnSql(alteredColumn: AlterColumnMigration): String {
-        if (alteredColumn.previousColumnState.name == alteredColumn.updatedColumnState.name) {
-            printThenThrowError(
-                "Attempting to rename column ${alteredColumn.previousColumnState} for table" +
-                        " ${petalMigration.tableName}, however no name change has occurred."
-            )
-        }
-
         return "ALTER TABLE \"${petalMigration.tableName}\" RENAME COLUMN \"${alteredColumn.previousColumnState.name}\"" +
                 " TO \"${alteredColumn.updatedColumnState.name}\";"
     }

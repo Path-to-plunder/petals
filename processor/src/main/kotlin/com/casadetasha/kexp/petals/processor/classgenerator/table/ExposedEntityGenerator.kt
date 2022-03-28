@@ -86,9 +86,14 @@ internal class ExposedEntityGenerator(
         val referencedByColumnInfo = column.referencedByColumn!!.columnReference
         val referencedByColumnType = column.referencedByColumn.columnReference.kotlinTypeName
         val externalReferenceColumn = petalClasses.RUNTIME_SCHEMAS[referencedByColumnType]
-            ?: printThenThrowError("Petal type $referencedByColumnType not found when creating load references method for column ${column.name} for petal $className")
+            ?: printThenThrowError("INTERNAL LIBRARY ERROR: Petal type $referencedByColumnType not found" +
+                    " when creating load references method for column ${column.name} for petal $className. This should" +
+                    " have been caught during initial petal parsing")
         val referencedByColumn = externalReferenceColumn.columnMigrationMap[column.referencedByColumn.columnName]
-            ?: printThenThrowError("ReferencedBy column with name ${column.referencedByColumn.columnName} not found for petal type $referencedByColumnType when constructing load references method for column ${column.name} for petal $className")
+            ?: printThenThrowError("ReferencedBy column with name ${column.referencedByColumn.columnName}" +
+                    " not found for petal type $referencedByColumnType when constructing load references method for" +
+                    " column ${column.name} for petal $className")
+
         val referrersOnMethod: String = if (referencedByColumn.isNullable) { "optionalReferrersOn" } else { "referrersOn" }
         entityBuilder
             .addProperty(

@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor
+package com.casadetasha.kexp.petals.processor.migration
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -14,32 +14,7 @@ import org.junit.Test
 import org.junit.rules.ExternalResource
 import java.lang.reflect.Method
 
-class StartingNullablePetalTest {
-
-    @Test
-    fun `Creates column as nullable if schema property is nullable`() {
-        assertThat(petalSchemaMigrations[1]!!.migrationSql)
-            .isEqualTo("CREATE TABLE \"starting_nullable_petal\" (" +
-                    " id uuid PRIMARY KEY," +
-                    " \"color\" TEXT" +
-                    " )"
-            )
-    }
-
-    @Test
-    fun `Updates column to nullable if altered column is nullable`() {
-        assertThat(petalSchemaMigrations[2]!!.migrationSql)
-            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
-                    " ALTER COLUMN \"color\" SET NOT NULL")
-    }
-
-    @Test
-    fun `Added nullable columns are added as nullable`() {
-        assertThat(petalSchemaMigrations[3]!!.migrationSql)
-            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
-                    " ADD COLUMN \"secondColor\" TEXT"
-            )
-    }
+class StartingNonNullableSqlTest {
 
     companion object {
 
@@ -52,23 +27,23 @@ class StartingNullablePetalTest {
             import com.casadetasha.kexp.petals.annotations.PetalSchema
             import java.util.*
 
-            @Petal(tableName = "starting_nullable_petal", className = "StartingNullablePetal")
-            interface StartingNullablePetal
+            @Petal(tableName = "starting_non_nullable_petal", className = "StartingNonNullablePetal")
+            interface StartingNonNullablePetal
 
-            @PetalSchema(petal = StartingNullablePetal::class, version = 1)
-            interface StartingNullablePetalSchemaV1 {
-                val color: String?
-            }
-            
-            @PetalSchema(petal = StartingNullablePetal::class, version = 2)
-            interface StartingNullablePetalSchemaV2 {
-                @AlterColumn val color: String
-            }
-            
-            @PetalSchema(petal = StartingNullablePetal::class, version = 3)
-            interface StartingNullablePetalSchemaV3 {
+            @PetalSchema(petal = StartingNonNullablePetal::class, version = 1)
+            interface StartingNonNullablePetalSchemaV1 {
                 val color: String
-                val secondColor: String?
+            }
+
+            @PetalSchema(petal = StartingNonNullablePetal::class, version = 2)
+            interface StartingNonNullablePetalSchemaV2 {
+                @AlterColumn val color: String?
+            }
+
+            @PetalSchema(petal = StartingNonNullablePetal::class, version = 3)
+            interface StartingNonNullablePetalSchemaV3 {
+                val color: String?
+                val secondColor: String
             }
             """.trimIndent()
         )
@@ -88,7 +63,7 @@ class StartingNullablePetalTest {
             }
 
             private fun parsePetalMigrations(compilationResult: KotlinCompilation.Result) {
-                val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$starting_nullable_petal")
+                val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$starting_non_nullable_petal")
 
                 val migrationClassInstance = generatedMigrationClass.getDeclaredConstructor().newInstance()
                 val petalJsonGetter: Method = migrationClassInstance.javaClass.getDeclaredMethod("getPetalJson")
@@ -98,5 +73,31 @@ class StartingNullablePetalTest {
                 petalSchemaMigrations = petalMigration.schemaMigrations
             }
         }
+    }
+
+    @Test
+    fun `Creates column as NOT NULL if schema property is not nullable`() {
+        assertThat(petalSchemaMigrations[1]!!.migrationSql)
+            .isEqualTo("CREATE TABLE \"starting_non_nullable_petal\" (" +
+                    " id uuid PRIMARY KEY," +
+                    " \"color\" TEXT NOT NULL" +
+                    " )"
+            )
+    }
+
+    @Test
+    fun `Updates column to NOT NULL if altered column is non nullable`() {
+        assertThat(petalSchemaMigrations[2]!!.migrationSql)
+            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
+                    " ALTER COLUMN \"color\" DROP NOT NULL"
+            )
+    }
+
+    @Test
+    fun `Added non nullable columns are added as non nullable`() {
+        assertThat(petalSchemaMigrations[3]!!.migrationSql)
+            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
+                    " ADD COLUMN \"secondColor\" TEXT NOT NULL"
+            )
     }
 }

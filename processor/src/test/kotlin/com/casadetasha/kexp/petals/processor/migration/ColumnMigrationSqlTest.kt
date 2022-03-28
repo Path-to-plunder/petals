@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor
+package com.casadetasha.kexp.petals.processor.migration
 
 import assertk.assertThat
 import assertk.assertions.containsExactly

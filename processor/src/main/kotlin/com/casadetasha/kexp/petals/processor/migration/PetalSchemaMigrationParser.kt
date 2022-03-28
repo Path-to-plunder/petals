@@ -125,7 +125,8 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
         return when (SUPPORTED_TYPES.contains(kotlinProperty.typeName.copy(nullable = false))) {
             true -> null
             false -> petalClasses.PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
-                "Column type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}"
+                "Column type must be a base Petal column type or another Petal. Found" +
+                        " ${kotlinProperty.typeName} for column ${kotlinProperty.simpleName}"
             )
         }?.asReference()
     }
@@ -135,7 +136,8 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
         return when(alterColumnAnnotation) {
             null -> null
             else -> petalClasses.PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
-                "Column type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}"
+                "ReferencedBy type must be a base Petal column type or another Petal. Found ${kotlinProperty.typeName}" +
+                        " for column ${kotlinProperty.simpleName}"
             )
         }?.asReferencedBy(alterColumnAnnotation!!.referencePropertyName)
     }
@@ -156,8 +158,8 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
         val isPetalReference = petalClasses.PETAL_CLASSES[deNulledTypeName] != null
         if (!isBasicPetalType && !isPetalReference) {
             printThenThrowError(
-                "$deNulledTypeName is not a valid column type. Only petal reference and the following types" +
-                        " are supported: ${SUPPORTED_TYPES.joinToString()}"
+                "$deNulledTypeName is not a valid column type. Only other Petals and the following types are" +
+                        " supported: ${SUPPORTED_TYPES.joinToString()}"
             )
         }
     }
