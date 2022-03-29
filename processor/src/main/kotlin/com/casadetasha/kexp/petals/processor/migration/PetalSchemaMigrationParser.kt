@@ -62,7 +62,6 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
 
     fun parseIdColumn(primaryKeyType: PetalPrimaryKey): UnprocessedPetalColumn {
         return UnprocessedPetalColumn(
-            previousName = "id",
             name = "id",
             dataType = when (val dataType = primaryKeyType.dataType!!) {
                 "SERIAL" -> "INT"
@@ -70,11 +69,13 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
                 else -> dataType
             },
             isNullable = false,
+            previousName = "id",
             isAlteration = false,
             isId = true,
             defaultValue = null,
             isMutable = false,
-            referencedByColumn = null
+            referencedByColumn = null,
+            isRename = false
         )
     }
 
@@ -94,11 +95,12 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
             name = name,
             dataType = getDataType(kotlinProperty),
             isNullable = kotlinProperty.isNullable,
-            isAlteration = alterColumnAnnotation?.renameFrom != null,
+            isAlteration = alterColumnAnnotation != null,
             isId = false,
             defaultValue = defaultPetalValue,
             isMutable = kotlinProperty.isMutable,
-            referencedByColumn = referencedBy
+            referencedByColumn = referencedBy,
+            isRename = alterColumnAnnotation?.renameFrom.let { !it.isNullOrBlank() }
         )
     }
 
@@ -166,10 +168,10 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
 
     private fun getPreviousName(name: String, alterColumnAnnotation: AlterColumn?): String? {
         val renameFromColumn = alterColumnAnnotation?.renameFrom
-        return when (renameFromColumn?.isBlank()) {
-            null -> null
-            true -> name
-            false -> alterColumnAnnotation.renameFrom
+        return when {
+            renameFromColumn == null -> null
+            renameFromColumn.isBlank() -> name
+            else -> alterColumnAnnotation.renameFrom
         }
     }
 }

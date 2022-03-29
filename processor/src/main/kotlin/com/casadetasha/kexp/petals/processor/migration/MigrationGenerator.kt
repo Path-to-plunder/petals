@@ -71,7 +71,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
             .forEach { (_, migration) ->
                 renameSqlList += createRenameColumnSql(migration)
             }
-        alteredColumns.filter { it.value.previousColumnState.name == it.value.updatedColumnState.name }
+        alteredColumns.filter { it.value.updatedColumnState.isRename }
             .forEach { (_, migration) -> checkForNoOpNameChanges(migration) }
 
         return renameSqlList
@@ -80,7 +80,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     private fun checkForNoOpNameChanges(alteredColumn: AlterColumnMigration) {
         if (alteredColumn.previousColumnState.name == alteredColumn.updatedColumnState.name) {
             printThenThrowError(
-                "Attempting to rename column ${alteredColumn.previousColumnState.name} for table" +
+                "Attempting to rename column ${alteredColumn.previousColumnState.name} to ${alteredColumn.updatedColumnState.name} for table" +
                         " ${petalMigration.tableName}, however no name change has occurred. If you are not attempting" +
                         " to change the name, remove the name field from the AlterColumn annotation."
             )
@@ -194,11 +194,11 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     ): Map<String, AlterColumnMigration> {
         return currentMigration.localColumnMigrations.values.filter { it.isAlteration }
             .map {
-                checkNotNull(previousMigration.localColumnMigrations[it.previousName]) {
+                val previousColumnMigrations = checkNotNull(previousMigration.localColumnMigrations[it.previousName]) {
                     "Attempting to rename non existent column ${it.previousName} for new column ${it.name} for table" +
                             " ${petalMigration.tableName}"
                 }
-                AlterColumnMigration(previousMigration.localColumnMigrations[it.previousName]!!, it)
+                AlterColumnMigration(previousColumnMigrations, it)
             }
             .associateBy { it.previousColumnState.name }
     }
