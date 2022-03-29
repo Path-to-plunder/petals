@@ -4,13 +4,13 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.*
-import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassFileGenerator
-import com.casadetasha.kexp.petals.processor.classgenerator.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.classgenerator.data.DataClassFileGenerator
-import com.casadetasha.kexp.petals.processor.classgenerator.table.ExposedClassesFileGenerator
-import com.casadetasha.kexp.petals.processor.migration.MigrationGenerator
-import com.casadetasha.kexp.petals.processor.migration.PetalMigrationSetupGenerator
-import com.casadetasha.kexp.petals.processor.migration.PetalSchemaMigrationParser
+import com.casadetasha.kexp.petals.processor.model.PetalClasses
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.MigrationGenerator
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalMigrationSetupGenerator
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalSchemaMigrationParser
+import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalMigration
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassFileGenerator
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator
 import com.google.auto.service.AutoService
 import com.squareup.kotlinpoet.*
 import javax.annotation.processing.*
@@ -61,7 +61,9 @@ class PetalProcessor : AbstractProcessor() {
             migration.getCurrentSchema()?.let {
                 val accessorClassInfo = migration.getAccessorClassInfo()
                 ExposedClassesFileGenerator(petalClasses, migration.className, migration.tableName, it).generateFile()
-                AccessorClassFileGenerator(accessorClassInfo).generateFile()
+                com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator(
+                    accessorClassInfo
+                ).generateFile()
                 DataClassFileGenerator(accessorClassInfo).generateFile()
             }
         }
@@ -93,8 +95,8 @@ class PetalProcessor : AbstractProcessor() {
 
 private typealias UnprocessedPetalMigrationMap = HashMap<String, UnprocessedPetalMigration>
 
-private fun UnprocessedPetalMigration.getAccessorClassInfo(): AccessorClassInfo {
-    return AccessorClassInfo(
+private fun UnprocessedPetalMigration.getAccessorClassInfo(): com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo {
+    return com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo(
         packageName = "com.casadetasha.kexp.petals.accessor",
         simpleName = className,
         entityClassName = ClassName("com.casadetasha.kexp.petals", "${className}Entity"),
