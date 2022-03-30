@@ -14,11 +14,11 @@ internal class DataClassFileGenerator(
     fun generateFile() {
         val fileSpec = FileSpec.builder(
             packageName = PACKAGE_NAME,
-            fileName = accessorClassInfo.className.simpleName + "Data"
+            fileName = "${accessorClassInfo.className.simpleName}Data"
         )
             .addType(DataClassSpecBuilder(accessorClassInfo).getClassSpec())
-            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).entityExportFunSpec)
-            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).accessorExportFunSpec)
+//            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).entityExportFunSpec)
+//            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).accessorExportFunSpec)
             .build()
 
         fileSpec.writeTo(File(kaptKotlinGeneratedDir))

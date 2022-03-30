@@ -31,6 +31,22 @@ internal sealed class ParsedPetalColumn(
         return name.compareTo(other.name)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ParsedPetalColumn) return false
+
+        if (name != other.name) return false
+        if (isNullable != other.isNullable) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + isNullable.hashCode()
+        return result
+    }
+
     companion object {
         fun parsePetalColumn(
             petalClasses: Map<ClassName, ParsedSchemalessPetal>,
@@ -60,11 +76,6 @@ internal sealed class ParsedPetalColumn(
         }
     }
 }
-
-data class PetalAlteration(
-    val previousName: String? = null,
-    val isRename: Boolean,
-)
 
 internal sealed class LocalPetalColumn private constructor(
     name: String,
@@ -104,6 +115,28 @@ internal sealed class LocalPetalColumn private constructor(
         dataType = dataType,
         isNullable = isNullable,
     )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LocalPetalColumn) return false
+        if (!super.equals(other)) return false
+
+        if (dataType != other.dataType) return false
+        if (isMutable != other.isMutable) return false
+        if (alterationInfo != other.alterationInfo) return false
+        if (tablePropertyClassName != other.tablePropertyClassName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + dataType.hashCode()
+        result = 31 * result + isMutable.hashCode()
+        result = 31 * result + (alterationInfo?.hashCode() ?: 0)
+        result = 31 * result + tablePropertyClassName.hashCode()
+        return result
+    }
 }
 
 internal class PetalIdColumn private constructor(
@@ -130,6 +163,22 @@ internal class PetalIdColumn private constructor(
                 },
             )
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PetalIdColumn) return false
+        if (!super.equals(other)) return false
+
+        if (tablePropertyClassName != other.tablePropertyClassName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + tablePropertyClassName.hashCode()
+        return result
     }
 }
 
@@ -178,6 +227,22 @@ internal class PetalValueColumn private constructor(
                 alterationInfo = alterationInfo
             )
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PetalValueColumn) return false
+        if (!super.equals(other)) return false
+
+        if (defaultValue != other.defaultValue) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (defaultValue?.hashCode() ?: 0)
+        return result
     }
 }
 
@@ -238,6 +303,22 @@ internal class PetalReferenceColumn private constructor(
             )
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PetalReferenceColumn) return false
+        if (!super.equals(other)) return false
+
+        if (columnReferenceInfo != other.columnReferenceInfo) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + columnReferenceInfo.hashCode()
+        return result
+    }
 }
 
 private fun ParsedSchemalessPetal.asReference(): ColumnReference {
@@ -284,6 +365,22 @@ internal class ReferencedByPetalColumn private constructor(
             )
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ReferencedByPetalColumn) return false
+        if (!super.equals(other)) return false
+
+        if (referencedByColumn != other.referencedByColumn) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (referencedByColumn?.hashCode() ?: 0)
+        return result
+    }
 }
 
 private fun getDataType(petalClasses: Map<ClassName, ParsedSchemalessPetal>, kotlinProperty: KotlinValue.KotlinProperty): String {
@@ -321,3 +418,8 @@ private fun getPreviousName(name: String, renameFrom: String?): String? {
         else -> renameFrom
     }
 }
+
+data class PetalAlteration(
+    val previousName: String? = null,
+    val isRename: Boolean,
+)
