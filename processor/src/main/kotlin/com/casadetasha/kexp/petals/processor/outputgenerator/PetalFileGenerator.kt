@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator
 
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalMigration
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
@@ -10,15 +11,15 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.
 import com.squareup.kotlinpoet.ClassName
 
 internal class PetalFileGenerator(private val petalClasses: PetalClasses,
-                                  private val tableMap: HashMap<String, UnprocessedPetalMigration>
+                                  private val petalMap: Map<ClassName, ParsedPetal>
 ) {
     fun generateFiles() {
-        tableMap.values.forEach { migration ->
+        petalMap.values.forEach { migration ->
             generatePetalClasses(migration)
         }
 
-        if (tableMap.isNotEmpty()) {
-            PetalMigrationSetupGenerator(tableMap.values).createPetalMigrationSetupClass()
+        if (petalMap.isNotEmpty()) {
+            PetalMigrationSetupGenerator(petalMap.values).createPetalMigrationSetupClass()
         }
     }
 

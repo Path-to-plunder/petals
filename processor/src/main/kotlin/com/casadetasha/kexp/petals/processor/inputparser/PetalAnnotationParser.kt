@@ -50,12 +50,3 @@ internal class PetalAnnotationParser(private val petalClasses: PetalClasses) {
 }
 
 internal typealias UnprocessedPetalMigrationMap = HashMap<String, UnprocessedPetalMigration>
-
-// asTypeName() should be safe since custom routes will never be Kotlin core classes
-@OptIn(DelicateKotlinPoetApi::class)
-private val PetalSchema.petalTypeName: TypeName
-    get() = try {
-        ClassName(petal.java.packageName, petal.java.simpleName)
-    } catch (exception: MirroredTypeException) {
-        exception.typeMirror.asTypeName()
-    }

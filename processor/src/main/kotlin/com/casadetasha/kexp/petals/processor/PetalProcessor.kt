@@ -4,6 +4,7 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.*
+import com.casadetasha.kexp.petals.processor.inputparser.CleanPetalAnnotationParser
 import com.casadetasha.kexp.petals.processor.inputparser.PetalAnnotationParser
 import com.casadetasha.kexp.petals.processor.inputparser.UnprocessedPetalMigrationMap
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
@@ -49,9 +50,11 @@ class PetalProcessor : AbstractProcessor() {
     }
 
     private fun generateClasses() {
-        val petalAnnotationParser = PetalAnnotationParser(petalClasses)
-        petalAnnotationParser.parsePetalMap()
+//        val petalAnnotationParser = PetalAnnotationParser(petalClasses)
+//        petalAnnotationParser.parsePetalMap()
+        val petalAnnotationParser = CleanPetalAnnotationParser(petalClasses)
+//        petalAnnotationParser.parsePetalMap()
 
-        PetalFileGenerator(petalClasses, petalAnnotationParser.tableMap).generateFiles()
+        PetalFileGenerator(petalClasses, petalAnnotationParser.parsePetalMap()).generateFiles()
     }
 }

@@ -11,13 +11,13 @@ import org.jetbrains.exposed.sql.Column
 import java.util.*
 
 internal class UnprocessedPetalColumn private constructor(
+    val isId: Boolean,
     val petalColumn: PetalColumn,
-    val columnReferenceInfo: ColumnReference? = null,
     val previousName: String? = null,
     val isAlteration: Boolean,
-    val isId: Boolean,
     val defaultValue: DefaultPetalValue?,
     val isMutable: Boolean,
+    val columnReferenceInfo: ColumnReference? = null,
     val referencedByColumn: ReferencedByColumn?,
     val isRename: Boolean
 ) : Comparable<UnprocessedPetalColumn> {
@@ -67,12 +67,12 @@ internal class UnprocessedPetalColumn private constructor(
         name: String,
         dataType: String,
         isNullable: Boolean,
-        columnReference: ColumnReference? = null,
-        previousName: String? = null,
-        isAlteration: Boolean,
+        isMutable: Boolean,
         isId: Boolean,
         defaultValue: DefaultPetalValue?,
-        isMutable: Boolean,
+        previousName: String? = null,
+        isAlteration: Boolean,
+        columnReference: ColumnReference? = null,
         referencedByColumn: ReferencedByColumn?,
         isRename: Boolean
     ) : this(

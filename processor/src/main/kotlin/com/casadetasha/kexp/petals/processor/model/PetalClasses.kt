@@ -5,6 +5,9 @@ import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.*
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
+import java.util.*
+import kotlin.reflect.KClass
 
 internal class PetalClasses {
 
@@ -30,6 +33,15 @@ internal class PetalClasses {
             DefaultLong::class,
             ReferencedBy::class,
         )
+
+    companion object {
+        internal val SUPPORTED_TYPES = listOf<KClass<*>>(
+            String::class,
+            Int::class,
+            Long::class,
+            UUID::class
+        ).map { it.asTypeName() }
+    }
 
     private var _RUNTIME_SCHEMAS: Map<TypeName, UnprocessedPetalSchemaMigration>? = null
     var RUNTIME_SCHEMAS: Map<TypeName, UnprocessedPetalSchemaMigration>

@@ -7,6 +7,7 @@ import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.model.*
 import com.casadetasha.kexp.petals.processor.model.DefaultPetalValue
+import com.casadetasha.kexp.petals.processor.model.PetalClasses.Companion.SUPPORTED_TYPES
 import com.casadetasha.kexp.petals.processor.model.ReferencedByColumn
 import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalSchemaMigration
@@ -17,7 +18,6 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import java.util.*
 import javax.lang.model.element.Element
-import kotlin.reflect.KClass
 
 internal class PetalSchemaMigrationParser(private val petalClasses: PetalClasses) {
     fun parseFromClass(petalClass: TypeName, kotlinClass: KotlinClass, primaryKeyType: PetalPrimaryKey): UnprocessedPetalSchemaMigration {
@@ -55,12 +55,6 @@ internal class PetalSchemaMigrationParser(private val petalClasses: PetalClasses
 }
 
 internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses) {
-    private val SUPPORTED_TYPES = listOf<KClass<*>>(
-        String::class,
-        Int::class,
-        Long::class,
-        UUID::class
-    ).map { it.asTypeName() }
 
     fun parseIdColumn(primaryKeyType: PetalPrimaryKey): UnprocessedPetalColumn {
         return UnprocessedPetalColumn(
@@ -84,7 +78,7 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
     fun parseFromKotlinProperty(kotlinProperty: KotlinProperty): UnprocessedPetalColumn {
         val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
         val name = kotlinProperty.simpleName
-        val reference = getReferencingClassName(kotlinProperty)
+        val reference = getColumnReference(kotlinProperty)
         val referencedBy: ReferencedByColumn? = getReferencedByColumn(kotlinProperty)
         val defaultPetalValue = when (reference) {
             null -> DefaultPetalValue.parseDefaultValueForValueColumn(kotlinProperty)
@@ -125,7 +119,7 @@ internal class PetalMigrationColumnParser(private val petalClasses: PetalClasses
             )
     }
 
-    private fun getReferencingClassName(kotlinProperty: KotlinProperty): ColumnReference? {
+    private fun getColumnReference(kotlinProperty: KotlinProperty): ColumnReference? {
         return when (SUPPORTED_TYPES.contains(kotlinProperty.typeName.copy(nullable = false))) {
             true -> null
             false -> petalClasses.PETAL_CLASSES[kotlinProperty.typeName.copy(nullable = false)] ?: printThenThrowError(
