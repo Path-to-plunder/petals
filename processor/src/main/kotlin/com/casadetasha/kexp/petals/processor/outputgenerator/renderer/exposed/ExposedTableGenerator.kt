@@ -1,9 +1,12 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
+import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.toMemberName
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.EXPOSED_TABLE_PACKAGE
 import com.squareup.kotlinpoet.*
@@ -14,7 +17,7 @@ import org.jetbrains.exposed.dao.id.UUIDTable
 internal class ExposedTableGenerator(
     private val className: String,
     private val tableName: String,
-    private val schema: UnprocessedPetalSchemaMigration,
+    private val schema: ParsedPetalSchema,
 ) {
 
     private val tableClassName: String by lazy { "${className}Table" }
@@ -27,7 +30,7 @@ internal class ExposedTableGenerator(
 
     fun generateClassSpec(): TypeSpec = tableBuilder.build()
 
-    fun addTableColumn(column: UnprocessedPetalColumn) {
+    fun addTableColumn(column: LocalPetalColumn) {
         tableBuilder.addProperty(
             PropertySpec.builder(
                 column.name,
@@ -39,14 +42,15 @@ internal class ExposedTableGenerator(
         )
     }
 
-    private fun getColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
-        return when (column.isReferenceColumn) {
-            true -> getReferenceColumnInitializationBlock(column)
-            false -> getValueColumnInitializationBlock(column)
+    private fun getColumnInitializationBlock(column: LocalPetalColumn): CodeBlock {
+        return when (column) {
+            is PetalReferenceColumn -> getReferenceColumnInitializationBlock(column)
+            is PetalValueColumn -> getValueColumnInitializationBlock(column)
+            else -> printThenThrowError("INTERNAL LIBRARY ERROR: only value and reference petal columns allowed. Found ${column.kotlinType} for column ${column.name}.")
         }
     }
 
-    private fun getValueColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
+    private fun getValueColumnInitializationBlock(column: LocalPetalColumn): CodeBlock {
         if (column.dataType.startsWith("CHARACTER VARYING")) {
             val charLimit = column.dataType
                 .removePrefix("CHARACTER VARYING(")
@@ -54,7 +58,7 @@ internal class ExposedTableGenerator(
             val builder = CodeBlock.builder()
                 .add(
                     "%M(%S, %L)",
-                    MemberName(ExposedClassesFileGenerator.EXPOSED_TABLE_PACKAGE, "varchar"),
+                    MemberName(EXPOSED_TABLE_PACKAGE, "varchar"),
                     column.name,
                     charLimit
                 )
@@ -79,13 +83,13 @@ internal class ExposedTableGenerator(
         return builder.build()
     }
 
-    private fun getReferenceColumnInitializationBlock(column: UnprocessedPetalColumn): CodeBlock {
+    private fun getReferenceColumnInitializationBlock(column: PetalReferenceColumn): CodeBlock {
         val builder = CodeBlock.builder()
             .add(
                 "%M(%S,·%M)",
                 getReferenceColumnCreationMemberName(),
                 column.name,
-                column.referencingTableClassName!!.toMemberName(),
+                column.referencingTableClassName.toMemberName(),
             ).apply {
                 if (column.isNullable) { add(".nullable()") }
             }
@@ -94,10 +98,10 @@ internal class ExposedTableGenerator(
     }
 
     private fun getReferenceColumnCreationMemberName(): MemberName {
-        return MemberName(ExposedClassesFileGenerator.EXPOSED_TABLE_PACKAGE, "reference")
+        return MemberName(EXPOSED_TABLE_PACKAGE, "reference")
     }
 
-    private fun getColumnCreationMemberName(column: UnprocessedPetalColumn): MemberName {
+    private fun getColumnCreationMemberName(column: LocalPetalColumn): MemberName {
         val methodName = when (column.dataType) {
             "uuid" -> "uuid"
             "TEXT" -> "text"
@@ -109,7 +113,7 @@ internal class ExposedTableGenerator(
             )
         }
 
-        return MemberName(ExposedClassesFileGenerator.EXPOSED_TABLE_PACKAGE, methodName)
+        return MemberName(EXPOSED_TABLE_PACKAGE, methodName)
     }
 
     private fun getTableSuperclass(): ClassName {

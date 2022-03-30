@@ -1,6 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.kotlinpoet.createParameter
 import com.casadetasha.kexp.petals.processor.outputgenerator.kotlinpoet.createConstructorProperty
 import com.squareup.kotlinpoet.*
@@ -28,33 +31,33 @@ internal class DataClassSpecBuilder(val accessorClassInfo: com.casadetasha.kexp.
         return@lazy constructorBuilder.build()
     }
 
-    private val parameterSpecs: Iterable<ParameterSpec> = accessorClassInfo.sortedColumns
-        .filterNot { it.isReferencedByColumn }
+    private val parameterSpecs: Iterable<ParameterSpec> = accessorClassInfo.petalColumns
+        .filterIsInstance<LocalPetalColumn>()
         .map { column ->
-        val typeName = when (column.isId) {
-            true -> column.kotlinType
-            false -> column.kotlinType.copy(nullable = column.isNullable)
-        }
+            val typeName = when (column) {
+                is PetalIdColumn -> column.kotlinType
+                else -> column.kotlinType.copy(nullable = column.isNullable)
+            }
 
-        val name = when (column.columnReferenceInfo) {
-            null -> column.name
-            else -> "${column.name}Id"
+        val name = when (column) {
+            is PetalReferenceColumn -> "${column.name}Id"
+            else -> column.name
         }
 
         return@map createParameter(name, typeName)
     }
 
-    private val propertySpecs: Iterable<PropertySpec> = accessorClassInfo.sortedColumns
-        .filterNot { it.isReferencedByColumn }
+    private val propertySpecs: Iterable<PropertySpec> = accessorClassInfo.petalColumns
+        .filterIsInstance<LocalPetalColumn>()
         .map { column ->
-        val typeName = when (column.isId) {
-            true -> column.kotlinType
-            false -> column.kotlinType.copy(nullable = column.isNullable)
-        }
+            val typeName = when (column) {
+                is PetalIdColumn -> column.kotlinType
+                else -> column.kotlinType.copy(nullable = column.isNullable)
+            }
 
-        val name = when (column.isReferenceColumn) {
-            false -> column.name
-            true -> "${column.name}Id"
+        val name = when (column) {
+            is PetalReferenceColumn -> "${column.name}Id"
+            else -> column.name
         }
 
         val annotations = when (column.kotlinType) {

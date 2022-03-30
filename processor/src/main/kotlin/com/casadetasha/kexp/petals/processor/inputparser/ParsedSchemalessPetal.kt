@@ -9,6 +9,7 @@ internal open class ParsedSchemalessPetal protected constructor(
     val petalAnnotation: Petal
 ) {
 
+    val tableName: String = petalAnnotation.tableName
     val className: ClassName = kotlinClass.className
 
     companion object {

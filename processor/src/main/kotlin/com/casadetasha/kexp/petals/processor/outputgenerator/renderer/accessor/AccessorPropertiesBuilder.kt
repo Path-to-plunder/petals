@@ -1,16 +1,14 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 
 internal class AccessorPropertiesBuilder(val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
 
     val properties: Iterable<PropertySpec> by lazy {
-        accessorClassInfo.sortedColumns
-            .filterNot { it.isId }
-            .filterNot { it.isReferenceColumn }
-            .filterNot { it.isReferencedByColumn }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<PetalValueColumn>()
             .map { it.toPropertySpec() }
     }
 }
@@ -19,7 +17,7 @@ internal fun TypeSpec.Builder.addAccessorProperties(accessorClassInfo: com.casad
     this.addProperties(AccessorPropertiesBuilder(accessorClassInfo).properties)
 }
 
-private fun UnprocessedPetalColumn.toPropertySpec(): PropertySpec {
+private fun PetalValueColumn.toPropertySpec(): PropertySpec {
     val propertyTypeName = kotlinType.copy(nullable = isNullable)
     return PropertySpec.builder(name, propertyTypeName)
         .mutable()

@@ -1,6 +1,7 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.DefaultPetalValue
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.*
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorEagerLoadDependenciesFunSpecBuilder
@@ -64,7 +65,7 @@ private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: com.c
             .addFunctions(AccessorLoadFunSpecBuilder(accessorClassInfo).loadFunSpecs)
             .addFunction(AccessorExportFunSpecBuilder(accessorClassInfo).exportFunSpec)
             .apply {
-                if (accessorClassInfo.columns.any { it.isReferenceColumn }) {
+                if (accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {
                     addFunction(AccessorEagerLoadDependenciesFunSpecBuilder(accessorClassInfo).companionEagerLoadDependenciesFunSpec)
                 }
             }

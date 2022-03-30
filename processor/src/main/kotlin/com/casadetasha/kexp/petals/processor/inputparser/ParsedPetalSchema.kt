@@ -1,7 +1,9 @@
 package com.casadetasha.kexp.petals.processor.inputparser
 
 import com.casadetasha.kexp.annotationparser.KotlinContainer
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.annotations.PetalSchema
+import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.DelicateKotlinPoetApi
 import com.squareup.kotlinpoet.TypeName
@@ -14,9 +16,35 @@ internal class ParsedPetalSchema private constructor(
     val parsedSchemalessPetal: ParsedSchemalessPetal,
     private val petalSchemaClass: KotlinContainer.KotlinClass,
 ) {
+
+    val primaryKeyType: PetalPrimaryKey = parsedSchemalessPetal.petalAnnotation.primaryKeyType
     val tableName: String = parsedSchemalessPetal.petalAnnotation.tableName
     val schemaVersion = petalSchemaAnnotation.version
-    private lateinit var parsedPetalColumns: SortedSet<ParsedPetalColumn>
+
+    private lateinit var _parsedPetalColumns: SortedSet<ParsedPetalColumn>
+    val parsedPetalColumns: SortedSet<ParsedPetalColumn>
+        get() { return _parsedPetalColumns }
+
+    val parsedLocalPetalColumns: SortedSet<LocalPetalColumn> by lazy {
+        parsedPetalColumns.filterIsInstance<LocalPetalColumn>().toSortedSet()
+    }
+
+    val parsedLocalPetalColumnMap: Map<String, LocalPetalColumn> by lazy {
+        parsedLocalPetalColumns.associateBy { it.name }
+    }
+
+    var migrationSql: String? = null
+    var migrationAlterationSql: List<String>? = null
+
+    fun processMigration(): PetalSchemaMigration {
+        return PetalSchemaMigration(
+            primaryKeyType = primaryKeyType,
+            columnMigrations = parsedLocalPetalColumns.associate { it.name to it.processMigration() }
+        ).apply {
+            migrationSql = this@ParsedPetalSchema.migrationSql
+            migrationAlterationSql = this@ParsedPetalSchema.migrationAlterationSql
+        }
+    }
 
     companion object {
 
@@ -24,7 +52,7 @@ internal class ParsedPetalSchema private constructor(
                                           petalSchemaClass: KotlinContainer.KotlinClass
         ): ParsedPetalSchema {
             return parsePetalSchema(parsedSchemalessPetals, petalSchemaClass).apply {
-                parsedPetalColumns = parseColumns(
+                _parsedPetalColumns = parseColumns(
                     parsedSchemalessPetals = parsedSchemalessPetals,
                     parsedPetalSchema = this)
             }
@@ -51,6 +79,10 @@ internal class ParsedPetalSchema private constructor(
         ): SortedSet<ParsedPetalColumn> {
             return parsedPetalSchema.petalSchemaClass.kotlinProperties
                 .map { ParsedPetalColumn.parsePetalColumn(parsedSchemalessPetals, parsedPetalSchema, it) }
+                .toMutableSet()
+                .apply {
+                    add(PetalIdColumn.parseIdColumn(parsedPetalSchema.parsedSchemalessPetal.petalAnnotation.primaryKeyType))
+                }
                 .toSortedSet()
         }
     }

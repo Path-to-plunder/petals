@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.kotlinpoet.createParameter
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorEagerLoadDependenciesFunSpecBuilder.Companion.COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
@@ -34,7 +35,7 @@ internal class AccessorLoadFunSpecBuilder(val accessorClassInfo: com.casadetasha
     }
 
     private val loadMethodBody: CodeBlock by lazy {
-        when (accessorClassInfo.columns.any { it.isReferenceColumn }) {
+        when (accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {
             true -> CodeBlock.builder()
                     .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
                     .beginControlFlow("when (eagerLoad)")

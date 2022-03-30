@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
@@ -29,8 +30,8 @@ internal class AccessorEagerLoadDependenciesFunSpecBuilder(private val accessorC
         CodeBlock.builder()
             .beginControlFlow("return apply")
             .apply {
-                accessorClassInfo.columns
-                    .filter { it.isReferenceColumn }
+                accessorClassInfo.petalColumns
+                    .filterIsInstance<PetalReferenceColumn>()
                     .forEach {
                         addStatement("${it.name}NestedPetalManager.eagerLoadAccessor()")
                     }
@@ -43,8 +44,8 @@ internal class AccessorEagerLoadDependenciesFunSpecBuilder(private val accessorC
         CodeBlock.builder()
             .add("return load(")
             .apply {
-                accessorClassInfo.columns
-                    .filter { it.isReferenceColumn }
+                accessorClassInfo.petalColumns
+                    .filterIsInstance<PetalReferenceColumn>()
                     .forEach {
                         add("\n  %M::${it.name},", accessorClassInfo.entityMemberName)
                     }

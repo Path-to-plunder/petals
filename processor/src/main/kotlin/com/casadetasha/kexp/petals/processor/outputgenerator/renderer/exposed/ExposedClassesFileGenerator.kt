@@ -1,8 +1,10 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalSchemaMigration
 import com.squareup.kotlinpoet.*
 import java.io.File
 
@@ -10,7 +12,7 @@ internal class ExposedClassesFileGenerator(
     private val petalClasses: PetalClasses,
     private val className: String,
     private val tableName: String,
-    private val schema: UnprocessedPetalSchemaMigration
+    private val schema: ParsedPetalSchema
 ) {
 
     companion object {
@@ -47,10 +49,10 @@ internal class ExposedClassesFileGenerator(
     }
 
     private fun addColumnsToGenerators() {
-        schema.columnsAsList
-            .filter { !it.isId }
+        schema.parsedPetalColumns
+            .filterNot { it is PetalIdColumn }
             .forEach { column ->
-                if (column.isLocalColumn) { tableGenerator.addTableColumn(column) }
+                if (column is LocalPetalColumn) { tableGenerator.addTableColumn(column) }
                 entityGenerator.addEntityColumn(column)
             }
     }

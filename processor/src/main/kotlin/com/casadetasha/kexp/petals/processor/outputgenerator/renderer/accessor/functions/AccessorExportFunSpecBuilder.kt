@@ -1,5 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
@@ -31,24 +34,21 @@ internal class AccessorExportFunSpecBuilder(private val accessorClassInfo: com.c
     }
 
     private fun amendSettersForColumns() {
-        accessorClassInfo.columns
-            .filterNot { it.isId }
-            .filterNot { it.isReferenceColumn }
-            .filterNot { it.isReferencedByColumn }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<PetalValueColumn>()
             .forEach {
                 val constructorBlock = "\n  ${it.name} = ${it.name},"
                 codeBuilder.add(constructorBlock)
             }
-        accessorClassInfo.columns
-            .filterNot { it.isId }
-            .filter { it.isReferenceColumn }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<PetalReferenceColumn>()
             .forEach {
                 val nullabilityState = if (it.isNullable) { "?" } else { "" }
                 val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}]$nullabilityState.value,"
                 codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
             }
-        accessorClassInfo.columns
-            .filter { it.isId }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<PetalIdColumn>()
             .forEach {
                 val constructorBlock = "\n  ${it.name} = ${it.name}.value,"
                 codeBuilder.add(constructorBlock)

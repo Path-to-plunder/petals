@@ -1,12 +1,15 @@
 package com.casadetasha.kexp.petals.processor.inputparser
 
-import com.casadetasha.kexp.annotationparser.AnnotationParser
+import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinValue
 import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn.Companion.parseReferenceColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ReferencedByPetalColumn.Companion.parseReferencedByColumn
 import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn.Companion.parseValueColumn
-import com.casadetasha.kexp.petals.processor.model.*
+import com.casadetasha.kexp.petals.processor.inputparser.ReferencedByPetalColumn.Companion.parseReferencedByColumn
+import com.casadetasha.kexp.petals.processor.model.ColumnReference
+import com.casadetasha.kexp.petals.processor.model.DefaultPetalValue
+import com.casadetasha.kexp.petals.processor.model.PetalClasses
+import com.casadetasha.kexp.petals.processor.model.ReferencedByColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityGenerator
 import com.squareup.kotlinpoet.ClassName
@@ -45,9 +48,9 @@ internal sealed class ParsedPetalColumn(
                     parseReferenceColumn(petalClasses, kotlinProperty, petalClasses[denulledTypeName]!!)
                 }
                 PetalClasses.SUPPORTED_TYPES.contains(denulledTypeName) -> {
-                    parseValueColumn(petalClasses, parsedPetalSchema, kotlinProperty)
+                    parseValueColumn(petalClasses, kotlinProperty)
                 }
-                else -> AnnotationParser.printThenThrowError(
+                else -> printThenThrowError(
                     "Found invalid type for column ${kotlinProperty.simpleName} for table" +
                             " ${parsedPetalSchema.tableName} schema version ${parsedPetalSchema.schemaVersion}" +
                             " $denulledTypeName is not a valid column type. Only other Petals and the following types" +
@@ -76,6 +79,8 @@ internal sealed class LocalPetalColumn private constructor(
     abstract val tablePropertyClassName: TypeName
 
     val isAlteration = alterationInfo != null
+    val previousName by lazy { alterationInfo?.previousName ?: false }
+    val isRename by lazy { alterationInfo?.isRename ?: false }
 
     val kotlinType: ClassName by lazy {
         if (dataType.startsWith("CHARACTER VARYING")) {
@@ -87,42 +92,47 @@ internal sealed class LocalPetalColumn private constructor(
             "TEXT" -> String::class
             "INT" -> Int::class
             "BIGINT" -> Long::class
-            else -> AnnotationParser.printThenThrowError(
+            else -> printThenThrowError(
                 "INTERNAL LIBRARY ERROR: unsupported datatype ($type) found while" +
                         " parsing column for accessor"
             )
         }.asClassName()
     }
 
-    fun process(): PetalColumn = PetalColumn(
+    fun processMigration(): PetalColumn = PetalColumn(
         name = name,
         dataType = dataType,
         isNullable = isNullable,
     )
 }
 
-//internal class PetalIdColumn private constructor(
-//    dataType: String,
-//    alterationInfo: PetalAlteration?,
-//): LocalPetalColumn(
-//    name = "id",
-//    dataType = dataType,
-//    alterationInfo = alterationInfo,
-//    isNullable = false,
-//    isMutable = false,
-//) {
-//
-//    override val tablePropertyClassName: TypeName = Column::class.asClassName()
-//        .parameterizedBy(kotlinType.copy(nullable = isNullable))
-//
-//
-//    companion object {
-//        fun parseIdColumn(parsedPetalSchema: ParsedPetalSchema, kotlinProperty: KotlinValue.KotlinProperty): PetalValueColumn {
-//
-//        }
-//    }
-//}
-//
+internal class PetalIdColumn private constructor(
+    dataType: String,
+): LocalPetalColumn(
+    name = "id",
+    dataType = dataType,
+    alterationInfo = null,
+    isNullable = false,
+    isMutable = false,
+) {
+
+    override val tablePropertyClassName: TypeName = Column::class.asClassName()
+        .parameterizedBy(kotlinType.copy(nullable = isNullable))
+
+
+    companion object {
+        fun parseIdColumn(primaryKeyType: PetalPrimaryKey): PetalIdColumn {
+            return PetalIdColumn(
+                dataType = when (val dataType = primaryKeyType.dataType!!) {
+                    "SERIAL" -> "INT"
+                    "BIGSERIAL" -> "BIGINT"
+                    else -> dataType
+                },
+            )
+        }
+    }
+}
+
 internal class PetalValueColumn private constructor(
     name: String,
     dataType: String,
@@ -143,7 +153,10 @@ internal class PetalValueColumn private constructor(
 
     companion object {
 
-        fun parseValueColumn(petalClasses: Map<ClassName, ParsedSchemalessPetal>, parsedPetalSchema: ParsedPetalSchema, kotlinProperty: KotlinValue.KotlinProperty): PetalValueColumn {
+        fun parseValueColumn(
+            petalClasses: Map<ClassName, ParsedSchemalessPetal>,
+            kotlinProperty: KotlinValue.KotlinProperty
+        ): PetalValueColumn {
             val name = kotlinProperty.simpleName
             val defaultPetalValue = DefaultPetalValue.parseDefaultValueForValueColumn(kotlinProperty)
 
@@ -296,7 +309,7 @@ private fun getStringTypeName(annotatedElement: Element?): String {
 
 private fun getPetalReferenceIdTypeName(petalClasses: Map<ClassName, ParsedSchemalessPetal>, typeName: TypeName): String {
     return petalClasses[typeName.copy(nullable = false)]!!.petalAnnotation.primaryKeyType.dataType
-        ?: AnnotationParser.printThenThrowError(
+        ?: printThenThrowError(
             "INTERNAL LIBRARY ERROR: Type $typeName was left out of new column sql generation block."
         )
 }

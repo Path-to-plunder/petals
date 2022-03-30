@@ -2,9 +2,12 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ReferencedByPetalColumn
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.toMemberName
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -16,7 +19,7 @@ import java.util.*
 internal class ExposedEntityGenerator(
     private val petalClasses: PetalClasses,
     private val className: String,
-    private val schema: UnprocessedPetalSchemaMigration
+    private val schema: ParsedPetalSchema
 ) {
 
     companion object {
@@ -53,22 +56,21 @@ internal class ExposedEntityGenerator(
             .addSuperclassConstructorParameter(tableClassName)
             .build()
     }
-
     fun generateClassSpec(): TypeSpec = entityBuilder.build()
 
-    fun addEntityColumn(column: UnprocessedPetalColumn) {
-        when  {
-            column.isReferenceColumn -> addReferenceColumn(column)
-            column.isReferencedByColumn -> addReferencedByColumn(column)
-            else -> addValueColumn(column)
+    fun addEntityColumn(column: ParsedPetalColumn) {
+        when (column) {
+            is PetalReferenceColumn -> addReferenceColumn(column)
+            is ReferencedByPetalColumn -> addReferencedByColumn(column)
+            is LocalPetalColumn -> addLocalColumn(column)
         }
     }
 
-    private fun addReferenceColumn(column: UnprocessedPetalColumn) {
+    private fun addReferenceColumn(column: PetalReferenceColumn) {
         val referencedOnMethod: String = if (column.isNullable) { "optionalReferencedOn" } else { "referencedOn" }
         entityBuilder
             .addProperty(
-                PropertySpec.builder(column.name, column.entityPropertyClassName.copy(nullable = column.isNullable))
+                PropertySpec.builder(column.name, column.referencingEntityClassName.copy(nullable = column.isNullable))
                     .mutable()
                     .delegate(
                         CodeBlock.of(
@@ -82,7 +84,7 @@ internal class ExposedEntityGenerator(
             )
     }
 
-    private fun addReferencedByColumn(column: UnprocessedPetalColumn) {
+    private fun addReferencedByColumn(column: ReferencedByPetalColumn) {
         val referencedByColumnInfo = column.referencedByColumn!!.columnReference
         val referencedByColumnType = column.referencedByColumn.columnReference.kotlinTypeName
         val externalReferenceColumn = petalClasses.RUNTIME_SCHEMAS[referencedByColumnType]
@@ -110,10 +112,10 @@ internal class ExposedEntityGenerator(
             )
     }
 
-    private fun addValueColumn(column: UnprocessedPetalColumn) {
+    private fun addLocalColumn(column: LocalPetalColumn) {
         entityBuilder
             .addProperty(
-                PropertySpec.builder(column.name, column.entityPropertyClassName)
+                PropertySpec.builder(column.name, column.kotlinType.copy(nullable = column.isNullable))
                     .mutable()
                     .delegate(
                         CodeBlock.of(

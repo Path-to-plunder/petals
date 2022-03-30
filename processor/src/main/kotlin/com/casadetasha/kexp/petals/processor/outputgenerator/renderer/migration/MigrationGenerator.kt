@@ -5,18 +5,20 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowErro
 import com.casadetasha.kexp.petals.annotations.BasePetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.INT
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey.LONG
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetal
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.AlterColumnMigration
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalMigration
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalSchemaMigration
 import com.squareup.kotlinpoet.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.collections.ArrayList
 
 private val json = Json { prettyPrint = true }
 
-internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMigration) {
+internal class MigrationGenerator(private val petalMigration: ParsedPetal) {
 
     companion object {
         private const val PACKAGE_NAME: String = "com.casadetasha.kexp.petals.migration"
@@ -25,7 +27,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     private lateinit var classBuilder: TypeSpec.Builder
 
     fun createMigrationForTable() {
-        petalMigration.schemaMigrations[1] ?: printThenThrowError("All tables must contain a version 1")
+        petalMigration.schemas[1] ?: printThenThrowError("All tables must contain a version 1")
         val className = "TableMigrations\$${petalMigration.tableName}"
 
         val fileSpecBuilder = FileSpec.builder(
@@ -36,7 +38,7 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
         classBuilder = TypeSpec.classBuilder(className).superclass(BasePetalMigration::class)
         addMigrationSpecs()
 
-        val petalJson = json.encodeToString(petalMigration.process())
+        val petalJson = json.encodeToString(petalMigration.processMigration())
         classBuilder.addOverriddenStringProperty("petalJson", petalJson)
 
         fileSpecBuilder.addType(classBuilder.build())
@@ -44,62 +46,61 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     }
 
     private fun addMigrationSpecs() {
-        var previousMigration: UnprocessedPetalSchemaMigration? = null
-        petalMigration.schemaMigrations.toSortedMap().forEach {
-            val currentMigration = it.value
+        var previousSchema: ParsedPetalSchema? = null
+        petalMigration.schemas.forEach { (_, currentSchema) ->
 
-            currentMigration.migrationSql = when (previousMigration) {
-                null -> buildCreateTableSql(currentMigration)
+            currentSchema.migrationSql = when (val nullCheckedPreviousSchema = previousSchema) {
+                null -> buildCreateTableSql(currentSchema)
                 else -> buildMigrateTableSql(
-                    it.key - 1 to previousMigration!!,
-                    it.key to currentMigration
+                    nullCheckedPreviousSchema,
+                    currentSchema
                 )
             }
-            if (previousMigration != null) {
-                currentMigration.migrationAlterationSql = createRenameSql(previousMigration!!, currentMigration)
+            if (previousSchema != null) {
+                currentSchema.migrationAlterationSql = createRenameSql(previousSchema!!, currentSchema)
             }
-            previousMigration = currentMigration
+            previousSchema = currentSchema
         }
     }
 
     private fun createRenameSql(
-        previousMigration: UnprocessedPetalSchemaMigration,
-        currentMigration: UnprocessedPetalSchemaMigration
+        previousSchema: ParsedPetalSchema,
+        currentSchema: ParsedPetalSchema
     ): List<String> {
         val renameSqlList = ArrayList<String>()
-        val alteredColumns: Map<String, AlterColumnMigration> = getAlteredColumns(previousMigration, currentMigration)
-        alteredColumns.filter { it.value.previousColumnState.name != it.value.updatedColumnState.name }
+        val alteredColumns: Map<String, AlterColumnMigration> = getAlteredColumns(previousSchema, currentSchema)
+        alteredColumns.filter { it.value.previousColumnSchema.name != it.value.updatedColumnSchema.name }
             .forEach { (_, migration) ->
                 renameSqlList += createRenameColumnSql(migration)
             }
-        alteredColumns.filter { it.value.updatedColumnState.isRename }
+        alteredColumns.filter { it.value.updatedColumnSchema.isRename }
             .forEach { (_, migration) -> checkForNoOpNameChanges(migration) }
 
         return renameSqlList
     }
 
     private fun checkForNoOpNameChanges(alteredColumn: AlterColumnMigration) {
-        if (alteredColumn.previousColumnState.name == alteredColumn.updatedColumnState.name) {
+        if (alteredColumn.previousColumnSchema.name == alteredColumn.updatedColumnSchema.name) {
             printThenThrowError(
-                "Attempting to rename column ${alteredColumn.previousColumnState.name} to ${alteredColumn.updatedColumnState.name} for table" +
+                "Attempting to rename column ${alteredColumn.previousColumnSchema.name} to ${alteredColumn.updatedColumnSchema.name} for table" +
                         " ${petalMigration.tableName}, however no name change has occurred. If you are not attempting" +
                         " to change the name, remove the name field from the AlterColumn annotation."
             )
         }
     }
 
-    private fun buildCreateTableSql(petalSchemaMigration: UnprocessedPetalSchemaMigration): String {
+    private fun buildCreateTableSql(petalSchema: ParsedPetalSchema): String {
         var tableCreationSql = "CREATE TABLE \"${petalMigration.tableName}\" ("
 
-        val primaryKeyType = petalSchemaMigration.primaryKeyType
+        val primaryKeyType = petalSchema.primaryKeyType
         tableCreationSql += when (primaryKeyType) {
             INT -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
             LONG -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
             else -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
         }
 
-        petalSchemaMigration.localColumnMigrations.values
-            .filter { !it.isId }
+        petalSchema.parsedLocalPetalColumns
+            .filterNot { it is PetalIdColumn }
             .forEach {
                 tableCreationSql += " ${parseNewColumnSql(it)},"
             }
@@ -111,17 +112,15 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     }
 
     private fun buildMigrateTableSql(
-        previousMigrationInfo: Pair<Int, UnprocessedPetalSchemaMigration>,
-        currentMigrationInfo: Pair<Int, UnprocessedPetalSchemaMigration>
+        previousSchema: ParsedPetalSchema,
+        currentSchema: ParsedPetalSchema
     ): String? {
-        val previousMigration = previousMigrationInfo.second
-        val currentMigration = currentMigrationInfo.second
-        checkColumnConsistency(previousMigration.localColumnMigrations, currentMigrationInfo)
+        checkColumnConsistency(previousSchema, currentSchema)
 
-        val alteredColumns: Map<String, AlterColumnMigration> = getAlteredColumns(previousMigration, currentMigration)
-        val addedColumns: List<UnprocessedPetalColumn> = getAddedColumns(previousMigration, currentMigration)
-        val droppedColumns: List<UnprocessedPetalColumn> =
-            getDroppedColumns(previousMigration, currentMigration, alteredColumns)
+        val alteredColumns: Map<String, AlterColumnMigration> = getAlteredColumns(previousSchema, currentSchema)
+        val addedColumns: List<LocalPetalColumn> = getAddedColumns(previousSchema, currentSchema)
+        val droppedColumns: List<LocalPetalColumn> =
+            getDroppedColumns(previousSchema, currentSchema, alteredColumns)
 
         val baseMigrationSql = "ALTER TABLE \"${petalMigration.tableName}\""
 
@@ -139,27 +138,24 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     }
 
     private fun checkColumnConsistency(
-        previousMigrationColumns: Map<String, UnprocessedPetalColumn>,
-        currentMigrationInfo: Pair<Int, UnprocessedPetalSchemaMigration>
+        previousColumns: ParsedPetalSchema,
+        currentSchema: ParsedPetalSchema
     ) {
-        val currentMigrationVersion = currentMigrationInfo.first
-        val currentMigration = currentMigrationInfo.second
-
-        currentMigration.localColumnMigrations.values
-            .filter { !it.isId }
+        currentSchema.parsedLocalPetalColumns
+            .filterNot { it is PetalIdColumn }
             .forEach {
-                val previousColumn = previousMigrationColumns[it.name]
-                if (previousColumn != null && !it.isAlteration && previousColumn.petalColumn != it.petalColumn) {
+                val previousColumn = previousColumns.parsedLocalPetalColumnMap[it.name]
+                if (previousColumn != null && !it.isAlteration && previousColumn != it) {
                     printThenThrowError(
                         "Updated schema for ${it.name} in table ${petalMigration.tableName} version" +
-                                " $currentMigrationVersion does not match column from previous schema. If this schema" +
+                                " ${currentSchema.schemaVersion} does not match column from previous schema. If this schema" +
                                 " change is intentional, add the @AlterColumn annotation to the column."
                     )
                 }
                 if (previousColumn != null && it.isAlteration && previousColumn.dataType != it.dataType) {
                     printThenThrowError(
                         "Updated schema for ${it.name} in table ${petalMigration.tableName} version" +
-                                " $currentMigrationVersion has changed the column data type from" +
+                                " ${currentSchema.schemaVersion} has changed the column data type from" +
                                 " ${previousColumn.dataType} to ${it.dataType}. Data type alterations are not" +
                                 " currently supported."
                     )
@@ -168,50 +164,50 @@ internal class MigrationGenerator(private val petalMigration: UnprocessedPetalMi
     }
 
     private fun getDroppedColumns(
-        previousMigration: UnprocessedPetalSchemaMigration,
-        currentMigration: UnprocessedPetalSchemaMigration,
+        previousMigration: ParsedPetalSchema,
+        currentMigration: ParsedPetalSchema,
         alteredColumns: Map<String, AlterColumnMigration>
-    ): List<UnprocessedPetalColumn> {
-        return previousMigration.localColumnMigrations.values.filter {
+    ): List<LocalPetalColumn> {
+        return previousMigration.parsedLocalPetalColumns.filter {
             !alteredColumns.containsKey(it.name)
-                    && !currentMigration.localColumnMigrations.containsKey(it.name)
-                    && !it.isId
+                    && !currentMigration.parsedLocalPetalColumnMap.containsKey(it.name)
+                    && !( it is PetalIdColumn )
         }
     }
 
     private fun getAddedColumns(
-        previousMigration: UnprocessedPetalSchemaMigration,
-        currentMigration: UnprocessedPetalSchemaMigration
-    ):
-            List<UnprocessedPetalColumn> {
-        return currentMigration.localColumnMigrations.values.filter {
-            !it.isAlteration && !previousMigration.localColumnMigrations.containsKey(it.name)
+        previousSchema: ParsedPetalSchema, currentSchema: ParsedPetalSchema): List<LocalPetalColumn> {
+        return currentSchema.parsedLocalPetalColumns.filter { currentColumn ->
+            !currentColumn.isAlteration &&
+                    !previousSchema.parsedLocalPetalColumns.any { it.name == currentColumn.name }
         }
     }
 
     private fun getAlteredColumns(
-        previousMigration: UnprocessedPetalSchemaMigration,
-        currentMigration: UnprocessedPetalSchemaMigration
+        previousSchema: ParsedPetalSchema,
+        currentSchema: ParsedPetalSchema
     ): Map<String, AlterColumnMigration> {
-        return currentMigration.localColumnMigrations.values.filter { it.isAlteration }
+        return currentSchema.parsedLocalPetalColumns.filter { it.isAlteration }
             .map {
-                val previousColumnMigrations = checkNotNull(previousMigration.localColumnMigrations[it.previousName]) {
-                    "Attempting to rename non existent column ${it.previousName} for new column ${it.name} for table" +
-                            " ${petalMigration.tableName}"
-                }
-                AlterColumnMigration(previousColumnMigrations, it)
+                AlterColumnMigration(
+                     previousColumnSchema = checkNotNull(previousSchema.parsedLocalPetalColumnMap[it.previousName]) {
+                        "Attempting to rename non existent column ${it.previousName} for new column ${it.name} for" +
+                                " table ${petalMigration.tableName}"
+                    },
+                    updatedColumnSchema = it
+                )
             }
-            .associateBy { it.previousColumnState.name }
+            .associateBy { it.previousColumnSchema.name }
     }
 
 
     private fun createRenameColumnSql(alteredColumn: AlterColumnMigration): String {
-        return "ALTER TABLE \"${petalMigration.tableName}\" RENAME COLUMN \"${alteredColumn.previousColumnState.name}\"" +
-                " TO \"${alteredColumn.updatedColumnState.name}\";"
+        return "ALTER TABLE \"${petalMigration.tableName}\" RENAME COLUMN \"${alteredColumn.previousColumnSchema.name}\"" +
+                " TO \"${alteredColumn.updatedColumnSchema.name}\";"
     }
 }
 
-private fun String.amendAddedColumnSql(addedColumns: List<UnprocessedPetalColumn>): String {
+private fun String.amendAddedColumnSql(addedColumns: List<LocalPetalColumn>): String {
     var sql = ""
     addedColumns.forEach { addedColumn ->
         sql += " ADD COLUMN ${parseNewColumnSql(addedColumn)},"
@@ -220,7 +216,7 @@ private fun String.amendAddedColumnSql(addedColumns: List<UnprocessedPetalColumn
     return this + sql
 }
 
-private fun String.amendDroppedColumnSql(droppedColumns: List<UnprocessedPetalColumn>): String {
+private fun String.amendDroppedColumnSql(droppedColumns: List<LocalPetalColumn>): String {
     var sql = ""
     droppedColumns.forEach { droppedColumn ->
         sql += " DROP COLUMN \"${droppedColumn.name}\","
@@ -232,17 +228,17 @@ private fun String.amendDroppedColumnSql(droppedColumns: List<UnprocessedPetalCo
 private fun String.amendAlteredColumnSql(alteredColumns: Map<String, AlterColumnMigration>): String {
     var sql = ""
     alteredColumns.values.forEach { alteredColumn ->
-        if (alteredColumn.previousColumnState.isNullable && !alteredColumn.updatedColumnState.isNullable) {
-            sql += " ALTER COLUMN \"${alteredColumn.updatedColumnState.name}\" SET NOT NULL,"
-        } else if (!alteredColumn.previousColumnState.isNullable && alteredColumn.updatedColumnState.isNullable) {
-            sql += " ALTER COLUMN \"${alteredColumn.updatedColumnState.name}\" DROP NOT NULL,"
+        if (alteredColumn.previousColumnSchema.isNullable && !alteredColumn.updatedColumnSchema.isNullable) {
+            sql += " ALTER COLUMN \"${alteredColumn.updatedColumnSchema.name}\" SET NOT NULL,"
+        } else if (!alteredColumn.previousColumnSchema.isNullable && alteredColumn.updatedColumnSchema.isNullable) {
+            sql += " ALTER COLUMN \"${alteredColumn.updatedColumnSchema.name}\" DROP NOT NULL,"
         }
     }
 
     return this + sql
 }
 
-private fun parseNewColumnSql(column: UnprocessedPetalColumn): String {
+private fun parseNewColumnSql(column: LocalPetalColumn): String {
     var sql = "\"${column.name}\" ${column.dataType}"
     if (!column.isNullable) {
         sql += " NOT NULL"

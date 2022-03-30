@@ -1,5 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
@@ -45,12 +49,12 @@ internal class AccessorCreateFunSpecBuilder(private val accessorClassInfo: com.c
 private class AssignAccessorValuesCodeBlockBuilder(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
 
     val assignValuesCodeBlock: CodeBlock by lazy {
-        val entityColumns = accessorClassInfo.columns
-            .filterNot { it.isId }
-            .filterNot { it.isReferencedByColumn }
+        val entityColumns = accessorClassInfo.petalColumns
+            .filterIsInstance<LocalPetalColumn>()
+            .filterNot { it is PetalIdColumn }
 
-        val valueColumns = entityColumns.filterNot { it.isReferenceColumn }
-        val referenceColumns = entityColumns.filter { it.isReferenceColumn }
+        val valueColumns = entityColumns.filterIsInstance<PetalValueColumn>()
+        val referenceColumns = entityColumns.filterIsInstance<PetalReferenceColumn>()
 
         val builder = CodeBlock.builder()
 

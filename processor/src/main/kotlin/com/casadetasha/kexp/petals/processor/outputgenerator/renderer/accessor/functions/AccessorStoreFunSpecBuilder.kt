@@ -1,5 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
@@ -33,17 +37,16 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: com.ca
             .build()
     }
 
-    private val nonIdColumns: Iterable<UnprocessedPetalColumn> by lazy {
-        accessorClassInfo.columns.filterNot { it.isId }
+    private val nonIdColumns: Iterable<ParsedPetalColumn> by lazy {
+        accessorClassInfo.petalColumns.filterNot { it is PetalIdColumn }
     }
 
-    private val valueColumns: Iterable<UnprocessedPetalColumn> by lazy {
-        nonIdColumns.filterNot { it.isReferenceColumn }
-            .filterNot { it.isReferencedByColumn }
+    private val valueColumns: Iterable<PetalValueColumn> by lazy {
+        nonIdColumns.filterIsInstance<PetalValueColumn>()
     }
 
-    private val referenceColumns: Iterable<UnprocessedPetalColumn> by lazy {
-        nonIdColumns.filter { it.isReferenceColumn }
+    private val referenceColumns: Iterable<PetalReferenceColumn> by lazy {
+        nonIdColumns.filterIsInstance<PetalReferenceColumn>()
     }
 
     private val storeMethodBody: CodeBlock by lazy {
@@ -78,8 +81,7 @@ internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: com.ca
         FunSpec.builder(STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
             .addModifiers(KModifier.PRIVATE)
             .apply {
-                accessorClassInfo.columns
-                    .filter { it.isReferenceColumn }
+                referenceColumns
                     .forEach {
                         val name = it.name + if (it.isNullable) { "?" } else { "" }
                         addStatement("${name}.store(performInsideStandaloneTransaction = false)")

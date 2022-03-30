@@ -1,8 +1,8 @@
 package com.casadetasha.kexp.petals.processor.model
 
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
 
 internal class AlterColumnMigration(
-    val previousColumnState: UnprocessedPetalColumn,
-    val updatedColumnState: UnprocessedPetalColumn
+    val previousColumnSchema: LocalPetalColumn,
+    val updatedColumnSchema: LocalPetalColumn
 )

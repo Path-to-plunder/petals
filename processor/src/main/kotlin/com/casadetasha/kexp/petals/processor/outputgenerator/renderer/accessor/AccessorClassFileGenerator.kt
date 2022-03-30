@@ -7,16 +7,16 @@ import java.io.File
 
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class AccessorClassFileGenerator(
-    private val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+    private val accessorClassInfo: AccessorClassInfo
 ) {
 
     fun generateFile() {
         val fileSpec = FileSpec.builder(
-            packageName = com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator.Companion.PACKAGE_NAME,
+            packageName = PACKAGE_NAME,
             fileName = accessorClassInfo.className.simpleName
         )
             .addType(
-                com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassSpecBuilder(
+                AccessorClassSpecBuilder(
                     accessorClassInfo
                 ).getClassSpec())
             .addImport("org.jetbrains.exposed.dao", "load")

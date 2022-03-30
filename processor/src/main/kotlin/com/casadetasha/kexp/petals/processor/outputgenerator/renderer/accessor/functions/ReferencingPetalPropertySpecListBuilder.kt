@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ReferencedByPetalColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.MemberName
@@ -11,7 +11,7 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class ReferencingPetalPropertySpecListBuilder(
-    private val column: UnprocessedPetalColumn
+    private val column: ReferencedByPetalColumn
 ) {
 
     internal val referencedByFunSpec: FunSpec by lazy {
@@ -31,8 +31,8 @@ internal class ReferencingPetalPropertySpecListBuilder(
 
 internal fun TypeSpec.Builder.addReferencingPetalPropertySpec(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) = apply {
     addFunctions(
-        accessorClassInfo.columns
-            .filter { it.isReferencedByColumn }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<ReferencedByPetalColumn>()
             .map { ReferencingPetalPropertySpecListBuilder(it).referencedByFunSpec }
     )
 }

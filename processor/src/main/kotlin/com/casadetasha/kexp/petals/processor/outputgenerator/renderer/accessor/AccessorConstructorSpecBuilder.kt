@@ -1,22 +1,23 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 
-internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
+internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
     val constructorSpec: FunSpec by lazy {
         val constructorBuilder = FunSpec.constructorBuilder()
             .addModifiers(KModifier.PRIVATE)
             .addParameter(getDbEntityParamSpec())
 
-        accessorClassInfo.sortedColumns
-            .filterNot { it.isReferencedByColumn }
-            .forEach {
-            constructorBuilder.addParameter(getParameterSpec(it))
-        }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<LocalPetalColumn>()
+            .forEach { constructorBuilder.addParameter(getParameterSpec(it)) }
         return@lazy constructorBuilder.build()
     }
 
@@ -24,19 +25,22 @@ internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: com
         .builder("dbEntity", accessorClassInfo.entityClassName)
         .build()
 
-    private fun getParameterSpec(column: UnprocessedPetalColumn): ParameterSpec {
-        val propertyTypeName = when (column.isId) {
-            true -> column.kotlinType
-            false -> column.kotlinType.copy(nullable = column.isNullable)
+    private fun getParameterSpec(column: LocalPetalColumn): ParameterSpec {
+        val propertyTypeName = when (column) {
+            is PetalReferenceColumn -> column.kotlinType
+            else -> column.kotlinType.copy(nullable = column.isNullable)
         }
 
-        val name = when (column.isReferenceColumn) {
-            true -> "${column.name}Id"
-            false -> column.name
+        val name = when (column) {
+            is PetalReferenceColumn -> "${column.name}Id"
+            else -> column.name
         }
 
         val builder = ParameterSpec.builder(name, propertyTypeName)
-        return builder.addDefaultValueIfPresent(column.defaultValue)
-            .build()
+        if (column is PetalValueColumn) {
+            builder.addDefaultValueIfPresent(column.defaultValue)
+        }
+
+        return builder.build()
     }
 }

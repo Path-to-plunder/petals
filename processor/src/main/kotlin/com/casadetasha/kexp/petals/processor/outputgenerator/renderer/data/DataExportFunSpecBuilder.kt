@@ -1,5 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 
+import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
@@ -42,26 +46,26 @@ internal class DataExportFunSpecBuilder(private val accessorClassInfo: com.casad
     }
 
     private fun amendSettersForEntityColumns() {
-        val entityColumns = accessorClassInfo.columns
-            .filterNot { it.isId }
-            .filterNot { it.isReferencedByColumn }
+        val entityColumns = accessorClassInfo.petalColumns
+            .filterIsInstance<LocalPetalColumn>()
+            .filterNot { it is PetalIdColumn }
 
-        entityColumns.filterNot { it.isReferenceColumn }
+        entityColumns.filterIsInstance<PetalValueColumn>()
             .forEach {
                 val constructorBlock = "\n  ${it.name} = ${it.name},"
                 codeBuilder.add(constructorBlock)
             }
 
         entityColumns
-            .filter { it.isReferenceColumn }
+            .filterIsInstance<PetalReferenceColumn>()
             .forEach {
                 val nullibleState = if (it.isNullable) { "?" } else { "" }
                 val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}]$nullibleState.value,"
                 codeBuilder.add(constructorBlock, accessorClassInfo.tableMemberName)
             }
 
-        accessorClassInfo.columns
-            .filter { it.isId }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<PetalIdColumn>()
             .forEach {
                 val constructorBlock = "\n  ${it.name} = ${it.name}.value,"
                 codeBuilder.add(constructorBlock)
@@ -69,12 +73,12 @@ internal class DataExportFunSpecBuilder(private val accessorClassInfo: com.casad
     }
 
     private fun amendSettersForAccessorColumns() {
-        accessorClassInfo.columns
-            .filterNot { it.isReferencedByColumn }
+        accessorClassInfo.petalColumns
+            .filterIsInstance<LocalPetalColumn>()
             .map {
-                when (it.isReferenceColumn) {
-                    true -> "${it.name}Id"
-                    false -> it.name
+                when (it) {
+                    is PetalReferenceColumn -> "${it.name}Id"
+                    else -> it.name
                 }
             }
             .forEach {
