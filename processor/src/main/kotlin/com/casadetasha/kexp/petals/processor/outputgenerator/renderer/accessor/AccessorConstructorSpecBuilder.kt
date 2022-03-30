@@ -1,7 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
+import com.casadetasha.kexp.petals.processor.inputparser.*
 import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalColumn
+import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
 import com.squareup.kotlinpoet.FunSpec
@@ -27,7 +28,7 @@ internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: Acc
 
     private fun getParameterSpec(column: LocalPetalColumn): ParameterSpec {
         val propertyTypeName = when (column) {
-            is PetalReferenceColumn -> column.kotlinType
+            is PetalIdColumn -> column.kotlinType
             else -> column.kotlinType.copy(nullable = column.isNullable)
         }
 
@@ -39,6 +40,10 @@ internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: Acc
         val builder = ParameterSpec.builder(name, propertyTypeName)
         if (column is PetalValueColumn) {
             builder.addDefaultValueIfPresent(column.defaultValue)
+        }
+
+        if (column is PetalReferenceColumn && column.isNullable) {
+            builder.defaultValue("null")
         }
 
         return builder.build()

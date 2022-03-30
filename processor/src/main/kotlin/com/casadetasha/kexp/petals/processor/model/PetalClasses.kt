@@ -3,6 +3,8 @@ package com.casadetasha.kexp.petals.processor.model
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.*
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetal
+import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
@@ -52,4 +54,6 @@ internal class PetalClasses {
 //        check(_RUNTIME_SCHEMAS == null) { "INTERNAL LIBRARY ERROR: Runtime schemas must only be set once"}
         _RUNTIME_SCHEMAS = value
     }
+
+    lateinit var petalToSchemaMap: Map<ClassName, ParsedPetalSchema>
 }

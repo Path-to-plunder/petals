@@ -2,25 +2,14 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
-import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.inputparser.CleanPetalAnnotationParser
-import com.casadetasha.kexp.petals.processor.inputparser.PetalAnnotationParser
-import com.casadetasha.kexp.petals.processor.inputparser.UnprocessedPetalMigrationMap
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.MigrationGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalMigrationSetupGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalSchemaMigrationParser
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalMigration
 import com.casadetasha.kexp.petals.processor.outputgenerator.PetalFileGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassFileGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator
 import com.google.auto.service.AutoService
-import com.squareup.kotlinpoet.*
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
-import javax.lang.model.type.MirroredTypeException
 
 @AutoService(Processor::class)
 @SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME)
@@ -53,8 +42,11 @@ class PetalProcessor : AbstractProcessor() {
 //        val petalAnnotationParser = PetalAnnotationParser(petalClasses)
 //        petalAnnotationParser.parsePetalMap()
         val petalAnnotationParser = CleanPetalAnnotationParser(petalClasses)
-//        petalAnnotationParser.parsePetalMap()
+        val petalMap = petalAnnotationParser.parsePetalMap()
+        petalClasses.petalToSchemaMap = petalMap
+            .filter { (_, parsedPetal) -> parsedPetal.getCurrentSchema() != null }
+            .mapValues { (_, parsedPetal) -> parsedPetal.getCurrentSchema()!! }
 
-        PetalFileGenerator(petalClasses, petalAnnotationParser.parsePetalMap()).generateFiles()
+        PetalFileGenerator(petalClasses, petalMap).generateFiles()
     }
 }

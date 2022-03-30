@@ -11,6 +11,7 @@ internal open class ParsedSchemalessPetal protected constructor(
 
     val tableName: String = petalAnnotation.tableName
     val className: ClassName = kotlinClass.className
+    val baseSimpleName: String = petalAnnotation.className
 
     companion object {
         fun parseFromKotlinClass(kotlinClass: KotlinContainer.KotlinClass): ParsedSchemalessPetal {

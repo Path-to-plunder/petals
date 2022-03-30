@@ -28,6 +28,7 @@ internal class AccessorClassInfoCreateFunParameterSpec(private val accessorClass
             when (petalColumn) {
                 is PetalIdColumn -> propertyBuilder.defaultValue("null")
                 is PetalValueColumn -> propertyBuilder.addDefaultValueIfPresent(petalColumn.defaultValue)
+                is PetalReferenceColumn -> if (petalColumn.isNullable) { propertyBuilder.defaultValue("null") }
                 else -> { /* do nothing */ }
             }
 

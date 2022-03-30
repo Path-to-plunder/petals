@@ -8,7 +8,7 @@ import java.io.File
 
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class DataClassFileGenerator(
-    private val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+    private val accessorClassInfo: AccessorClassInfo
 ) {
 
     fun generateFile() {
@@ -17,8 +17,8 @@ internal class DataClassFileGenerator(
             fileName = "${accessorClassInfo.className.simpleName}Data"
         )
             .addType(DataClassSpecBuilder(accessorClassInfo).getClassSpec())
-//            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).entityExportFunSpec)
-//            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).accessorExportFunSpec)
+            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).entityExportFunSpec)
+            .addFunction(DataExportFunSpecBuilder(accessorClassInfo).accessorExportFunSpec)
             .build()
 
         fileSpec.writeTo(File(kaptKotlinGeneratedDir))

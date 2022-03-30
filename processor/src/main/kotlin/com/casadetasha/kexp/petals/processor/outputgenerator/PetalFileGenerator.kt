@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator
 import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.MigrationGenerator
@@ -34,13 +35,13 @@ internal class PetalFileGenerator(private val petalClasses: PetalClasses,
     }
 }
 
-private fun ParsedPetal.getAccessorClassInfo(): com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo {
-    return com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo(
+private fun ParsedPetal.getAccessorClassInfo(): AccessorClassInfo {
+    return AccessorClassInfo(
         packageName = "com.casadetasha.kexp.petals.accessor",
-        simpleName = petalAnnotation.className,
-        entityClassName = ClassName("com.casadetasha.kexp.petals", "${className}Entity"),
-        tableClassName = ClassName("com.casadetasha.kexp.petals", "${className}Table"),
-        dataClassName = ClassName("com.casadetasha.kexp.petals.data", "${className}Data"),
+        simpleName = baseSimpleName,
+        entityClassName = ClassName("com.casadetasha.kexp.petals", "${baseSimpleName}Entity"),
+        tableClassName = ClassName("com.casadetasha.kexp.petals", "${baseSimpleName}Table"),
+        dataClassName = ClassName("com.casadetasha.kexp.petals.data", "${baseSimpleName}Data"),
         petalColumns = getCurrentSchema()!!.parsedPetalColumns
     )
 }

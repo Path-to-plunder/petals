@@ -13,7 +13,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
 @OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorClassSpecBuilder(val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
+internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
 
     internal fun getClassSpec(): TypeSpec {
         return TypeSpec.classBuilder(accessorClassInfo.className)
@@ -29,14 +29,12 @@ internal class AccessorClassSpecBuilder(val accessorClassInfo: com.casadetasha.k
     }
 }
 
-private fun TypeSpec.Builder.addEagerLoadMethod(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) = apply {
+private fun TypeSpec.Builder.addEagerLoadMethod(accessorClassInfo: AccessorClassInfo) = apply {
     addFunction(AccessorEagerLoadDependenciesFunSpecBuilder(accessorClassInfo).petalEagerLoadDependenciesFunSpec)
 }
 
-// This will always be type EntityAccessor so asClassName() is safe here
-@OptIn(DelicateKotlinPoetApi::class)
-private fun TypeSpec.Builder.addSuperclass(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) = apply {
-    superclass(PetalAccessor::class.java.asClassName()
+private fun TypeSpec.Builder.addSuperclass(accessorClassInfo: AccessorClassInfo) = apply {
+    superclass(PetalAccessor::class.asClassName()
         .parameterizedBy(
             accessorClassInfo.className,
             accessorClassInfo.entityClassName,
@@ -57,7 +55,7 @@ internal fun ParameterSpec.Builder.addDefaultValueIfPresent(defaultValue: Defaul
     }
 }
 
-private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) = apply {
+private fun TypeSpec.Builder.addAccessorCompanionObject(accessorClassInfo: AccessorClassInfo) = apply {
     this.addType(
         TypeSpec
             .companionObjectBuilder()

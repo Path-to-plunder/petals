@@ -21,7 +21,7 @@ internal class ParsedPetal(
     fun processMigration(): PetalMigration {
         return PetalMigration(
             tableName = tableName,
-            className = className.simpleName,
+            className = baseSimpleName,
             schemaMigrations = schemas.mapValues { (_, schema) -> schema.processMigration() }
         )
     }
