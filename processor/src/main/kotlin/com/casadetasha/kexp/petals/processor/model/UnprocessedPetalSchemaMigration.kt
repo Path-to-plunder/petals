@@ -15,14 +15,13 @@ internal class UnprocessedPetalSchemaMigration constructor(
     }
     var migrationSql: String? = null
     var migrationAlterationSql: List<String>? = null
-    val columnsAsList: List<UnprocessedPetalColumn> by lazy { columnMigrationMap.values.toList() }
 
     fun process(): PetalSchemaMigration {
         return PetalSchemaMigration(
             primaryKeyType = primaryKeyType,
-            columnMigrations = localColumnMigrations.map { it.key to it.value.process() }.toMap()
+            columnMap = localColumnMigrations.map { it.key to it.value.process() }.toMap()
         ).apply {
-            migrationSql = this@UnprocessedPetalSchemaMigration.migrationSql
+            migrationSqlRows = this@UnprocessedPetalSchemaMigration.migrationSql?.let { listOf(it) }
             migrationAlterationSql = this@UnprocessedPetalSchemaMigration.migrationAlterationSql
         }
     }

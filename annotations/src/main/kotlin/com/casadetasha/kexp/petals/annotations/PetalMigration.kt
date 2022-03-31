@@ -9,11 +9,12 @@ data class PetalMigration(val tableName: String,
 
 @Serializable
 data class PetalSchemaMigration(val primaryKeyType: PetalPrimaryKey,
-                                val columnMigrations: Map<String, PetalColumn>) {
-    var migrationSql: String? = null
+                                val columnMap: Map<String, PetalColumn>) {
+    var migrationSqlRows: List<String>? = null
+    val migrationSql: String? get() { return migrationSqlRows?.joinToString(" ") }
     var migrationAlterationSql: List<String>? = null
 
-    val columnsAsList: List<PetalColumn> by lazy { columnMigrations.values.toList() }
+    val columns: List<PetalColumn> by lazy { columnMap.values.toList() }
 }
 
 @Serializable

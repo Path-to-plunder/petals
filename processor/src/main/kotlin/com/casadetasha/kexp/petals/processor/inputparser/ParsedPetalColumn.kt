@@ -25,7 +25,7 @@ import javax.lang.model.element.Element
 internal sealed class ParsedPetalColumn(
     val name: String,
     val isNullable: Boolean,
-): Comparable<ParsedPetalColumn> {
+) : Comparable<ParsedPetalColumn> {
 
     override fun compareTo(other: ParsedPetalColumn): Int {
         return name.compareTo(other.name)
@@ -57,8 +57,13 @@ internal sealed class ParsedPetalColumn(
             val denulledTypeName = kotlinProperty.typeName.copy(nullable = false)
 
             return when {
-                referencedBy != null && petalClasses.containsKey(denulledTypeName) -> {
-                    parseReferencedByColumn(kotlinProperty, referencedBy, petalClasses[denulledTypeName]!!)
+                referencedBy != null -> {
+                    parseReferencedByColumn(
+                        parsedPetalSchema,
+                        kotlinProperty,
+                        referencedBy,
+                        petalClasses[denulledTypeName]
+                    )
                 }
                 petalClasses.containsKey(denulledTypeName) -> {
                     parseReferenceColumn(petalClasses, kotlinProperty, petalClasses[denulledTypeName]!!)
@@ -83,7 +88,7 @@ internal sealed class LocalPetalColumn private constructor(
     val dataType: String,
     val isMutable: Boolean,
     val alterationInfo: PetalAlteration?,
-): ParsedPetalColumn(
+) : ParsedPetalColumn(
     name = name,
     isNullable = isNullable
 ) {
@@ -141,7 +146,7 @@ internal sealed class LocalPetalColumn private constructor(
 
 internal class PetalIdColumn private constructor(
     dataType: String,
-): LocalPetalColumn(
+) : LocalPetalColumn(
     name = "id",
     dataType = dataType,
     alterationInfo = null,
@@ -189,7 +194,7 @@ internal class PetalValueColumn private constructor(
     isMutable: Boolean,
     alterationInfo: PetalAlteration?,
     val defaultValue: DefaultPetalValue?,
-): LocalPetalColumn(
+) : LocalPetalColumn(
     name = name,
     dataType = dataType,
     alterationInfo = alterationInfo,
@@ -253,7 +258,7 @@ internal class PetalReferenceColumn private constructor(
     isMutable: Boolean,
     alterationInfo: PetalAlteration?,
     val columnReferenceInfo: ColumnReference,
-): LocalPetalColumn(
+) : LocalPetalColumn(
     name = name,
     dataType = dataType,
     alterationInfo = alterationInfo,
@@ -336,26 +341,33 @@ internal class ReferencedByPetalColumn private constructor(
     name: String,
     isNullable: Boolean,
     val referencedByColumn: ReferencedByColumn?,
-): ParsedPetalColumn(
+) : ParsedPetalColumn(
     name = name,
     isNullable = isNullable
 ) {
 
     companion object {
         fun parseReferencedByColumn(
+            parsedPetalSchema: ParsedPetalSchema,
             kotlinProperty: KotlinValue.KotlinProperty,
             referencedBy: ReferencedBy,
-            referencedOnPetal: ParsedSchemalessPetal
+            referencedOnPetal: ParsedSchemalessPetal?
         ): ReferencedByPetalColumn {
+            checkNotNull(referencedOnPetal) {
+                "ReferencedBy annotated column type must be a class or interface annotated with @Petal. Found" +
+                        " ${kotlinProperty.typeName} for ReferencedBy column ${kotlinProperty.simpleName} for table" +
+                        " ${parsedPetalSchema.tableName}"
+            }
+
             val name = kotlinProperty.simpleName
-            val referencedByColumn: ReferencedByColumn = referencedOnPetal.asReferencingPetal(referencedBy.referencePropertyName)
+            val referencedByColumn: ReferencedByColumn =
+                referencedOnPetal.asReferencingPetal(referencedBy.referencePropertyName)
 
             return ReferencedByPetalColumn(
                 name = name,
                 isNullable = kotlinProperty.isNullable,
                 referencedByColumn = referencedByColumn,
             )
-
         }
 
         private fun ParsedSchemalessPetal.asReferencingPetal(columnName: String): ReferencedByColumn {
@@ -383,7 +395,10 @@ internal class ReferencedByPetalColumn private constructor(
     }
 }
 
-private fun getDataType(petalClasses: Map<ClassName, ParsedSchemalessPetal>, kotlinProperty: KotlinValue.KotlinProperty): String {
+private fun getDataType(
+    petalClasses: Map<ClassName, ParsedSchemalessPetal>,
+    kotlinProperty: KotlinValue.KotlinProperty
+): String {
     val typeName = kotlinProperty.typeName
     return when (typeName.copy(nullable = false)) {
         String::class.asTypeName() -> getStringTypeName(kotlinProperty.annotatedElement)
@@ -404,7 +419,10 @@ private fun getStringTypeName(annotatedElement: Element?): String {
     }
 }
 
-private fun getPetalReferenceIdTypeName(petalClasses: Map<ClassName, ParsedSchemalessPetal>, typeName: TypeName): String {
+private fun getPetalReferenceIdTypeName(
+    petalClasses: Map<ClassName, ParsedSchemalessPetal>,
+    typeName: TypeName
+): String {
     return petalClasses[typeName.copy(nullable = false)]!!.petalAnnotation.primaryKeyType.dataType
         ?: printThenThrowError(
             "INTERNAL LIBRARY ERROR: Type $typeName was left out of new column sql generation block."

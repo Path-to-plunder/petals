@@ -77,7 +77,7 @@ class StartingNonNullableSqlTest {
 
     @Test
     fun `Creates column as NOT NULL if schema property is not nullable`() {
-        assertThat(petalSchemaMigrations[1]!!.migrationSql)
+        assertThat(petalSchemaMigrations[1]!!.migrationSqlRows)
             .isEqualTo("CREATE TABLE \"starting_non_nullable_petal\" (" +
                     " id uuid PRIMARY KEY," +
                     " \"color\" TEXT NOT NULL" +
@@ -87,7 +87,7 @@ class StartingNonNullableSqlTest {
 
     @Test
     fun `Updates column to NOT NULL if altered column is non nullable`() {
-        assertThat(petalSchemaMigrations[2]!!.migrationSql)
+        assertThat(petalSchemaMigrations[2]!!.migrationSqlRows)
             .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
                     " ALTER COLUMN \"color\" DROP NOT NULL"
             )
@@ -95,7 +95,7 @@ class StartingNonNullableSqlTest {
 
     @Test
     fun `Added non nullable columns are added as non nullable`() {
-        assertThat(petalSchemaMigrations[3]!!.migrationSql)
+        assertThat(petalSchemaMigrations[3]!!.migrationSqlRows)
             .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
                     " ADD COLUMN \"secondColor\" TEXT NOT NULL"
             )

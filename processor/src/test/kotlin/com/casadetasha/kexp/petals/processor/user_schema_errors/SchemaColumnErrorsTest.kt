@@ -14,18 +14,25 @@ class SchemaColumnErrorsTest {
     fun `using an unsupported column type fails with internal error referencing column name and Type`() {
         val compilationResult = compileSources(unsupportedColumnTypeSchema)
         assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
-        assertThat(compilationResult.messages).contains("Column type must be a base Petal column type or another Petal")
-        assertThat(compilationResult.messages).contains("unsupportedColumn")
-        assertThat(compilationResult.messages).contains("UnsupportedColumnType")
+        assertThat(compilationResult.messages).contains("Found invalid type for column unsupportedColumn for table failed_petal schema version 1 com.casadetasha.UnsupportedColumnType is not a valid column type")
     }
 
     @Test
-    fun `using an unsupported @ReferencedBy column type fails with internal error referencing column name and Type`() {
+    fun `using a non basic type unsupported @ReferencedBy column type fails with internal error referencing column name and Type`() {
+        val compilationResult = compileSources(basicTypeReferencedByTypeSchema)
+        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
+        assertThat(compilationResult.messages).contains("ReferencedBy annotated column type must be a class or interface annotated with @Petal")
+        assertThat(compilationResult.messages).contains("basicTypeReferencedByColumn")
+        assertThat(compilationResult.messages).contains("String")
+    }
+
+    @Test
+    fun `using a basic type @ReferencedBy column type fails with internal error referencing column name and Type`() {
         val compilationResult = compileSources(unsupportedReferencedByTypeSchema)
         assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
-        assertThat(compilationResult.messages).contains("ReferencedBy type must be a base Petal column type or another Petal.")
+        assertThat(compilationResult.messages).contains("ReferencedBy annotated column type must be a class or interface annotated with @Petal")
         assertThat(compilationResult.messages).contains("unsupportedReferencedByColumn")
-        assertThat(compilationResult.messages).contains("String")
+        assertThat(compilationResult.messages).contains("NotAValidPetalFakeInterface")
     }
 
     @Test
@@ -57,7 +64,7 @@ class SchemaColumnErrorsTest {
             }
         """.trimIndent())
 
-        private val unsupportedReferencedByTypeSchema = SourceFile.kotlin(
+        private val basicTypeReferencedByTypeSchema = SourceFile.kotlin(
             "FailureSchema.kt", """
             package com.casadetasha
             
@@ -71,7 +78,27 @@ class SchemaColumnErrorsTest {
             
             @PetalSchema(petal = FailurePetal::class)
             interface FailurePetalSchema {
-                @ReferencedBy("any") val unsupportedReferencedByColumn: String
+                @ReferencedBy("any") val basicTypeReferencedByColumn: String
+            }
+        """.trimIndent())
+
+        private val unsupportedReferencedByTypeSchema = SourceFile.kotlin(
+            "FailureSchema.kt", """
+            package com.casadetasha
+            
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
+            import com.casadetasha.kexp.petals.annotations.ReferencedBy
+            import java.util.*
+            
+            interface NotAValidPetalFakeInterface
+            
+            @Petal(tableName = "failed_petal", className = "FailedPetal")
+            interface FailurePetal
+            
+            @PetalSchema(petal = FailurePetal::class)
+            interface FailurePetalSchema {
+                @ReferencedBy("any") val unsupportedReferencedByColumn: NotAValidPetalFakeInterface
             }
         """.trimIndent())
 

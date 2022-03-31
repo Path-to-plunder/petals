@@ -56,21 +56,21 @@ abstract class BasePetalMigration {
                     " match. A @Petal annotated schema must be provided matching the current table."
         }
 
-        check(schemaVersion.columnsAsList.sortedBy { it.name } == existingTableInfo!!.columns.sortedBy { it.name }) {
-            val schemaColumns = schemaVersion.columnsAsList
+        check(schemaVersion.columns.sortedBy { it.name } == existingTableInfo!!.columns.sortedBy { it.name }) {
+            val schemaColumns = schemaVersion.columns
             val existingColumns = existingTableInfo!!.columns
             val columnDiff = existingColumns.filterNot { schemaColumns.contains(it) }.toMutableSet()
             columnDiff += schemaColumns.filterNot { existingColumns.contains(it) }
 
-            "Table $tableName version $versionNumber does not match the provided schema.\n\n" +
-                    "Non-matching columns:\n{\n${
-                        columnDiff.sortedBy { it.name }.joinToString("\n")
-                    }\n}\n\n" +
+            return@check "Table $tableName version $versionNumber does not match the provided schema.\n\n" +
                     "Expected Columns:\n{\n${
                         schemaColumns.sortedBy { it.name }.joinToString("\n")
                     }\n}\n\n" +
                     "Actual Columns:\n{\n${
                         existingColumns.sortedBy { it.name }.joinToString("\n")
+                    }\n}\n\n" +
+                    "Non-matching columns:\n{\n${
+                        columnDiff.sortedBy { it.name }.joinToString("\n")
                     }\n}\n"
         }
     }

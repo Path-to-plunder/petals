@@ -18,34 +18,43 @@ class ColumnMigrationSqlTest {
 
     @Test
     fun `Creates table creation migration with all supported types`() {
-        assertThat(petalSchemaMigrations[1]!!.migrationSql)
-            .isEqualTo(
-                "CREATE TABLE \"column_migration_petal\" (" +
-                        " id SERIAL PRIMARY KEY," +
-                        " \"checkingVarChar\" CHARACTER VARYING(10) NOT NULL," +
-                        " \"checkingString\" TEXT NOT NULL," +
-                        " \"checkingInt\" INT NOT NULL," +
-                        " \"checkingUUID\" uuid NOT NULL," +
-                        " \"checkingLong\" BIGINT NOT NULL" +
-                        " )"
+        val migrationSql = petalSchemaMigrations[1]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql).createsTableWithExactColumns(
+            tableName = "column_migration_petal",
+            columnCreationSql = listOf(
+                " id SERIAL PRIMARY KEY,",
+                " \"checkingVarChar\" CHARACTER VARYING(10) NOT NULL,",
+                " \"checkingString\" TEXT NOT NULL,",
+                " \"checkingInt\" INT NOT NULL,",
+                " \"checkingUUID\" uuid NOT NULL,",
+                " \"checkingLong\" BIGINT NOT NULL",
             )
+        )
     }
 
     @Test
     fun `Creates alter table migration with dropping and adding all supported types`() {
-        assertThat(petalSchemaMigrations[2]!!.migrationSql)
-            .isEqualTo(
-                "ALTER TABLE \"column_migration_petal\"" +
-                        " DROP COLUMN \"checkingVarChar\"," +
-                        " DROP COLUMN \"checkingString\"," +
-                        " DROP COLUMN \"checkingInt\"," +
-                        " DROP COLUMN \"checkingUUID\"," +
-                        " DROP COLUMN \"checkingLong\"," +
-                        " ADD COLUMN \"color\" TEXT NOT NULL," +
-                        " ADD COLUMN \"count\" INT NOT NULL," +
-                        " ADD COLUMN \"secondColor\" CHARACTER VARYING(10) NOT NULL," +
-                        " ADD COLUMN \"uuid\" uuid NOT NULL," +
-                        " ADD COLUMN \"sporeCount\" BIGINT NOT NULL"
+        val migrationSql = petalSchemaMigrations[2]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql).migratesTableWithExactColumnAlterations(
+                tableName = "column_migration_petal",
+                columnAlterationSql = listOf(
+                    " DROP COLUMN \"checkingVarChar\",",
+                    " DROP COLUMN \"checkingString\",",
+                    " DROP COLUMN \"checkingInt\",",
+                    " DROP COLUMN \"checkingUUID\",",
+                    " DROP COLUMN \"checkingLong\",",
+                    " ADD COLUMN \"color\" TEXT NOT NULL,",
+                    " ADD COLUMN \"count\" INT NOT NULL,",
+                    " ADD COLUMN \"secondColor\" CHARACTER VARYING(10) NOT NULL,",
+                    " ADD COLUMN \"uuid\" uuid NOT NULL,",
+                    " ADD COLUMN \"sporeCount\" BIGINT NOT NULL"
+                )
             )
     }
 
@@ -119,7 +128,8 @@ class ColumnMigrationSqlTest {
 
         private lateinit var petalSchemaMigrations: Map<Int, PetalSchemaMigration>
 
-        @ClassRule @JvmField
+        @ClassRule
+        @JvmField
         val resource: ExternalResource = object : ExternalResource() {
 
             override fun before() {
@@ -129,7 +139,8 @@ class ColumnMigrationSqlTest {
             }
 
             private fun parsePetalMigrations(compilationResult: KotlinCompilation.Result) {
-                val generatedMigrationClass = compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$column_migration_petal")
+                val generatedMigrationClass =
+                    compilationResult.classLoader.loadClass("com.casadetasha.kexp.petals.migration.TableMigrations\$column_migration_petal")
 
                 val migrationClassInstance = generatedMigrationClass.getDeclaredConstructor().newInstance()
                 val petalJsonGetter: Method = migrationClassInstance.javaClass.getDeclaredMethod("getPetalJson")

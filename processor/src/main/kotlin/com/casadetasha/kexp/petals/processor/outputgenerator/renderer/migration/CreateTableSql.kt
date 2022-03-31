@@ -7,11 +7,11 @@ import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
 
 internal class CreatePetalTableSqlParser(val petalSchema: ParsedPetalSchema): PetalTableSqlParser() {
 
-    val createTableSql: String by lazy {
-        var tableCreationSql = "CREATE TABLE \"${petalSchema.tableName}\" ("
+    val createTableSql: List<String> by lazy {
+        val tableCreationSqlRows = mutableListOf("CREATE TABLE \"${petalSchema.tableName}\" (")
 
         val primaryKeyType = petalSchema.primaryKeyType
-        tableCreationSql += when (primaryKeyType) {
+        tableCreationSqlRows += when (primaryKeyType) {
             PetalPrimaryKey.INT -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
             PetalPrimaryKey.LONG -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
             else -> " id ${primaryKeyType.dataType} PRIMARY KEY,"
@@ -20,13 +20,14 @@ internal class CreatePetalTableSqlParser(val petalSchema: ParsedPetalSchema): Pe
         petalSchema.parsedLocalPetalColumns
             .filterNot { it is PetalIdColumn }
             .forEach {
-                tableCreationSql += " ${parseNewColumnSql(it)},"
+                tableCreationSqlRows += " ${parseNewColumnSql(it)},"
             }
-        tableCreationSql = tableCreationSql.removeSuffix(",")
 
-        tableCreationSql += " )"
+        tableCreationSqlRows += tableCreationSqlRows.removeLast().removeSuffix(",")
 
-        return@lazy tableCreationSql
+        tableCreationSqlRows += " )"
+
+        return@lazy tableCreationSqlRows
     }
 }
 

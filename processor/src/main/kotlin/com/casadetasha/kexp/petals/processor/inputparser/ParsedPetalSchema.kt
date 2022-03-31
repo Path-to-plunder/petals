@@ -33,15 +33,15 @@ internal class ParsedPetalSchema private constructor(
         parsedLocalPetalColumns.associateBy { it.name }
     }
 
-    var migrationSql: String? = null
+    var migrationSql: List<String>? = null
     var migrationAlterationSql: List<String>? = null
 
     fun processMigration(): PetalSchemaMigration {
         return PetalSchemaMigration(
             primaryKeyType = primaryKeyType,
-            columnMigrations = parsedLocalPetalColumns.associate { it.name to it.processMigration() }
+            columnMap = parsedLocalPetalColumns.associate { it.name to it.processMigration() }
         ).apply {
-            migrationSql = this@ParsedPetalSchema.migrationSql
+            migrationSqlRows = this@ParsedPetalSchema.migrationSql
             migrationAlterationSql = this@ParsedPetalSchema.migrationAlterationSql
         }
     }

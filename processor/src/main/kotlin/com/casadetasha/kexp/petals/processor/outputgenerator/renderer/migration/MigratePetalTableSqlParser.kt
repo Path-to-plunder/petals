@@ -1,6 +1,5 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 
-import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
@@ -43,17 +42,17 @@ internal class MigratePetalTableSqlParser(
         }
     }
 
-    val migrateTableSql: String? by lazy {
+    val migrateTableSql: List<String>? by lazy {
         checkColumnConsistency()
 
-        val baseMigrationSql = "ALTER TABLE \"${tableName}\""
+        val baseMigrationSql = listOf("ALTER TABLE \"${tableName}\"")
 
-        var tableMigrationSql = baseMigrationSql
-        tableMigrationSql = tableMigrationSql.amendDroppedColumnSql()
-        tableMigrationSql = tableMigrationSql.amendAlteredColumnSql()
-        tableMigrationSql = tableMigrationSql.amendAddedColumnSql()
+        val tableMigrationSql = baseMigrationSql.toMutableList()
+        tableMigrationSql += createDroppedColumnSqlRows()
+        tableMigrationSql += createAlteredColumnSqlRows()
+        tableMigrationSql += createAddedColumnSqlRows()
 
-        tableMigrationSql = tableMigrationSql.removeSuffix(",")
+        tableMigrationSql += tableMigrationSql.removeLast().removeSuffix(",")
 
         return@lazy when (tableMigrationSql == baseMigrationSql) {
             false -> tableMigrationSql
@@ -96,26 +95,26 @@ internal class MigratePetalTableSqlParser(
             }
     }
 
-    private fun String.amendAddedColumnSql(): String {
-        var sql = ""
+    private fun createAddedColumnSqlRows(): List<String> {
+        val sql = mutableListOf<String>()
         addedColumns.forEach { addedColumn ->
             sql += " ADD COLUMN ${parseNewColumnSql(addedColumn)},"
         }
 
-        return this + sql
+        return sql
     }
 
-    private fun String.amendDroppedColumnSql(): String {
-        var sql = ""
+    private fun createDroppedColumnSqlRows(): List<String> {
+        val sql = mutableListOf<String>()
         droppedColumns.forEach { droppedColumn ->
             sql += " DROP COLUMN \"${droppedColumn.name}\","
         }
 
-        return this + sql
+        return sql
     }
 
-    private fun String.amendAlteredColumnSql(): String {
-        var sql = ""
+    private fun createAlteredColumnSqlRows(): List<String> {
+        val sql = mutableListOf<String>()
         alteredColumns.values.forEach { alteredColumn ->
             if (alteredColumn.previousColumnSchema.isNullable && !alteredColumn.updatedColumnSchema.isNullable) {
                 sql += " ALTER COLUMN \"${alteredColumn.updatedColumnSchema.name}\" SET NOT NULL,"
@@ -124,12 +123,12 @@ internal class MigratePetalTableSqlParser(
             }
         }
 
-        return this + sql
+        return sql
     }
 
     private fun checkForNoOpNameChanges(alteredColumn: AlterColumnMigration) {
         if (alteredColumn.previousColumnSchema.name == alteredColumn.updatedColumnSchema.name) {
-            AnnotationParser.printThenThrowError(
+            printThenThrowError(
                 "Attempting to rename column ${alteredColumn.previousColumnSchema.name} to ${alteredColumn.updatedColumnSchema.name} for table" +
                         " ${tableName}, however no name change has occurred. If you are not attempting" +
                         " to change the name, remove the name field from the AlterColumn annotation."

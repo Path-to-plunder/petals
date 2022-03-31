@@ -18,7 +18,7 @@ class StartingNullablePetalTest {
 
     @Test
     fun `Creates column as nullable if schema property is nullable`() {
-        assertThat(petalSchemaMigrations[1]!!.migrationSql)
+        assertThat(petalSchemaMigrations[1]!!.migrationSqlRows)
             .isEqualTo("CREATE TABLE \"starting_nullable_petal\" (" +
                     " id uuid PRIMARY KEY," +
                     " \"color\" TEXT" +
@@ -28,14 +28,14 @@ class StartingNullablePetalTest {
 
     @Test
     fun `Updates column to nullable if altered column is nullable`() {
-        assertThat(petalSchemaMigrations[2]!!.migrationSql)
+        assertThat(petalSchemaMigrations[2]!!.migrationSqlRows)
             .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
                     " ALTER COLUMN \"color\" SET NOT NULL")
     }
 
     @Test
     fun `Added nullable columns are added as nullable`() {
-        assertThat(petalSchemaMigrations[3]!!.migrationSql)
+        assertThat(petalSchemaMigrations[3]!!.migrationSqlRows)
             .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
                     " ADD COLUMN \"secondColor\" TEXT"
             )
