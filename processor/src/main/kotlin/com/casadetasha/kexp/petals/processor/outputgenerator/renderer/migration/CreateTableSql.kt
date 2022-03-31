@@ -1,9 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
-import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 
 internal class CreatePetalTableSqlParser(val petalSchema: ParsedPetalSchema): PetalTableSqlParser() {
 

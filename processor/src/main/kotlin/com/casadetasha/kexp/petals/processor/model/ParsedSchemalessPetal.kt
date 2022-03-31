@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.inputparser
+package com.casadetasha.kexp.petals.processor.model
 
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.Petal

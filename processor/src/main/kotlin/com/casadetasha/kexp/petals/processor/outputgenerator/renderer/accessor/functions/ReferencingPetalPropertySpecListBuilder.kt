@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
-import com.casadetasha.kexp.petals.processor.inputparser.ReferencedByPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.MemberName

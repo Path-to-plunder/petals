@@ -1,52 +1,32 @@
 package com.casadetasha.kexp.petals.processor.inputparser
 
-import com.casadetasha.kexp.annotationparser.KotlinContainer
-import com.casadetasha.kexp.petals.annotations.Petal
-import com.casadetasha.kexp.petals.annotations.PetalSchema
+import com.casadetasha.kexp.petals.processor.model.ParsedPetal
+import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.model.ParsedSchemalessPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.model.UnprocessedPetalMigration
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalSchemaMigrationParser
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.DelicateKotlinPoetApi
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
-import javax.lang.model.type.MirroredTypeException
 
-internal class PetalAnnotationParser(private val petalClasses: PetalClasses) {
+internal object PetalAnnotationParser {
 
-    private lateinit var _tableMap: UnprocessedPetalMigrationMap
-    val tableMap: UnprocessedPetalMigrationMap get() { return _tableMap }
+    fun parsePetalClasses(): PetalClasses {
+        val petalClasses = PetalClasses()
+        val parsedSchemalessPetals: Map<ClassName, ParsedSchemalessPetal> = petalClasses.petalClasses
+            .mapValues { (_, petalClass) -> ParsedSchemalessPetal.parseFromKotlinClass(petalClass) }
 
-    fun parsePetalMap() {
-        _tableMap  = UnprocessedPetalMigrationMap()
-        petalClasses.SCHEMA_CLASSES.forEach {
-            _tableMap.insertMigrationForPetalSchema(it)
-        }
+        petalClasses.petalMap = petalClasses.schemaClasses
+            .map { ParsedPetalSchema.parseFromAnnotatedSchemaClass(parsedSchemalessPetals, it) }
+            .groupBy { it.parsedSchemalessPetal }
+            .map { (petal, schemaList) ->
+                petal.className to ParsedPetal(
+                    kotlinClass = petal.kotlinClass,
+                    petalAnnotation = petal.petalAnnotation,
+                    schemas = schemaList.associateBy { it.schemaVersion }.toSortedMap())
+            }.toMap()
 
-        petalClasses.RUNTIME_SCHEMAS = _tableMap.values
-            .map { it.schemaMigrations.values.last() }
-            .associateBy { it.petalClass }
+        petalClasses.schemaMap = petalClasses.petalMap
+            .filter { (_, parsedPetal) -> parsedPetal.currentSchema != null }
+            .mapValues { (_, parsedPetal) -> parsedPetal.currentSchema!! }
+
+        return petalClasses
     }
-
-    private fun UnprocessedPetalMigrationMap.insertMigrationForPetalSchema(it: KotlinContainer.KotlinClass) {
-        val petalSchemaAnnotation: PetalSchema = it.getAnnotation(PetalSchema::class)!!
-        val petalClassName = petalSchemaAnnotation.petalTypeName
-        val petal: KotlinContainer.KotlinClass =
-            checkNotNull(petalClasses.PETAL_CLASSES[petalClassName]) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
-        val petalAnnotation =
-            checkNotNull(petal.getAnnotation(Petal::class)) { "Parameter \"petal\" for PetalSchema must be a Petal annotated class." }
-        val tableName = petalAnnotation.tableName
-        val className = petalAnnotation.className
-        val tableVersion = petalSchemaAnnotation.version
-        if (this[tableName] == null) this[tableName] = UnprocessedPetalMigration(
-            tableName = tableName,
-            className = className
-        )
-
-        this[tableName]!!.schemaMigrations[tableVersion] = PetalSchemaMigrationParser(petalClasses)
-            .parseFromClass(petalClassName, it, petalAnnotation.primaryKeyType)
-    }
-
 }
-
-internal typealias UnprocessedPetalMigrationMap = HashMap<String, UnprocessedPetalMigration>

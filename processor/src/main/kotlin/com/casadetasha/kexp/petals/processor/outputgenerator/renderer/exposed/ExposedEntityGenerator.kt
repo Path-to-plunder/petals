@@ -2,11 +2,11 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
-import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ReferencedByPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
+import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.toMemberName
 import com.squareup.kotlinpoet.*
@@ -87,7 +87,7 @@ internal class ExposedEntityGenerator(
     private fun addReferencedByColumn(column: ReferencedByPetalColumn) {
         val referencedByColumnInfo = column.referencedByColumn!!.columnReference
         val referencedByColumnType = column.referencedByColumn.columnReference.kotlinTypeName
-        val externalReferenceColumn = petalClasses.petalToSchemaMap[referencedByColumnType]
+        val externalReferenceColumn = petalClasses.schemaMap[referencedByColumnType]
             ?: printThenThrowError("INTERNAL LIBRARY ERROR: Petal type $referencedByColumnType not found" +
                     " when creating load references method for column ${column.name} for petal $className. This should" +
                     " have been caught during initial petal parsing")

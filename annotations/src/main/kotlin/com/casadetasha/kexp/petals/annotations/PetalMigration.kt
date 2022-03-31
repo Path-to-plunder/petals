@@ -3,17 +3,20 @@ package com.casadetasha.kexp.petals.annotations;
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PetalMigration(val tableName: String,
-                          val className: String,
-                          val schemaMigrations: Map<Int, PetalSchemaMigration> = HashMap())
+data class PetalMigration(
+    val tableName: String,
+    val className: String,
+    val schemaMigrations: Map<Int, PetalSchemaMigration> = HashMap()
+)
 
 @Serializable
-data class PetalSchemaMigration(val primaryKeyType: PetalPrimaryKey,
-                                val columnMap: Map<String, PetalColumn>) {
-    var migrationSqlRows: List<String>? = null
+data class PetalSchemaMigration(
+    val primaryKeyType: PetalPrimaryKey,
+    val columnMap: Map<String, PetalColumn>,
+    val migrationSqlRows: List<String>? = null,
+    val migrationAlterationSql: List<String>? = null
+) {
     val migrationSql: String? get() { return migrationSqlRows?.joinToString(" ") }
-    var migrationAlterationSql: List<String>? = null
-
     val columns: List<PetalColumn> by lazy { columnMap.values.toList() }
 }
 
@@ -22,7 +25,7 @@ data class PetalColumn constructor(
     val name: String,
     val dataType: String,
     val isNullable: Boolean,
-): Comparable<PetalColumn> {
+) : Comparable<PetalColumn> {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

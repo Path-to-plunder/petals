@@ -2,7 +2,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetal
+import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.squareup.kotlinpoet.*
 import java.io.File
 

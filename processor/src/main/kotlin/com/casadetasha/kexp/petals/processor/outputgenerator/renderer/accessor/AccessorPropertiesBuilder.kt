@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
-import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 

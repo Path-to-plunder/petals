@@ -1,8 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
-import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.model.DefaultPetalValue
+import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.model.columns.DefaultPetalValue
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.*
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorEagerLoadDependenciesFunSpecBuilder
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder

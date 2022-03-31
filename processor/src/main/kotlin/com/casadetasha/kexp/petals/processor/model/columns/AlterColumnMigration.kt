@@ -1,6 +1,4 @@
-package com.casadetasha.kexp.petals.processor.model
-
-import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
+package com.casadetasha.kexp.petals.processor.model.columns
 
 internal class AlterColumnMigration(
     val previousColumnSchema: LocalPetalColumn,

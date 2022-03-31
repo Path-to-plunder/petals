@@ -1,15 +1,12 @@
-package com.casadetasha.kexp.petals.processor.inputparser
+package com.casadetasha.kexp.petals.processor.model.columns
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinValue
 import com.casadetasha.kexp.petals.annotations.*
-import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn.Companion.parseReferenceColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn.Companion.parseValueColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ReferencedByPetalColumn.Companion.parseReferencedByColumn
-import com.casadetasha.kexp.petals.processor.model.ColumnReference
-import com.casadetasha.kexp.petals.processor.model.DefaultPetalValue
-import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.model.ReferencedByColumn
+import com.casadetasha.kexp.petals.processor.model.*
+import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn.Companion.parseReferenceColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn.Companion.parseValueColumn
+import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn.Companion.parseReferencedByColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityGenerator
 import com.squareup.kotlinpoet.ClassName
@@ -114,12 +111,6 @@ internal sealed class LocalPetalColumn private constructor(
             )
         }.asClassName()
     }
-
-    fun processMigration(): PetalColumn = PetalColumn(
-        name = name,
-        dataType = dataType,
-        isNullable = isNullable,
-    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -415,11 +406,6 @@ private fun getPreviousName(name: String, renameFrom: String?): String? {
         else -> renameFrom
     }
 }
-
-data class PetalAlteration(
-    val previousName: String? = null,
-    val isRename: Boolean,
-)
 
 private fun ParsedSchemalessPetal.asReference(): ColumnReference {
     val accessorName = petalAnnotation.className

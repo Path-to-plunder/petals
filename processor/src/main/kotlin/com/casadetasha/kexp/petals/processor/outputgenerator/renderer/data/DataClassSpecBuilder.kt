@@ -1,9 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
-import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.kotlinpoet.createParameter
 import com.casadetasha.kexp.petals.processor.outputgenerator.kotlinpoet.createConstructorProperty
 import com.squareup.kotlinpoet.*

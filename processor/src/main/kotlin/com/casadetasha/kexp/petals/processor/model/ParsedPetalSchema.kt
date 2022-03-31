@@ -1,9 +1,12 @@
-package com.casadetasha.kexp.petals.processor.inputparser
+package com.casadetasha.kexp.petals.processor.model
 
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.annotations.PetalSchema
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.DelicateKotlinPoetApi
 import com.squareup.kotlinpoet.TypeName
@@ -31,19 +34,6 @@ internal class ParsedPetalSchema private constructor(
 
     val parsedLocalPetalColumnMap: Map<String, LocalPetalColumn> by lazy {
         parsedLocalPetalColumns.associateBy { it.name }
-    }
-
-    var migrationSql: List<String>? = null
-    var migrationAlterationSql: List<String>? = null
-
-    fun processMigration(): PetalSchemaMigration {
-        return PetalSchemaMigration(
-            primaryKeyType = primaryKeyType,
-            columnMap = parsedLocalPetalColumns.associate { it.name to it.processMigration() }
-        ).apply {
-            migrationSqlRows = this@ParsedPetalSchema.migrationSql
-            migrationAlterationSql = this@ParsedPetalSchema.migrationAlterationSql
-        }
     }
 
     companion object {

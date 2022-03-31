@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator
 
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetal
+import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
@@ -10,9 +10,11 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalMigrationSetupGenerator
 import com.squareup.kotlinpoet.ClassName
 
-internal class PetalFileGenerator(private val petalClasses: PetalClasses,
-                                  private val petalMap: Map<ClassName, ParsedPetal>
+internal class PetalFileGenerator(
+    private val petalClasses: PetalClasses
 ) {
+    private val petalMap by lazy { petalClasses.petalMap }
+
     fun generateFiles() {
         petalMap.values.forEach { petal ->
             generatePetalClasses(petal)
@@ -25,7 +27,7 @@ internal class PetalFileGenerator(private val petalClasses: PetalClasses,
 
     private fun generatePetalClasses(petal: ParsedPetal) {
         MigrationGenerator(petal).createMigrationForTable()
-        petal.getCurrentSchema()?.let {
+        petal.currentSchema?.let {
             val accessorClassInfo = petal.getAccessorClassInfo()
 
             ExposedClassesFileGenerator(petalClasses, petal.petalAnnotation.className, petal.petalAnnotation.tableName, it).generateFile()
@@ -42,6 +44,6 @@ private fun ParsedPetal.getAccessorClassInfo(): AccessorClassInfo {
         entityClassName = ClassName("com.casadetasha.kexp.petals", "${baseSimpleName}Entity"),
         tableClassName = ClassName("com.casadetasha.kexp.petals", "${baseSimpleName}Table"),
         dataClassName = ClassName("com.casadetasha.kexp.petals.data", "${baseSimpleName}Data"),
-        petalColumns = getCurrentSchema()!!.parsedPetalColumns
+        petalColumns = currentSchema!!.parsedPetalColumns
     )
 }

@@ -3,10 +3,10 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalSchema
-import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
+import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.toMemberName
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.EXPOSED_TABLE_PACKAGE
 import com.squareup.kotlinpoet.*

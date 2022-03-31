@@ -1,10 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
-import com.casadetasha.kexp.petals.processor.inputparser.*
-import com.casadetasha.kexp.petals.processor.inputparser.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalValueColumn
+import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec

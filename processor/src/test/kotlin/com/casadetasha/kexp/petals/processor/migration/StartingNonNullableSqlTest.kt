@@ -56,6 +56,7 @@ class StartingNonNullableSqlTest {
             listOf(" ADD COLUMN \"secondColor\" TEXT NOT NULL")
         )
     }
+
     companion object {
 
         private val createAndRenameTableSource = SourceFile.kotlin(

@@ -1,7 +1,7 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
-import com.casadetasha.kexp.petals.processor.inputparser.ParsedPetalColumn
-import com.casadetasha.kexp.petals.processor.inputparser.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.asClassName

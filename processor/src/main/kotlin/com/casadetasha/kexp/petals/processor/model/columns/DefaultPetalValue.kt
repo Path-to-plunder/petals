@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.model
+package com.casadetasha.kexp.petals.processor.model.columns
 
 import com.casadetasha.kexp.annotationparser.KotlinValue.KotlinProperty
 import com.casadetasha.kexp.petals.annotations.DefaultInt
