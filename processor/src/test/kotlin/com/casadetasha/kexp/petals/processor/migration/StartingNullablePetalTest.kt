@@ -2,6 +2,8 @@ package com.casadetasha.kexp.petals.processor.migration
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNotEmpty
+import assertk.assertions.isNotNull
 import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.util.compileSources
@@ -18,27 +20,41 @@ class StartingNullablePetalTest {
 
     @Test
     fun `Creates column as nullable if schema property is nullable`() {
-        assertThat(petalSchemaMigrations[1]!!.migrationSqlRows)
-            .isEqualTo("CREATE TABLE \"starting_nullable_petal\" (" +
-                    " id uuid PRIMARY KEY," +
-                    " \"color\" TEXT" +
-                    " )"
+        val migrationSql = petalSchemaMigrations[1]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql).createsTableWithExactColumns(
+                tableName = "starting_nullable_petal",
+                columnCreationSql = listOf(
+                    " id uuid PRIMARY KEY,",
+                    " \"color\" TEXT"
+                )
             )
     }
 
     @Test
     fun `Updates column to nullable if altered column is nullable`() {
-        assertThat(petalSchemaMigrations[2]!!.migrationSqlRows)
-            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
-                    " ALTER COLUMN \"color\" SET NOT NULL")
+        val migrationSql = petalSchemaMigrations[2]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql).migratesTableWithExactColumnAlterations(
+            tableName = "starting_nullable_petal",
+            columnAlterationSql = listOf(" ALTER COLUMN \"color\" SET NOT NULL")
+        )
     }
 
     @Test
     fun `Added nullable columns are added as nullable`() {
-        assertThat(petalSchemaMigrations[3]!!.migrationSqlRows)
-            .isEqualTo("ALTER TABLE \"starting_nullable_petal\"" +
-                    " ADD COLUMN \"secondColor\" TEXT"
-            )
+        val migrationSql = petalSchemaMigrations[3]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql).migratesTableWithExactColumnAlterations(
+            tableName = "starting_nullable_petal",
+            columnAlterationSql = listOf(" ADD COLUMN \"secondColor\" TEXT")
+        )
     }
 
     companion object {

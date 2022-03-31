@@ -128,8 +128,6 @@ internal sealed class LocalPetalColumn private constructor(
 
         if (dataType != other.dataType) return false
         if (isMutable != other.isMutable) return false
-        if (alterationInfo != other.alterationInfo) return false
-        if (tablePropertyClassName != other.tablePropertyClassName) return false
 
         return true
     }
@@ -138,8 +136,6 @@ internal sealed class LocalPetalColumn private constructor(
         var result = super.hashCode()
         result = 31 * result + dataType.hashCode()
         result = 31 * result + isMutable.hashCode()
-        result = 31 * result + (alterationInfo?.hashCode() ?: 0)
-        result = 31 * result + tablePropertyClassName.hashCode()
         return result
     }
 }
@@ -175,14 +171,12 @@ internal class PetalIdColumn private constructor(
         if (other !is PetalIdColumn) return false
         if (!super.equals(other)) return false
 
-        if (tablePropertyClassName != other.tablePropertyClassName) return false
-
         return true
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + tablePropertyClassName.hashCode()
+        result = 31 * result + PetalIdColumn::class.hashCode()
         return result
     }
 }
@@ -239,14 +233,12 @@ internal class PetalValueColumn private constructor(
         if (other !is PetalValueColumn) return false
         if (!super.equals(other)) return false
 
-        if (defaultValue != other.defaultValue) return false
-
         return true
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (defaultValue?.hashCode() ?: 0)
+        result = 31 * result + PetalValueColumn::class.hashCode()
         return result
     }
 }
@@ -314,27 +306,14 @@ internal class PetalReferenceColumn private constructor(
         if (other !is PetalReferenceColumn) return false
         if (!super.equals(other)) return false
 
-        if (columnReferenceInfo != other.columnReferenceInfo) return false
-
         return true
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + columnReferenceInfo.hashCode()
+        result = 31 * result + PetalReferenceColumn::class.hashCode()
         return result
     }
-}
-
-private fun ParsedSchemalessPetal.asReference(): ColumnReference {
-    val accessorName = petalAnnotation.className
-
-    return ColumnReference(
-        kotlinTypeName = this.className,
-        accessorClassName = ClassName(AccessorClassFileGenerator.PACKAGE_NAME, accessorName),
-        tableClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Table"),
-        entityClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Entity"),
-    )
 }
 
 internal class ReferencedByPetalColumn private constructor(
@@ -441,3 +420,14 @@ data class PetalAlteration(
     val previousName: String? = null,
     val isRename: Boolean,
 )
+
+private fun ParsedSchemalessPetal.asReference(): ColumnReference {
+    val accessorName = petalAnnotation.className
+
+    return ColumnReference(
+        kotlinTypeName = this.className,
+        accessorClassName = ClassName(AccessorClassFileGenerator.PACKAGE_NAME, accessorName),
+        tableClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Table"),
+        entityClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Entity"),
+    )
+}

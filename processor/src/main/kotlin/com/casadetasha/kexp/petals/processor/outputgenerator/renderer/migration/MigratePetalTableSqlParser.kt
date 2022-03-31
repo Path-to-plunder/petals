@@ -9,7 +9,7 @@ import com.casadetasha.kexp.petals.processor.model.AlterColumnMigration
 internal class MigratePetalTableSqlParser(
     private val previousSchema: ParsedPetalSchema,
     private val currentSchema: ParsedPetalSchema,
-): PetalTableSqlParser() {
+) : PetalTableSqlParser() {
 
     private val tableName = currentSchema.tableName
 
@@ -80,8 +80,8 @@ internal class MigratePetalTableSqlParser(
                 if (previousColumn != null && !it.isAlteration && previousColumn != it) {
                     printThenThrowError(
                         "Updated schema for ${it.name} in table $tableName version" +
-                                " ${currentSchema.schemaVersion} does not match column from previous schema. If this schema" +
-                                " change is intentional, add the @AlterColumn annotation to the column."
+                                " ${currentSchema.schemaVersion} does not match column from previous schema. If this" +
+                                " schema change is intentional, add the @AlterColumn annotation to the column."
                     )
                 }
                 if (previousColumn != null && it.isAlteration && previousColumn.dataType != it.dataType) {

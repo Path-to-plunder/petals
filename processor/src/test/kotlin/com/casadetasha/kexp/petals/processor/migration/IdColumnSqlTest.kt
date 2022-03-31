@@ -2,7 +2,6 @@ package com.casadetasha.kexp.petals.processor.migration
 
 import assertk.Assert
 import assertk.assertThat
-import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotEmpty
 import assertk.assertions.isNotNull
@@ -138,7 +137,9 @@ class IdColumnSqlTest {
     }
 }
 
-internal fun Assert<List<String>>.createsTable(tableName: String) = given { actual ->
+internal fun List<String>.createsTable(tableName: String) {
+    val actual = this
+
     assertThat(actual).isNotNull()
 
     val createTableText = "CREATE TABLE \"$tableName\" ("
@@ -161,7 +162,7 @@ internal fun List<String>.createsTableWithExactColumns(
     tableName: String, columnCreationSql: List<String>
 ) {
     val actual = this
-    assertThat(actual).createsTable(tableName)
+    assertThatSqlList(actual).createsTable(tableName)
     assertThatSqlList(actual.subList(1, actual.size - 1)).containsExactColumnMigrations(columnCreationSql)
 }
 

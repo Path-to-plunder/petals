@@ -1,7 +1,8 @@
 package com.casadetasha.kexp.petals.processor.migration
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
+import assertk.assertions.isNotEmpty
+import assertk.assertions.isNotNull
 import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.util.compileSources
@@ -16,6 +17,45 @@ import java.lang.reflect.Method
 
 class StartingNonNullableSqlTest {
 
+    @Test
+    fun `Creates column as NOT NULL if schema property is not nullable`() {
+        val migrationSql = petalSchemaMigrations[1]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql).createsTableWithExactColumns(
+            tableName = "starting_non_nullable_petal",
+            columnCreationSql = listOf(
+                    " id uuid PRIMARY KEY,",
+                    " \"color\" TEXT NOT NULL"
+            )
+        )
+    }
+
+    @Test
+    fun `Updates column to NOT NULL if altered column is non nullable`() {
+        val migrationSql = petalSchemaMigrations[2]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql)
+            .migratesTableWithExactColumnAlterations(
+                tableName = "starting_non_nullable_petal",
+                columnAlterationSql = listOf(" ALTER COLUMN \"color\" DROP NOT NULL")
+            )
+    }
+
+    @Test
+    fun `Added non nullable columns are added as non nullable`() {
+        val migrationSql = petalSchemaMigrations[3]!!.migrationSqlRows
+
+        assertThat(migrationSql).isNotNull()
+        assertThat(migrationSql!!).isNotEmpty()
+        assertThatSqlList(migrationSql).migratesTableWithExactColumnAlterations(
+            tableName = "starting_non_nullable_petal",
+            listOf(" ADD COLUMN \"secondColor\" TEXT NOT NULL")
+        )
+    }
     companion object {
 
         private val createAndRenameTableSource = SourceFile.kotlin(
@@ -73,31 +113,5 @@ class StartingNonNullableSqlTest {
                 petalSchemaMigrations = petalMigration.schemaMigrations
             }
         }
-    }
-
-    @Test
-    fun `Creates column as NOT NULL if schema property is not nullable`() {
-        assertThat(petalSchemaMigrations[1]!!.migrationSqlRows)
-            .isEqualTo("CREATE TABLE \"starting_non_nullable_petal\" (" +
-                    " id uuid PRIMARY KEY," +
-                    " \"color\" TEXT NOT NULL" +
-                    " )"
-            )
-    }
-
-    @Test
-    fun `Updates column to NOT NULL if altered column is non nullable`() {
-        assertThat(petalSchemaMigrations[2]!!.migrationSqlRows)
-            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
-                    " ALTER COLUMN \"color\" DROP NOT NULL"
-            )
-    }
-
-    @Test
-    fun `Added non nullable columns are added as non nullable`() {
-        assertThat(petalSchemaMigrations[3]!!.migrationSqlRows)
-            .isEqualTo("ALTER TABLE \"starting_non_nullable_petal\"" +
-                    " ADD COLUMN \"secondColor\" TEXT NOT NULL"
-            )
     }
 }
