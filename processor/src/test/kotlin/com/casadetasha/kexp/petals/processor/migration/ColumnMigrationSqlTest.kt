@@ -1,10 +1,7 @@
 package com.casadetasha.kexp.petals.processor.migration
 
 import assertk.assertThat
-import assertk.assertions.containsExactly
-import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
-import assertk.assertions.isNull
+import assertk.assertions.*
 import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.util.compileSources
@@ -66,7 +63,7 @@ class ColumnMigrationSqlTest {
         val alterationSql: List<String>? = renameMigration.migrationAlterationSql
 
         assertThat(alterationSql).isNotNull()
-        assertThat(alterationSql!!).containsExactly(
+        assertThat(alterationSql!!).containsExactlyInAnyOrder(
             """ALTER TABLE "column_migration_petal" RENAME COLUMN "count" TO "renamed_count";""",
             """ALTER TABLE "column_migration_petal" RENAME COLUMN "sporeCount" TO "renamed_sporeCount";""",
             """ALTER TABLE "column_migration_petal" RENAME COLUMN "uuid" TO "renamed_uuid";""",
