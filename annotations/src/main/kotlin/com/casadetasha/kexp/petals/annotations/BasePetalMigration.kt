@@ -121,26 +121,27 @@ abstract class BasePetalMigration {
 
         MetaTableInfo.updateTableVersionNumber(connection, tableName, tableVersion)
     }
-}
 
-private fun Connection.useWithoutAutoCommit(function: (Connection) -> Unit) {
-    use {
-        try {
-            autoCommit = false
-            function.invoke(this)
-        } finally {
-            autoCommit = true
+    private fun Connection.useWithoutAutoCommit(function: (Connection) -> Unit) {
+        use {
+            try {
+                autoCommit = false
+                function.invoke(this)
+            } finally {
+                autoCommit = true
+            }
         }
     }
-}
 
-private fun Connection.runTransactionWithRollback(function: (Connection) -> Unit) {
-    val savepoint = setSavepoint()
-    try {
-        function.invoke(this)
-        commit()
-    } catch (e: SQLException) {
-        println(e)
-        rollback(savepoint)
+    private fun Connection.runTransactionWithRollback(function: (Connection) -> Unit) {
+        val savepoint = setSavepoint()
+        try {
+            function.invoke(this)
+            commit()
+        } catch (e: SQLException) {
+            println(e)
+            rollback(savepoint)
+            throw IllegalStateException("Failed migrating table $tableName", e)
+        }
     }
 }
