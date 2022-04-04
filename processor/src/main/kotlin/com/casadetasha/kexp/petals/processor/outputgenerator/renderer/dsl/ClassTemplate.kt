@@ -7,11 +7,11 @@ import com.squareup.kotlinpoet.TypeSpec
 class ClassTemplate private constructor(className: ClassName,
                     private val modifiers: Collection<KModifier>?,
                     annotations: Collection<AnnotationTemplate>?,
-                    function: ClassTemplate.() -> Unit) {
+                    function: ClassTemplate.() -> Unit): KotlinContainerTemplate {
 
     private val classBuilder = TypeSpec.classBuilder(className)
 
-    val classSpec: TypeSpec
+    internal val classSpec: TypeSpec
 
     init {
         annotations?.let {
@@ -29,16 +29,16 @@ class ClassTemplate private constructor(className: ClassName,
         classSpec = classBuilder.build()
     }
 
-    fun addFunction(functionTemplate: FunctionTemplate) {
+    override fun addFunction(functionTemplate: FunctionTemplate) {
         classBuilder.addFunction(functionTemplate.functionSpec)
+    }
+
+    override fun addProperties(properties: Collection<PropertyTemplate>) {
+        classBuilder.addProperties(properties.map { it.propertySpec } )
     }
 
     fun addPrimaryConstructor(primaryConstructorTemplate: ConstructorTemplate) {
         classBuilder.primaryConstructor(primaryConstructorTemplate.constructorSpec)
-    }
-
-    fun addProperties(properties: Collection<PropertyTemplate>) {
-        classBuilder.addProperties(properties.map { it.propertySpec } )
     }
 
     companion object {
@@ -53,3 +53,4 @@ class ClassTemplate private constructor(className: ClassName,
         }
     }
 }
+
