@@ -16,8 +16,7 @@ import kotlinx.serialization.Serializable
 internal class DataClassSpecBuilder(val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
 
     internal fun getClassSpec(): TypeSpec {
-        return TypeSpec.classBuilder(accessorClassInfo.dataClassName)
-            .addAnnotation(serializableAnnotation)
+        return TypeSpec.classBuilder(accessorClassInfo.dataClassName) .addAnnotation(serializableAnnotation)
             .addModifiers(KModifier.DATA)
             .primaryConstructor(constructorSpec)
             .addProperties(propertySpecs)

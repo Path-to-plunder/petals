@@ -2,18 +2,18 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
-import com.casadetasha.kexp.petals.processor.model.columns.*
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.asMemberName
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ClassTemplate.Companion.classTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate.Companion.functionTemplate
-import com.squareup.kotlinpoet.AnnotationSpec
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.collectParameters
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectProperties
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
@@ -34,72 +34,81 @@ internal class DslDataClassFileGenerator(
         ) {
             classTemplate(
                 name = accessorClassInfo.dataClassName,
-                modifiers = KModifier.DATA,
-                annotations = AnnotationTemplate(Serializable::class)
+                modifiers = listOf(KModifier.DATA),
+                annotations = listOf(AnnotationTemplate(Serializable::class))
             ) {
                 primaryConstructorTemplate {
-                    accessorClassInfo.petalColumns
-                        .filterIsInstance<LocalPetalColumn>()
-                        .onEach { column ->
-                            parameterTemplate(
+                    collectParameters {
+                        accessorClassInfo.localColumns
+                            .map { column ->
+                                ParameterTemplate(
+                                    name = column.propertyName,
+                                    typeName = column.propertyTypeName
+                                )
+                            }
+                    }
+                }
+
+                collectProperties {
+                    accessorClassInfo.localColumns
+                        .map { column ->
+                            PropertyTemplate(
                                 name = column.propertyName,
-                                typeName = column.propertyTypeName
+                                typeName = column.propertyTypeName,
+                                annotations = when (column.kotlinType) {
+                                    UUID::class.asClassName() -> listOf(uuidSerializableAnnotation)
+                                    else -> emptyList()
+                                },
+                                isMutable = column.isMutable,
+                                isParameter = true,
                             )
                         }
-                    }
-
-                accessorClassInfo.petalColumns
-                    .filterIsInstance<LocalPetalColumn>()
-                    .map { column ->
-                        propertyTemplate(
-                            name = column.propertyName,
-                            typeName = column.propertyTypeName,
-                            annotations = when (column.kotlinType) {
-                                UUID::class.asClassName() -> listOf(uuidSerializableAnnotation)
-                                else -> emptyList()
-                            },
-                            isMutable = column.isMutable,
-                        )
-                    }
-            }
-
-            functionTemplate(
-                name = EXPORT_METHOD_SIMPLE_NAME,
-                receiver = accessorClassInfo.className,
-                typeName = accessorClassInfo.dataClassName
-            ) {
-                addCode("return ${accessorClassInfo.dataClassName.simpleName}(")
-
-                accessorClassInfo.petalValueColumns.forEach {
-                    addCode("\n  ${it.name} = ${it.name},")
                 }
 
-                accessorClassInfo.petalReferenceColumns
-                    .forEach {
-                        val nullibleState = if (it.isNullable) { "?" } else { "" }
-                        addCode(
-                            "\n  ${it.name}Id = readValues[%M.${it.name}]$nullibleState.value,",
-                            accessorClassInfo.tableMemberName
-                        )
+                functionTemplate(
+                    name = EXPORT_METHOD_SIMPLE_NAME,
+                    receiverType = accessorClassInfo.entityClassName,
+                    returnType = accessorClassInfo.dataClassName
+                ) {
+                    parenthesisedBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
+                        collectCode {
+                            accessorClassInfo.petalValueColumns.map { CodeTemplate("\n  ${it.name} = ${it.name},") }
+                        }
+
+                        collectCode {
+                            accessorClassInfo.petalReferenceColumns
+                                .map {
+                                    val nullableState = if (it.isNullable) { "?" } else { "" }
+                                    CodeTemplate(
+                                        "\n  ${it.name}Id = readValues[%M.${it.name}]$nullableState.value,",
+                                        accessorClassInfo.tableMemberName
+                                    )
+                                }
+                        }
+
+                        collectCode {
+                            accessorClassInfo.localColumns.filterIsInstance<PetalIdColumn>()
+                                .map { CodeTemplate("\n  ${it.name} = ${it.name}.value,") }
+
+                        }
+                    }
+                }
+
+                functionTemplate(
+                    name = EXPORT_METHOD_SIMPLE_NAME,
+                    receiverType = accessorClassInfo.className,
+                    returnType = accessorClassInfo.dataClassName
+                ) {
+                    writeCode("return ${accessorClassInfo.dataClassName.simpleName}(")
+
+                    accessorClassInfo.localColumns.forEach {
+                        writeCode("\n  ${it.propertyName} = ${it.propertyName},")
                     }
 
-                accessorClassInfo.localColumns.filterIsInstance<PetalIdColumn>()
-                    .forEach {
-                        addCode("\n  ${it.name} = ${it.name}.value,")
-                    }
-            }
-
-            functionTemplate(
-                name = EXPORT_METHOD_SIMPLE_NAME,
-                receiver = accessorClassInfo.className,
-                typeName = accessorClassInfo.dataClassName
-            ) {
-                addCode("return ${accessorClassInfo.dataClassName.simpleName}(")
-
-                accessorClassInfo.localColumns.forEach{
-                    addCode("\n  ${it.propertyName} = ${it.propertyName},")
+                    writeCode("\n)")
                 }
             }
+
         }.writeToDisk()
     }
 
@@ -122,8 +131,8 @@ private val LocalPetalColumn.propertyName: String
             else -> this.name
         }
     }
-private val uuidSerializableAnnotation: AnnotationSpec get() {
-    return AnnotationSpec.builder(Serializable::class)
-        .addMember("with = %M::class", UUIDSerializer::class.asMemberName())
-        .build()
+private val uuidSerializableAnnotation: AnnotationTemplate get() {
+    return AnnotationTemplate(Serializable::class) {
+        addMember("with = %M::class", UUIDSerializer::class.asMemberName())
+    }
 }
