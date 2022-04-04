@@ -84,5 +84,5 @@ internal class DataClassSpecBuilder(val accessorClassInfo: com.casadetasha.kexp.
     }
 }
 
-private fun KClass<*>.asMemberName(): MemberName =
+fun KClass<*>.asMemberName(): MemberName =
     asClassName().run { MemberName(packageName, simpleName) }
