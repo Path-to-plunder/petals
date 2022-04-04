@@ -17,11 +17,7 @@ class FunctionTemplate(name: String, receiverType: ClassName?, returnType: Class
     }
 
     fun writeCode(format: String, vararg args: Any?) {
-        writeCode(CodeTemplate(format, args))
-    }
-
-    fun writeCode(codeTemplate: CodeTemplate) {
-        functionBuilder.addCode(codeTemplate.codeBlock)
+        functionBuilder.addCode(format, *args)
     }
 
     fun collectCode(function: () -> List<CodeTemplate>) {
@@ -30,14 +26,15 @@ class FunctionTemplate(name: String, receiverType: ClassName?, returnType: Class
         }
     }
 
-    fun parenthesisedBlock(startingString: String, function: FunctionTemplate.() -> Unit) {
+    fun parenthesizedBlock(startingString: String, function: FunctionTemplate.() -> Unit) {
         functionBuilder.addCode("$startingString(")
         this.function()
         functionBuilder.addCode("\n)")
     }
 
     companion object {
-        fun ClassTemplate.functionTemplate(
+
+        fun KotlinContainerTemplate.functionTemplate(
             name: String,
             receiverType: ClassName?,
             returnType: ClassName?,

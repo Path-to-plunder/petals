@@ -7,7 +7,7 @@ class FileTemplate private constructor(
     private val directory: String,
     packageName: String,
     fileName: String,
-    buildFileFunction: FileTemplate.() -> Unit) {
+    buildFileFunction: FileTemplate.() -> Unit): KotlinContainerTemplate {
 
     private val fileBuilder = FileSpec.builder(
         packageName = packageName,
@@ -26,6 +26,14 @@ class FileTemplate private constructor(
 
     internal fun addClass(classTemplate: ClassTemplate) {
         fileBuilder.addType(classTemplate.classSpec)
+    }
+
+    override fun addFunction(functionTemplate: FunctionTemplate) {
+        fileBuilder.addFunction(functionTemplate.functionSpec)
+    }
+
+    override fun addProperties(properties: Collection<PropertyTemplate>) {
+        properties.forEach{ fileBuilder.addProperty(it.propertySpec) }
     }
 
     companion object {

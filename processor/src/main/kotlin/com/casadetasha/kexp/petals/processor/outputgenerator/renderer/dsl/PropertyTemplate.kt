@@ -3,9 +3,9 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
 
-class PropertyTemplate(
-    name: String,
-    typeName: TypeName,
+sealed class PropertyTemplate(
+    val name: String,
+    val typeName: TypeName,
     isMutable: Boolean? = null,
     annotations: Collection<AnnotationTemplate>? = null,
     isParameter: Boolean = false
@@ -25,8 +25,28 @@ class PropertyTemplate(
     }
 
     companion object {
-        fun ClassTemplate.collectProperties(function: ClassTemplate.() -> Collection<PropertyTemplate>) {
+        fun KotlinContainerTemplate.collectProperties(function: KotlinContainerTemplate.() -> Collection<PropertyTemplate>) {
             addProperties(function())
+        }
+    }
+}
+
+class ConstructorPropertyTemplate(
+    name: String,
+    typeName: TypeName,
+    isMutable: Boolean? = null,
+    annotations: Collection<AnnotationTemplate>? = null
+): PropertyTemplate(
+    name = name,
+    typeName = typeName,
+    isMutable =  isMutable,
+    annotations = annotations,
+    isParameter = true
+) {
+
+    companion object {
+        fun ConstructorTemplate.collectConstructorProperties(classTemplate: ClassTemplate, function: ConstructorTemplate.() -> Collection<ConstructorPropertyTemplate>) {
+            addConstructorProperties(classTemplate, this.function())
         }
     }
 }

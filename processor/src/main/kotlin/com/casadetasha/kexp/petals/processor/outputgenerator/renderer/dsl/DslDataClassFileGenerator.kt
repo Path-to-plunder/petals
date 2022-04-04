@@ -9,11 +9,10 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.A
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.asMemberName
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ClassTemplate.Companion.classTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorPropertyTemplate.Companion.collectConstructorProperties
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate.Companion.functionTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.collectParameters
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectProperties
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
@@ -38,74 +37,63 @@ internal class DslDataClassFileGenerator(
                 annotations = listOf(AnnotationTemplate(Serializable::class))
             ) {
                 primaryConstructorTemplate {
-                    collectParameters {
+                    collectConstructorProperties(this@classTemplate) {
                         accessorClassInfo.localColumns
                             .map { column ->
-                                ParameterTemplate(
+                                ConstructorPropertyTemplate(
                                     name = column.propertyName,
-                                    typeName = column.propertyTypeName
+                                    typeName = column.propertyTypeName,
+                                    annotations = column.propertyAnnotations,
+                                    isMutable = column.isMutable,
                                 )
                             }
                     }
                 }
+            }
 
-                collectProperties {
-                    accessorClassInfo.localColumns
-                        .map { column ->
-                            PropertyTemplate(
-                                name = column.propertyName,
-                                typeName = column.propertyTypeName,
-                                annotations = when (column.kotlinType) {
-                                    UUID::class.asClassName() -> listOf(uuidSerializableAnnotation)
-                                    else -> emptyList()
-                                },
-                                isMutable = column.isMutable,
-                                isParameter = true,
-                            )
-                        }
-                }
+            functionTemplate(
+                name = EXPORT_METHOD_SIMPLE_NAME,
+                receiverType = accessorClassInfo.entityClassName,
+                returnType = accessorClassInfo.dataClassName
+            ) {
+                parenthesizedBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
+                    accessorClassInfo.localColumns.map {
 
-                functionTemplate(
-                    name = EXPORT_METHOD_SIMPLE_NAME,
-                    receiverType = accessorClassInfo.entityClassName,
-                    returnType = accessorClassInfo.dataClassName
-                ) {
-                    parenthesisedBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
-                        collectCode {
-                            accessorClassInfo.petalValueColumns.map { CodeTemplate("\n  ${it.name} = ${it.name},") }
-                        }
-
-                        collectCode {
-                            accessorClassInfo.petalReferenceColumns
-                                .map {
-                                    val nullableState = if (it.isNullable) { "?" } else { "" }
-                                    CodeTemplate(
-                                        "\n  ${it.name}Id = readValues[%M.${it.name}]$nullableState.value,",
-                                        accessorClassInfo.tableMemberName
-                                    )
-                                }
-                        }
-
-                        collectCode {
-                            accessorClassInfo.localColumns.filterIsInstance<PetalIdColumn>()
-                                .map { CodeTemplate("\n  ${it.name} = ${it.name}.value,") }
-
-                        }
                     }
-                }
-
-                functionTemplate(
-                    name = EXPORT_METHOD_SIMPLE_NAME,
-                    receiverType = accessorClassInfo.className,
-                    returnType = accessorClassInfo.dataClassName
-                ) {
-                    writeCode("return ${accessorClassInfo.dataClassName.simpleName}(")
-
-                    accessorClassInfo.localColumns.forEach {
-                        writeCode("\n  ${it.propertyName} = ${it.propertyName},")
+                    collectCode {
+                        accessorClassInfo.petalValueColumns.map { CodeTemplate("\n  ${it.name} = ${it.name},") }
                     }
 
-                    writeCode("\n)")
+                    collectCode {
+                        accessorClassInfo.petalReferenceColumns
+                            .map {
+                                val nullableState = if (it.isNullable) { "?" } else { "" }
+                                CodeTemplate(
+                                    "\n  ${it.name}Id = readValues[%M.${it.name}]$nullableState.value,",
+                                    accessorClassInfo.tableMemberName
+                                )
+                            }
+                    }
+
+                    collectCode {
+                        accessorClassInfo.localColumns.filterIsInstance<PetalIdColumn>()
+                            .map { CodeTemplate("\n  ${it.name} = ${it.name}.value,") }
+
+                    }
+                }
+            }
+
+            functionTemplate(
+                name = EXPORT_METHOD_SIMPLE_NAME,
+                receiverType = accessorClassInfo.className,
+                returnType = accessorClassInfo.dataClassName
+            ) {
+                parenthesizedBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
+                    collectCode {
+                        accessorClassInfo.localColumns.map {
+                            CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},")
+                        }
+                    }
                 }
             }
 
@@ -116,6 +104,14 @@ internal class DslDataClassFileGenerator(
         const val PACKAGE_NAME = "com.casadetasha.kexp.petals.data"
     }
 }
+
+private val LocalPetalColumn.propertyAnnotations: List<AnnotationTemplate>
+    get() {
+        return when (kotlinType) {
+            UUID::class.asClassName() -> listOf(uuidSerializableAnnotation)
+            else -> emptyList()
+        }
+    }
 
 private val LocalPetalColumn.propertyTypeName: TypeName
     get() {
