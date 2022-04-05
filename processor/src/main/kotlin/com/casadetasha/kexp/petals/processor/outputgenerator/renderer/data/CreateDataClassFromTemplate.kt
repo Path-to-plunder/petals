@@ -18,10 +18,12 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.Constr
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate.Companion.functionTemplate
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
 import kotlinx.serialization.Serializable
 import java.util.*
+import kotlin.reflect.KClass
 
 internal object DataClassTemplateValues {
     const val PACKAGE_NAME = "com.casadetasha.kexp.petals.data"
@@ -128,4 +130,6 @@ private val uuidSerializableAnnotation: AnnotationTemplate
         addMember("with = %M::class", UUIDSerializer::class.asMemberName())
     }
 }
+
+private fun KClass<*>.asMemberName(): MemberName = asClassName().let { MemberName(it.packageName, it.simpleName) }
 
