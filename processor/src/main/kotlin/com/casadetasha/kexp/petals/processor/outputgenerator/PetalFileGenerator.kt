@@ -4,8 +4,7 @@ import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassFileGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.DslDataClassFileGenerator
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DslDataClassFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.MigrationGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalMigrationSetupGenerator
@@ -33,7 +32,7 @@ internal class PetalFileGenerator(
 
             ExposedClassesFileGenerator(petalClasses, petal.petalAnnotation.className, petal.petalAnnotation.tableName, it).generateFile()
             AccessorClassFileGenerator(accessorClassInfo).generateFile()
-            DslDataClassFileGenerator(accessorClassInfo).generateFile()
+            DslDataClassFileGenerator.generateFile(accessorClassInfo)
         }
     }
 }
