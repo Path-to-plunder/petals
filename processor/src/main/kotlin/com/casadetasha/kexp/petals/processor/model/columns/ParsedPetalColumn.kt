@@ -2,13 +2,18 @@ package com.casadetasha.kexp.petals.processor.model.columns
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinValue
-import com.casadetasha.kexp.petals.annotations.*
-import com.casadetasha.kexp.petals.processor.model.*
+import com.casadetasha.kexp.petals.annotations.AlterColumn
+import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
+import com.casadetasha.kexp.petals.annotations.ReferencedBy
+import com.casadetasha.kexp.petals.annotations.VarChar
+import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.model.ParsedSchemalessPetal
+import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn.Companion.parseReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn.Companion.parseValueColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn.Companion.parseReferencedByColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityGenerator
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.PACKAGE_NAME as EXPOSED_TABLE_PACKAGE_NAME
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
@@ -433,7 +438,7 @@ private fun ParsedSchemalessPetal.asReference(): ColumnReference {
     return ColumnReference(
         kotlinTypeName = this.className,
         accessorClassName = ClassName(AccessorClassFileGenerator.PACKAGE_NAME, accessorName),
-        tableClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Table"),
-        entityClassName = ClassName(ExposedEntityGenerator.PACKAGE_NAME, "${accessorName}Entity"),
+        tableClassName = ClassName(EXPOSED_TABLE_PACKAGE_NAME, "${accessorName}Table"),
+        entityClassName = ClassName(EXPOSED_TABLE_PACKAGE_NAME, "${accessorName}Entity"),
     )
 }
