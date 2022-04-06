@@ -19,8 +19,11 @@ class PetalProcessor : AbstractProcessor() {
     override fun getSupportedAnnotationTypes() : MutableSet<String> {
         val supportedAnnotationTypes = setOf(
             Petal::class.java.canonicalName,
-            PetalSchema::class.java.canonicalName
-        ) + PetalClasses.SUPPORTED_PROPERTY_ANNOTATIONS.map { it.java.canonicalName }
+        ) + PetalClasses.SUPPORTED_SCHEMA_ANNOTATIONS.map {
+            it.java.canonicalName
+        } + PetalClasses.SUPPORTED_PROPERTY_ANNOTATIONS.map {
+            it.java.canonicalName
+        }
 
         return supportedAnnotationTypes.toMutableSet()
     }

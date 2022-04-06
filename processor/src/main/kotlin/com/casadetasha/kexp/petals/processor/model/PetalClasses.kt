@@ -45,5 +45,11 @@ internal class PetalClasses {
                 DefaultLong::class,
                 ReferencedBy::class,
             )
+
+        val SUPPORTED_SCHEMA_ANNOTATIONS =
+            listOf(
+                PetalSchema::class,
+                RunBeforeMigration::class,
+            )
     }
 }

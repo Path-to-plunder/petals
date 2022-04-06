@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.processor.model
 import com.casadetasha.kexp.annotationparser.KotlinContainer
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.annotations.PetalSchema
-import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
+import com.casadetasha.kexp.petals.annotations.RunBeforeMigration
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
@@ -16,10 +16,12 @@ import javax.lang.model.type.MirroredTypeException
 
 internal class ParsedPetalSchema private constructor(
     val petalSchemaAnnotation: PetalSchema,
+    val runBeforeMigrationAnnotation: RunBeforeMigration?,
     val parsedSchemalessPetal: ParsedSchemalessPetal,
     private val petalSchemaClass: KotlinContainer.KotlinClass,
 ) {
 
+    val runBeforeMigrationSql: String? = runBeforeMigrationAnnotation?.executableSql
     val baseClassName: String = parsedSchemalessPetal.baseSimpleName
     val primaryKeyType: PetalPrimaryKey = parsedSchemalessPetal.petalAnnotation.primaryKeyType
     val tableName: String = parsedSchemalessPetal.petalAnnotation.tableName
@@ -59,6 +61,7 @@ internal class ParsedPetalSchema private constructor(
 
             return ParsedPetalSchema(
                 petalSchemaAnnotation = petalSchemaAnnotation,
+                runBeforeMigrationAnnotation = petalSchemaClass.getAnnotation(RunBeforeMigration::class),
                 petalSchemaClass = petalSchemaClass,
                 parsedSchemalessPetal = petalClass
             )

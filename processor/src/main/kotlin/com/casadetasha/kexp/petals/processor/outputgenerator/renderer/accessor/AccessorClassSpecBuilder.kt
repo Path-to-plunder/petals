@@ -25,37 +25,36 @@ internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo
 
     internal fun getClassSpec(): TypeSpec {
 
-        fileTemplate(
-            directory = kaptKotlinGeneratedDir,
-            packageName = "",
-            fileName = accessorClassInfo.className.simpleName,
-        ) {
-            classTemplate(accessorClassInfo.className) {
-                superclassTemplate(
-                    PetalAccessor::class.asClassName()
-                        .parameterizedBy(
-                            accessorClassInfo.className,
-                            accessorClassInfo.entityClassName,
-                            accessorClassInfo.idKotlinClassName
-                        )
-                ) {
-                    collectConstructorParams { listOf(CodeTemplate("dbEntity, id")) }
-                }
-
-                primaryConstructorTemplate {
-                    collectConstructorProperties(this@classTemplate) {
-                        accessorClassInfo.petalValueColumns
-                            .map { it.toConstructorPropertyTemplate() }
-                    }
-
-                    collectParameters {
-
-                    }
-                }
-            }
-
-        }
-
+//        fileTemplate(
+//            directory = kaptKotlinGeneratedDir,
+//            packageName = "",
+//            fileName = accessorClassInfo.className.simpleName,
+//        ) {
+//            classTemplate(accessorClassInfo.className) {
+//                superclassTemplate(
+//                    PetalAccessor::class.asClassName()
+//                        .parameterizedBy(
+//                            accessorClassInfo.className,
+//                            accessorClassInfo.entityClassName,
+//                            accessorClassInfo.idKotlinClassName
+//                        )
+//                ) {
+//                    collectConstructorParams { listOf(CodeTemplate("dbEntity, id")) }
+//                }
+//
+//                primaryConstructorTemplate {
+//                    collectConstructorProperties(this@classTemplate) {
+//                        accessorClassInfo.petalValueColumns
+//                            .map { it.toConstructorPropertyTemplate() }
+//                    }
+//
+//                    collectParameters {
+//
+//                    }
+//                }
+//            }
+//
+//        }
 
         return TypeSpec.classBuilder(accessorClassInfo.className)
             .addSuperclass(accessorClassInfo)
@@ -67,16 +66,6 @@ internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo
             .addEagerLoadMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)
             .build()
-//        return TypeSpec.classBuilder(accessorClassInfo.className)
-//            .addSuperclass(accessorClassInfo)
-//            .addAccessorProperties(accessorClassInfo)
-//            .primaryConstructor(AccessorConstructorSpecBuilder(accessorClassInfo).constructorSpec)
-//            .addNestedPetalPropertySpec(accessorClassInfo)
-//            .addReferencingPetalPropertySpec(accessorClassInfo)
-//            .addStoreMethod(accessorClassInfo)
-//            .addEagerLoadMethod(accessorClassInfo)
-//            .addAccessorCompanionObject(accessorClassInfo)
-//            .build()
     }
 }
 

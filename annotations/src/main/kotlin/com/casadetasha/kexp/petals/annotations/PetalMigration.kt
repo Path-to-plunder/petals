@@ -10,10 +10,11 @@ data class PetalMigration(
 )
 
 @Serializable
-data class PetalSchemaMigration(
+data class PetalSchemaMigration constructor(
     val primaryKeyType: PetalPrimaryKey,
     val columnMap: Map<String, PetalColumn>,
-    val migrationSqlRows: List<String>? = null,
+    val beforeMigrationSql: String?,
+    val migrationSqlRows: List<String>?,
     val migrationAlterationSql: List<String>? = null
 ) {
     val migrationSql: String? get() { return migrationSqlRows?.joinToString(" ") }

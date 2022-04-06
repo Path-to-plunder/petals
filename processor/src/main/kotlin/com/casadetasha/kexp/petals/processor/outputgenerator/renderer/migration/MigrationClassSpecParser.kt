@@ -60,6 +60,7 @@ internal class MigrationClassSpecParser(private val petal: ParsedPetal, classNam
                     )
                 }
                 .associateBy { it.name },
+            beforeMigrationSql = schema.runBeforeMigrationSql,
             migrationSqlRows = CreatePetalTableSqlParser(schema).createTableSql
         )
     }
@@ -78,6 +79,7 @@ internal class MigrationClassSpecParser(private val petal: ParsedPetal, classNam
                     )
                 }
                 .associateBy { it.name },
+            beforeMigrationSql = currentSchema.runBeforeMigrationSql,
             migrationSqlRows = migrationParser.migrateTableSql,
             migrationAlterationSql = migrationParser.renameSql
         )

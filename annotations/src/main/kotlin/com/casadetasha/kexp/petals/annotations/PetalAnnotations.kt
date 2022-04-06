@@ -12,6 +12,10 @@ annotation class Petal(val tableName: String,
 @Target(AnnotationTarget.CLASS)
 annotation class PetalSchema(val petal: KClass<out Any>, val version: Int = 1)
 
+@Retention(AnnotationRetention.SOURCE)
+@Target(AnnotationTarget.CLASS)
+annotation class RunBeforeMigration(val executableSql: String)
+
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 annotation class DefaultString(val value: String)
