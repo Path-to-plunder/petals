@@ -20,6 +20,7 @@ internal class ParsedPetalSchema private constructor(
     private val petalSchemaClass: KotlinContainer.KotlinClass,
 ) {
 
+    val baseClassName: String = parsedSchemalessPetal.baseSimpleName
     val primaryKeyType: PetalPrimaryKey = parsedSchemalessPetal.petalAnnotation.primaryKeyType
     val tableName: String = parsedSchemalessPetal.petalAnnotation.tableName
     val schemaVersion = petalSchemaAnnotation.version
@@ -71,7 +72,9 @@ internal class ParsedPetalSchema private constructor(
                 .map { ParsedPetalColumn.parsePetalColumn(parsedSchemalessPetals, parsedPetalSchema, it) }
                 .toMutableSet()
                 .apply {
-                    add(PetalIdColumn.parseIdColumn(parsedPetalSchema.parsedSchemalessPetal.petalAnnotation.primaryKeyType))
+                    add(PetalIdColumn.parseIdColumn(
+                        parsedPetalSchema,
+                        parsedPetalSchema.primaryKeyType))
                 }
                 .toSortedSet()
         }

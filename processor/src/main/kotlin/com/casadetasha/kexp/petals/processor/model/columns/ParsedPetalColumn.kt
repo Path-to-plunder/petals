@@ -22,6 +22,7 @@ import javax.lang.model.element.Element
 internal sealed class ParsedPetalColumn(
     val name: String,
     val isNullable: Boolean,
+    val parentSchema: ParsedPetalSchema,
 ) : Comparable<ParsedPetalColumn> {
 
     override fun compareTo(other: ParsedPetalColumn): Int {
@@ -47,7 +48,7 @@ internal sealed class ParsedPetalColumn(
     companion object {
         fun parsePetalColumn(
             petalClasses: Map<ClassName, ParsedSchemalessPetal>,
-            parsedPetalSchema: ParsedPetalSchema,
+            parentSchema: ParsedPetalSchema,
             kotlinProperty: KotlinValue.KotlinProperty
         ): ParsedPetalColumn {
             val referencedBy = kotlinProperty.annotatedElement?.getAnnotation(ReferencedBy::class.java)
@@ -56,21 +57,21 @@ internal sealed class ParsedPetalColumn(
             return when {
                 referencedBy != null -> {
                     parseReferencedByColumn(
-                        parsedPetalSchema,
+                        parentSchema,
                         kotlinProperty,
                         referencedBy,
                         petalClasses[denulledTypeName]
                     )
                 }
                 petalClasses.containsKey(denulledTypeName) -> {
-                    parseReferenceColumn(petalClasses, kotlinProperty, petalClasses[denulledTypeName]!!)
+                    parseReferenceColumn(parentSchema, petalClasses, kotlinProperty, petalClasses[denulledTypeName]!!)
                 }
                 PetalClasses.SUPPORTED_TYPES.contains(denulledTypeName) -> {
-                    parseValueColumn(petalClasses, kotlinProperty)
+                    parseValueColumn(parentSchema, petalClasses, kotlinProperty)
                 }
                 else -> printThenThrowError(
                     "Found invalid type for column ${kotlinProperty.simpleName} for table" +
-                            " ${parsedPetalSchema.tableName} schema version ${parsedPetalSchema.schemaVersion}" +
+                            " ${parentSchema.tableName} schema version ${parentSchema.schemaVersion}" +
                             " $denulledTypeName is not a valid column type. Only other Petals and the following types" +
                             " are supported: ${PetalClasses.SUPPORTED_TYPES.joinToString()}"
                 )
@@ -80,12 +81,14 @@ internal sealed class ParsedPetalColumn(
 }
 
 internal sealed class LocalPetalColumn private constructor(
+    parentSchema: ParsedPetalSchema,
     name: String,
     isNullable: Boolean,
     val dataType: String,
     val isMutable: Boolean,
     val alterationInfo: PetalAlteration?,
 ) : ParsedPetalColumn(
+    parentSchema = parentSchema,
     name = name,
     isNullable = isNullable
 ) {
@@ -132,8 +135,10 @@ internal sealed class LocalPetalColumn private constructor(
 }
 
 internal class PetalIdColumn private constructor(
+    parentSchema: ParsedPetalSchema,
     dataType: String,
 ) : LocalPetalColumn(
+    parentSchema = parentSchema,
     name = "id",
     dataType = dataType,
     alterationInfo = null,
@@ -146,8 +151,9 @@ internal class PetalIdColumn private constructor(
 
 
     companion object {
-        fun parseIdColumn(primaryKeyType: PetalPrimaryKey): PetalIdColumn {
+        fun parseIdColumn(parentSchema: ParsedPetalSchema, primaryKeyType: PetalPrimaryKey): PetalIdColumn {
             return PetalIdColumn(
+                parentSchema = parentSchema,
                 dataType = when (val dataType = primaryKeyType.dataType!!) {
                     "SERIAL" -> "INT"
                     "BIGSERIAL" -> "BIGINT"
@@ -173,6 +179,7 @@ internal class PetalIdColumn private constructor(
 }
 
 internal class PetalValueColumn private constructor(
+    parentSchema: ParsedPetalSchema,
     name: String,
     dataType: String,
     isNullable: Boolean,
@@ -180,6 +187,7 @@ internal class PetalValueColumn private constructor(
     alterationInfo: PetalAlteration?,
     val defaultValue: DefaultPetalValue?,
 ) : LocalPetalColumn(
+    parentSchema = parentSchema,
     name = name,
     dataType = dataType,
     alterationInfo = alterationInfo,
@@ -193,6 +201,7 @@ internal class PetalValueColumn private constructor(
     companion object {
 
         fun parseValueColumn(
+            parentSchema: ParsedPetalSchema,
             petalClasses: Map<ClassName, ParsedSchemalessPetal>,
             kotlinProperty: KotlinValue.KotlinProperty
         ): PetalValueColumn {
@@ -209,6 +218,7 @@ internal class PetalValueColumn private constructor(
             }
 
             return PetalValueColumn(
+                parentSchema = parentSchema,
                 name = name,
                 dataType = getDataType(petalClasses, kotlinProperty),
                 isNullable = kotlinProperty.isNullable,
@@ -235,6 +245,7 @@ internal class PetalValueColumn private constructor(
 }
 
 internal class PetalReferenceColumn private constructor(
+    parentSchema: ParsedPetalSchema,
     name: String,
     dataType: String,
     isNullable: Boolean,
@@ -242,6 +253,7 @@ internal class PetalReferenceColumn private constructor(
     alterationInfo: PetalAlteration?,
     val columnReferenceInfo: ColumnReference,
 ) : LocalPetalColumn(
+    parentSchema = parentSchema,
     name = name,
     dataType = dataType,
     alterationInfo = alterationInfo,
@@ -266,6 +278,7 @@ internal class PetalReferenceColumn private constructor(
     companion object {
 
         fun parseReferenceColumn(
+            parentSchema: ParsedPetalSchema,
             petalClasses: Map<ClassName, ParsedSchemalessPetal>,
             kotlinProperty: KotlinValue.KotlinProperty,
             referencedColumnPetal: ParsedSchemalessPetal
@@ -282,6 +295,7 @@ internal class PetalReferenceColumn private constructor(
             }
 
             return PetalReferenceColumn(
+                parentSchema = parentSchema,
                 columnReferenceInfo = referencedColumnPetal.asReference(),
                 name = name,
                 dataType = getDataType(petalClasses, kotlinProperty),
@@ -308,17 +322,19 @@ internal class PetalReferenceColumn private constructor(
 }
 
 internal class ReferencedByPetalColumn private constructor(
+    parentSchema: ParsedPetalSchema,
     name: String,
     isNullable: Boolean,
-    val referencedByColumn: ReferencedByColumn?,
+    val referencedByColumn: ReferencedByColumn
 ) : ParsedPetalColumn(
+    parentSchema = parentSchema,
     name = name,
     isNullable = isNullable
 ) {
 
     companion object {
         fun parseReferencedByColumn(
-            parsedPetalSchema: ParsedPetalSchema,
+            parentSchema: ParsedPetalSchema,
             kotlinProperty: KotlinValue.KotlinProperty,
             referencedBy: ReferencedBy,
             referencedOnPetal: ParsedSchemalessPetal?
@@ -326,7 +342,7 @@ internal class ReferencedByPetalColumn private constructor(
             checkNotNull(referencedOnPetal) {
                 "ReferencedBy annotated column type must be a class or interface annotated with @Petal. Found" +
                         " ${kotlinProperty.typeName} for ReferencedBy column ${kotlinProperty.simpleName} for table" +
-                        " ${parsedPetalSchema.tableName}"
+                        " ${parentSchema.tableName}"
             }
 
             val name = kotlinProperty.simpleName
@@ -334,6 +350,7 @@ internal class ReferencedByPetalColumn private constructor(
                 referencedOnPetal.asReferencingPetal(referencedBy.referencePropertyName)
 
             return ReferencedByPetalColumn(
+                parentSchema = parentSchema,
                 name = name,
                 isNullable = kotlinProperty.isNullable,
                 referencedByColumn = referencedByColumn,

@@ -25,7 +25,11 @@ class FileTemplate private constructor(
     }
 
     internal fun addClass(classTemplate: ClassTemplate) {
-        fileBuilder.addType(classTemplate.classSpec)
+        fileBuilder.addType(classTemplate.typeSpec)
+    }
+
+    internal fun addObject(objectTemplate: ObjectTemplate) {
+        fileBuilder.addType(objectTemplate.typeSpec)
     }
 
     override fun addFunction(functionTemplate: FunctionTemplate) {

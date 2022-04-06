@@ -4,53 +4,124 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.TypeSpec
 
-class ClassTemplate private constructor(className: ClassName,
-                    private val modifiers: Collection<KModifier>?,
-                    annotations: Collection<AnnotationTemplate>?,
-                    function: ClassTemplate.() -> Unit): KotlinContainerTemplate {
+sealed class BaseTypeTemplate<TYPE> constructor(
+    private val modifiers: Collection<KModifier>?,
+    annotations: Collection<AnnotationTemplate>?,
+    function: TYPE.() -> Unit
+): KotlinContainerTemplate {
 
-    private val classBuilder = TypeSpec.classBuilder(className)
+    abstract val typeBuilder: TypeSpec.Builder
 
-    internal val classSpec: TypeSpec
-
-    init {
+    internal val typeSpec: TypeSpec by lazy {
         annotations?.let {
-            classBuilder.addAnnotations(
+            typeBuilder.addAnnotations(
                 it.map { annotationTemplate -> annotationTemplate.annotationSpec }
             )
         }
+        modifiers?.let { typeBuilder.addModifiers(modifiers) }
 
-        modifiers?.let {
-            classBuilder.addModifiers(modifiers)
-        }
+        // This is a sealed class, and we can see that this is true for all child classes
+        @Suppress("UNCHECKED_CAST")
+        (this as TYPE).function()
 
-        this.function()
-
-        classSpec = classBuilder.build()
+        return@lazy typeBuilder.build()
     }
 
     override fun addFunction(functionTemplate: FunctionTemplate) {
-        classBuilder.addFunction(functionTemplate.functionSpec)
+        typeBuilder.addFunction(functionTemplate.functionSpec)
     }
 
     override fun addProperties(properties: Collection<PropertyTemplate>) {
-        classBuilder.addProperties(properties.map { it.propertySpec } )
+        typeBuilder.addProperties(properties.map { it.propertySpec })
     }
 
     fun addPrimaryConstructor(primaryConstructorTemplate: ConstructorTemplate) {
-        classBuilder.primaryConstructor(primaryConstructorTemplate.constructorSpec)
+        typeBuilder.primaryConstructor(primaryConstructorTemplate.constructorSpec)
     }
 
-    companion object {
-
-        fun FileTemplate.classTemplate(
-            name: ClassName,
-            modifiers: Collection<KModifier>?,
-            annotations: Collection<AnnotationTemplate>? = null,
-            function: ClassTemplate.() -> Unit
-        ) {
-            addClass(ClassTemplate(name, modifiers, annotations, function))
+    fun addSuperclass(superclassTemplate: SuperclassTemplate) {
+        typeBuilder.superclass(superclassTemplate.className)
+        superclassTemplate.constructorParams.forEach { constructorParam ->
+            typeBuilder.addSuperclassConstructorParameter(constructorParam.codeBlock)
         }
     }
 }
 
+
+open class ClassTemplate protected constructor(
+    className: ClassName,
+    modifiers: Collection<KModifier>?,
+    annotations: Collection<AnnotationTemplate>?,
+    function: ClassTemplate.() -> Unit
+): BaseTypeTemplate<ClassTemplate>(
+    modifiers = modifiers,
+    annotations = annotations,
+    function = function
+)
+{
+    override val typeBuilder = TypeSpec.classBuilder(className)
+
+    internal fun addCompanionObject(companionObjectTemplate: CompanionObjectTemplate) {
+        typeBuilder.addType(companionObjectTemplate.typeSpec)
+    }
+
+    companion object {
+        fun FileTemplate.classTemplate(
+            className: ClassName,
+            modifiers: Collection<KModifier>? = null,
+            annotations: Collection<AnnotationTemplate>? = null,
+            function: ClassTemplate.() -> Unit,
+        ) {
+            addClass(ClassTemplate(className, modifiers, annotations, function))
+        }
+    }
+}
+
+class ObjectTemplate private constructor(
+    className: ClassName,
+    modifiers: Collection<KModifier>?,
+    annotations: Collection<AnnotationTemplate>?,
+    function: ClassTemplate.() -> Unit
+): ClassTemplate(
+    className = className,
+    modifiers = modifiers,
+    annotations = annotations,
+    function = function
+) {
+
+    override val typeBuilder = TypeSpec.objectBuilder(className)
+
+    companion object {
+        fun FileTemplate.objectTemplate(
+            className: ClassName,
+            modifiers: Collection<KModifier>? = null,
+            annotations: Collection<AnnotationTemplate>? = null,
+            function: ClassTemplate.() -> Unit,
+        ) {
+            addObject(ObjectTemplate(className, modifiers, annotations, function))
+        }
+    }
+}
+
+class CompanionObjectTemplate private constructor(
+    modifiers: Collection<KModifier>?,
+    annotations: Collection<AnnotationTemplate>?,
+    function: CompanionObjectTemplate.() -> Unit
+): BaseTypeTemplate<CompanionObjectTemplate>(
+    modifiers = modifiers,
+    annotations = annotations,
+    function = function
+) {
+
+    override val typeBuilder = TypeSpec.companionObjectBuilder()
+
+    companion object {
+        fun ClassTemplate.companionObjectTemplate(
+            modifiers: Collection<KModifier>? = null,
+            annotations: Collection<AnnotationTemplate>? = null,
+            function: CompanionObjectTemplate.() -> Unit,
+        ) {
+            addCompanionObject(CompanionObjectTemplate(modifiers, annotations, function))
+        }
+    }
+}
