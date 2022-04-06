@@ -38,7 +38,7 @@ internal class AccessorConstructorSpecBuilder(private val accessorClassInfo: Acc
 
         val builder = ParameterSpec.builder(name, propertyTypeName)
         if (column is PetalValueColumn) {
-            builder.addDefaultValueIfPresent(column.defaultValue)
+            builder.addDefaultValue(column.defaultValue)
         }
 
         if (column is PetalReferenceColumn && column.isNullable) {

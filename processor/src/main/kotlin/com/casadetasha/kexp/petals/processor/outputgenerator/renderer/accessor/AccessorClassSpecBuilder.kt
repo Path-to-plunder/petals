@@ -44,14 +44,12 @@ private fun TypeSpec.Builder.addSuperclass(accessorClassInfo: AccessorClassInfo)
     addSuperclassConstructorParameter(CodeBlock.of("dbEntity, id"))
 }
 
-internal fun ParameterSpec.Builder.addDefaultValueIfPresent(defaultValue: DefaultPetalValue?) = apply {
-    defaultValue?.let {
-        if (!it.hasDefaultValue) { return@let }
+internal fun ParameterSpec.Builder.addDefaultValue(defaultValue: DefaultPetalValue) = apply {
+    if (!defaultValue.hasDefaultValue) return@apply
 
-        when (it.typeName.copy(nullable = false)) {
-            String::class.asClassName() -> defaultValue("%S", it.defaultValue)
-            else -> defaultValue("%L", it.defaultValue)
-        }
+    when (defaultValue.typeName.copy(nullable = false)) {
+        String::class.asClassName() -> defaultValue("%S", defaultValue.value)
+        else -> defaultValue("%L", defaultValue.value)
     }
 }
 

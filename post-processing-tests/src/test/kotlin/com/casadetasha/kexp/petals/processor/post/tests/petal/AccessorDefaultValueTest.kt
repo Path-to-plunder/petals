@@ -43,6 +43,8 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         val id: UUID = DefaultValuePetal.create(
             sporeCount = 2,
             color = "Blue",
+            startingDefaultColor = "Also blue, but like a slightly darker shade",
+            endingDefaultColor = "Not even close to blue. Like THE OPPOSITE.",
             secondColor = "Yellow",
             uuid = baseUuid
         ).store().id
@@ -55,6 +57,8 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         assertThat(loadedEntity.count).isEqualTo(10)
         assertThat(loadedEntity.sporeCount).isEqualTo(2)
         assertThat(loadedEntity.color).isEqualTo("Blue")
+        assertThat(loadedEntity.startingDefaultColor).isEqualTo("Also blue, but like a slightly darker shade")
+        assertThat(loadedEntity.endingDefaultColor).isEqualTo("Not even close to blue. Like THE OPPOSITE.")
         assertThat(loadedEntity.secondColor).isEqualTo("Yellow")
         assertThat(loadedEntity.uuid).isEqualTo(baseUuid)
     }
@@ -65,6 +69,8 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         val id: UUID = DefaultValuePetal.create(
             count = 1,
             color = "Blue",
+            startingDefaultColor = "Also blue, but like a slightly darker shade",
+            endingDefaultColor = "Not even close to blue. Like THE OPPOSITE.",
             secondColor = "Yellow",
             uuid = baseUuid
         ).store().id
@@ -77,6 +83,8 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         assertThat(loadedEntity.count).isEqualTo(1)
         assertThat(loadedEntity.sporeCount).isEqualTo(200)
         assertThat(loadedEntity.color).isEqualTo("Blue")
+        assertThat(loadedEntity.startingDefaultColor).isEqualTo("Also blue, but like a slightly darker shade")
+        assertThat(loadedEntity.endingDefaultColor).isEqualTo("Not even close to blue. Like THE OPPOSITE.")
         assertThat(loadedEntity.secondColor).isEqualTo("Yellow")
         assertThat(loadedEntity.uuid).isEqualTo(baseUuid)
     }
@@ -87,6 +95,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         val id: UUID = DefaultValuePetal.create(
             count = 1,
             sporeCount = 2,
+            startingDefaultColor = "Also blue, but like a slightly darker shade",
             secondColor = "Yellow",
             uuid = baseUuid
         ).store().id
@@ -99,6 +108,8 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         assertThat(loadedEntity.count).isEqualTo(1)
         assertThat(loadedEntity.sporeCount).isEqualTo(2)
         assertThat(loadedEntity.color).isEqualTo("default color")
+        assertThat(loadedEntity.startingDefaultColor).isEqualTo("Also blue, but like a slightly darker shade")
+        assertThat(loadedEntity.endingDefaultColor).isEqualTo("different default color")
         assertThat(loadedEntity.secondColor).isEqualTo("Yellow")
         assertThat(loadedEntity.uuid).isEqualTo(baseUuid)
     }

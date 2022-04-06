@@ -5,6 +5,7 @@ import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.AlterColumnMigration
+import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 
 internal class MigratePetalTableSqlParser(
     private val previousSchema: ParsedPetalSchema,
@@ -30,7 +31,7 @@ internal class MigratePetalTableSqlParser(
     private val addedColumns: List<LocalPetalColumn> by lazy {
         currentSchema.parsedLocalPetalColumns.filter { currentColumn ->
             !currentColumn.isAlteration &&
-                    !previousSchema.parsedLocalPetalColumns.any { it.name == currentColumn.name }
+                    previousSchema.parsedLocalPetalColumns.none { it.name == currentColumn.name }
         }
     }
 
@@ -120,6 +121,14 @@ internal class MigratePetalTableSqlParser(
                 sql += " ALTER COLUMN \"${alteredColumn.updatedColumnSchema.name}\" SET NOT NULL,"
             } else if (!alteredColumn.previousColumnSchema.isNullable && alteredColumn.updatedColumnSchema.isNullable) {
                 sql += " ALTER COLUMN \"${alteredColumn.updatedColumnSchema.name}\" DROP NOT NULL,"
+            }
+
+            if (alteredColumn.previousColumnSchema is PetalValueColumn && alteredColumn.updatedColumnSchema is PetalValueColumn) {
+                if (alteredColumn.previousColumnSchema.hasDefaultValue && !alteredColumn.updatedColumnSchema.hasDefaultValue) {
+                    sql += " ALTER COLUMN \"${alteredColumn.updatedColumnSchema.name}\" DROP DEFAULT,"
+                } else if (!alteredColumn.previousColumnSchema.hasDefaultValue && alteredColumn.updatedColumnSchema.hasDefaultValue) {
+                    sql += " ALTER COLUMN \"${alteredColumn.updatedColumnSchema.name}\" SET DEFAULT ${alteredColumn.updatedColumnSchema.defaultValue.toDbDefault()},"
+                }
             }
         }
 

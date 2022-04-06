@@ -39,6 +39,9 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
+    // Escape SQL Strings
+    implementation("org.apache.commons:commons-text:1.9")
+
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.4")
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")

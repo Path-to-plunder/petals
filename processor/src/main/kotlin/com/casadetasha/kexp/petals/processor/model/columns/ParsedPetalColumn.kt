@@ -178,7 +178,7 @@ internal class PetalValueColumn private constructor(
     isNullable: Boolean,
     isMutable: Boolean,
     alterationInfo: PetalAlteration?,
-    val defaultValue: DefaultPetalValue?,
+    val defaultValue: DefaultPetalValue,
 ) : LocalPetalColumn(
     name = name,
     dataType = dataType,
@@ -190,6 +190,8 @@ internal class PetalValueColumn private constructor(
     override val tablePropertyClassName: TypeName = Column::class.asClassName()
         .parameterizedBy(kotlinType.copy(nullable = isNullable))
 
+    val hasDefaultValue: Boolean by defaultValue::hasDefaultValue
+
     companion object {
 
         fun parseValueColumn(
@@ -198,7 +200,6 @@ internal class PetalValueColumn private constructor(
         ): PetalValueColumn {
             val name = kotlinProperty.simpleName
             val defaultPetalValue = DefaultPetalValue.parseDefaultValueForValueColumn(kotlinProperty)
-
             val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
             val alterationInfo: PetalAlteration? = alterColumnAnnotation?.let {
                 val renameFrom = it.renameFrom
@@ -223,6 +224,7 @@ internal class PetalValueColumn private constructor(
         if (this === other) return true
         if (other !is PetalValueColumn) return false
         if (!super.equals(other)) return false
+        if (defaultValue.value != other.defaultValue.value) return false
 
         return true
     }
@@ -230,6 +232,7 @@ internal class PetalValueColumn private constructor(
     override fun hashCode(): Int {
         var result = super.hashCode()
         result = 31 * result + PetalValueColumn::class.hashCode()
+        result = 31 * result + defaultValue.value.hashCode()
         return result
     }
 }

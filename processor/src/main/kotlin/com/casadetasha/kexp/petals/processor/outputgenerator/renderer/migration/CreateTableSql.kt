@@ -3,7 +3,9 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.model.columns.DefaultPetalValue
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 
 internal class CreatePetalTableSqlParser(val petalSchema: ParsedPetalSchema): PetalTableSqlParser() {
 
@@ -34,11 +36,19 @@ internal class CreatePetalTableSqlParser(val petalSchema: ParsedPetalSchema): Pe
 internal open class PetalTableSqlParser {
 
     protected fun parseNewColumnSql(column: LocalPetalColumn): String {
-        var sql = "\"${column.name}\" ${column.dataType}"
-        if (!column.isNullable) {
-            sql += " NOT NULL"
+        val notNullExtension = if (!column.isNullable) { " NOT NULL" } else { "" }
+        val defaultExtension = when(column is PetalValueColumn && column.hasDefaultValue) {
+            true -> " DEFAULT ${column.defaultValue.toDbDefault()}"
+            false -> ""
         }
+        return "\"${column.name}\" ${column.dataType}$notNullExtension$defaultExtension"
+    }
+}
 
-        return sql
+internal fun DefaultPetalValue.toDbDefault(): String? {
+    return when {
+        hasDefaultValue && isString -> "'$value'"
+        hasDefaultValue -> "$value"
+        else -> null
     }
 }

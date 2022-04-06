@@ -195,8 +195,8 @@ internal fun List<String>.containsExactColumnMigrations(expectedColumnRows: List
 
     // containsExactlyInAnyOrder isn't working here, and I haven't tracked down why.
     assertThat(expectedColumnRows.size).isEqualTo(actual.size)
-    assertThat(expectedColumnRows.trimAndRemoveTrailingCommas().toSortedSet())
-        .isEqualTo(actual.trimAndRemoveTrailingCommas().toSortedSet())
+    assertThat(actual.trimAndRemoveTrailingCommas().toSortedSet())
+        .isEqualTo(expectedColumnRows.trimAndRemoveTrailingCommas().toSortedSet())
 }
 
 private fun List<String>.trimAndRemoveTrailingCommas(): List<String> {

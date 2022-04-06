@@ -11,8 +11,29 @@ import org.junit.Test
 class SchemaMigrationErrorsTest {
 
     @Test
-    fun `changing nullability without AlterColumn annotation fails with internal referencing column name`() {
-        val compilationResult = compileSources(unannotatedNullabilityChangeSchema)
+    fun `adding default value without AlterColumn annotation fails referencing column name`() {
+        val compilationResult = compileSources(unannotatedAddDefaultSchema)
+        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
+        assertThat(compilationResult.messages).contains("defaultValueChangeColumn")
+    }
+
+    @Test
+    fun `removing default value without AlterColumn annotation fails referencing column name`() {
+        val compilationResult = compileSources(unannotatedRemoveDefaultSchema)
+        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
+        assertThat(compilationResult.messages).contains("defaultValueChangeColumn")
+    }
+
+    @Test
+    fun `changing to nullable without AlterColumn annotation fails referencing column name`() {
+        val compilationResult = compileSources(unannotatedMakeNullableChangeSchema)
+        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
+        assertThat(compilationResult.messages).contains("nullChangeColumn")
+    }
+
+    @Test
+    fun `changing to non-nullable without AlterColumn annotation fails referencing column name`() {
+        val compilationResult = compileSources(unannotatedMakeNonNullableChangeSchema)
         assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
         assertThat(compilationResult.messages).contains("nullChangeColumn")
     }
@@ -32,7 +53,7 @@ class SchemaMigrationErrorsTest {
     }
 
     @Test
-    fun `alterColumn name change with no matching previous column fails with internal error referencing column name`() {
+    fun `alterColumn name change with no matching previous column referencing column name`() {
         val compilationResult = compileSources(alterColumnNameWithoutPreviousColumnSchema)
         assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
         assertThat(compilationResult.messages).contains("newColumn")
@@ -41,7 +62,53 @@ class SchemaMigrationErrorsTest {
 
     companion object {
 
-        private val unannotatedNullabilityChangeSchema = SourceFile.kotlin(
+        private val unannotatedAddDefaultSchema = SourceFile.kotlin(
+            "FailureSchema.kt", """
+            package com.casadetasha
+            
+            import com.casadetasha.kexp.petals.annotations.DefaultString
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
+            import java.util.*
+            
+            @Petal(tableName = "failed_petal", className = "FailedPetal")
+            interface BasicPetal
+            
+            @PetalSchema(petal = BasicPetal::class, version = 1)
+            interface BasicPetalSchemaV1 {
+                val defaultValueChangeColumn: String
+            }
+            
+            @PetalSchema(petal = BasicPetal::class, version = 2)
+            interface BasicPetalSchemaV2 {
+                @DefaultString("This not gonna work") val defaultValueChangeColumn: String
+            }
+        """.trimIndent())
+
+        private val unannotatedRemoveDefaultSchema = SourceFile.kotlin(
+            "FailureSchema.kt", """
+            package com.casadetasha
+            
+            import com.casadetasha.kexp.petals.annotations.DefaultString
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
+            import java.util.*
+            
+            @Petal(tableName = "failed_petal", className = "FailedPetal")
+            interface BasicPetal
+            
+            @PetalSchema(petal = BasicPetal::class, version = 1)
+            interface BasicPetalSchemaV1 {
+                @DefaultString("This not gonna work") val defaultValueChangeColumn: String
+            }
+            
+            @PetalSchema(petal = BasicPetal::class, version = 2)
+            interface BasicPetalSchemaV2 {
+                val defaultValueChangeColumn: String
+            }
+        """.trimIndent())
+
+        private val unannotatedMakeNullableChangeSchema = SourceFile.kotlin(
             "FailureSchema.kt", """
             package com.casadetasha
             
@@ -60,6 +127,28 @@ class SchemaMigrationErrorsTest {
             @PetalSchema(petal = BasicPetal::class, version = 2)
             interface BasicPetalSchemaV2 {
                 val nullChangeColumn: UUID?
+            }
+        """.trimIndent())
+
+        private val unannotatedMakeNonNullableChangeSchema = SourceFile.kotlin(
+            "FailureSchema.kt", """
+            package com.casadetasha
+            
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
+            import java.util.*
+            
+            @Petal(tableName = "failed_petal", className = "FailedPetal")
+            interface BasicPetal
+            
+            @PetalSchema(petal = BasicPetal::class, version = 1)
+            interface BasicPetalSchemaV1 {
+                val nullChangeColumn: UUID?
+            }
+            
+            @PetalSchema(petal = BasicPetal::class, version = 2)
+            interface BasicPetalSchemaV2 {
+                val nullChangeColumn: UUID
             }
         """.trimIndent())
 

@@ -14,16 +14,18 @@ import kotlin.reflect.KClass
 
 internal class DefaultPetalValue private constructor(
     val typeName: TypeName,
-    val defaultValue: String?
+    val value: String?
 ) {
 
     val hasDefaultValue: Boolean by lazy {
         if (typeName.copy(nullable = false) == UUID::class.asTypeName()) {
             false
         } else {
-            defaultValue != null
+            value != null
         }
     }
+
+    val isString = typeName.copy(nullable = false) == String::class.asTypeName()
 
     companion object {
         fun parseDefaultValueForValueColumn(kotlinProperty: KotlinProperty): DefaultPetalValue {
@@ -47,15 +49,15 @@ internal class DefaultPetalValue private constructor(
 
             return DefaultPetalValue(
                 typeName = typeName,
-                defaultValue = value
+                value = value
             )
         }
 
         fun parseDefaultValueForReferenceColumn(kotlinProperty: KotlinProperty): DefaultPetalValue {
             val typeName = Petal::class.asClassName()
             return when (kotlinProperty.isNullable) {
-                true -> DefaultPetalValue(typeName = typeName, defaultValue = "null")
-                false -> DefaultPetalValue(typeName = typeName, defaultValue = null)
+                true -> DefaultPetalValue(typeName = typeName, value = "null")
+                false -> DefaultPetalValue(typeName = typeName, value = null)
             }
         }
     }
