@@ -13,7 +13,7 @@ data class PetalMigration(
 data class PetalSchemaMigration constructor(
     val primaryKeyType: PetalPrimaryKey,
     val columnMap: Map<String, PetalColumn>,
-    val beforeMigrationSql: String?,
+    val preMigrationSql: String?,
     val migrationSqlRows: List<String>?,
     val migrationAlterationSql: List<String>? = null
 ) {

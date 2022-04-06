@@ -14,7 +14,7 @@ import org.junit.Ignore
 import org.junit.Test
 import java.lang.reflect.Method
 
-//@Ignore
+@Ignore
 class PetalCompileSpeedCheck {
 
     @Test

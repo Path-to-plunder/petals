@@ -14,7 +14,7 @@ annotation class PetalSchema(val petal: KClass<out Any>, val version: Int = 1)
 
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
-annotation class RunBeforeMigration(val executableSql: String)
+annotation class ExecuteSqlBeforeMigration(val executableSql: String)
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)

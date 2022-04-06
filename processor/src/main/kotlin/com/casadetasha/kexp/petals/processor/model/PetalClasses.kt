@@ -49,7 +49,7 @@ internal class PetalClasses {
         val SUPPORTED_SCHEMA_ANNOTATIONS =
             listOf(
                 PetalSchema::class,
-                RunBeforeMigration::class,
+                ExecuteSqlBeforeMigration::class,
             )
     }
 }

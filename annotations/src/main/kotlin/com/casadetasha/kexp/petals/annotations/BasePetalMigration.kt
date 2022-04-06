@@ -98,21 +98,29 @@ abstract class BasePetalMigration {
 
     private fun runMigration(connection: Connection, schema: PetalSchemaMigration, version: Int) {
         connection.runTransactionWithRollback {
-            migrateSchema(it, schema.migrationSql, schema.migrationAlterationSql, version)
+            migrateSchema(it, schema.preMigrationSql, schema.migrationSql, schema.migrationAlterationSql, version)
         }
     }
 
     private fun migrateSchema(
         connection: Connection,
+        preMigrationSql: String?,
         schemaMigration: String?,
         alterationMigrations: List<String>?,
         tableVersion: Int
     ) {
-        if (schemaMigration != null) {
+        preMigrationSql?.let {
             connection.createStatement().use { statement ->
-                statement.execute(schemaMigration)
+                statement.execute(it)
             }
         }
+
+        schemaMigration?.let {
+            connection.createStatement().use { statement ->
+                statement.execute(it)
+            }
+        }
+
         (alterationMigrations ?: ArrayList()).forEach { alterationSql ->
             connection.createStatement().use { statement ->
                 statement.execute(alterationSql)

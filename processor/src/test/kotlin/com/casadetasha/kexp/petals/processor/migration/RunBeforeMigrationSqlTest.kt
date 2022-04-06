@@ -20,7 +20,7 @@ class RunBeforeMigrationSqlTest {
 
     @Test
     fun `Adds RunBeforeMigration value to table creation PetalSchemaMigration`() {
-        val migrationSql = petalSchemaMigrations[1]!!.beforeMigrationSql
+        val migrationSql = petalSchemaMigrations[1]!!.preMigrationSql
 
         assertThat(migrationSql).isNotNull()
         assertThat(migrationSql!!).isNotEmpty()
@@ -29,7 +29,7 @@ class RunBeforeMigrationSqlTest {
 
     @Test
     fun `Adds RunBeforeMigration value to alter table PetalSchemaMigration`() {
-        val migrationSql = petalSchemaMigrations[2]!!.beforeMigrationSql
+        val migrationSql = petalSchemaMigrations[2]!!.preMigrationSql
 
         assertThat(migrationSql).isNotNull()
         assertThat(migrationSql!!).isNotEmpty()
@@ -50,13 +50,13 @@ class RunBeforeMigrationSqlTest {
             interface RunBeforeMigrationPetal
             
             @PetalSchema(petal = RunBeforeMigrationPetal::class, version = 1)
-            @RunBeforeMigration("RUN BEFORE CREATING TABLE")
+            @ExecuteSqlBeforeMigration("RUN BEFORE CREATING TABLE")
             interface RunBeforeMigrationPetalSchemaV1 {
                 val color: String
             }
             
             @PetalSchema(petal = RunBeforeMigrationPetal::class, version = 2)
-            @RunBeforeMigration("RUN BEFORE ALTERING TABLE")
+            @ExecuteSqlBeforeMigration("RUN BEFORE ALTERING TABLE")
             interface RunBeforeMigrationPetalSchemaV2 {
                 @AlterColumn val color: String?
             }
