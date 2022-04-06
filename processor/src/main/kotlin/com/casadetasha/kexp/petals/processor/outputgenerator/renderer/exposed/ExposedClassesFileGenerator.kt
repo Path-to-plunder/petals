@@ -4,6 +4,7 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGenerate
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.writeFileTemplateToDisk
 
 internal class ExposedClassesFileGenerator(
     private val petalClasses: PetalClasses,
@@ -18,23 +19,25 @@ internal class ExposedClassesFileGenerator(
     }
 
     fun generateFile() {
-        fileTemplate(
-            directory = kaptKotlinGeneratedDir,
-            packageName = PACKAGE_NAME,
-            fileName = "${className}Petals",
-        ) {
-            createExposedTableClassTemplate(
+        writeFileTemplateToDisk {
+            fileTemplate(
+                directory = kaptKotlinGeneratedDir,
                 packageName = PACKAGE_NAME,
-                baseName = className,
-                tableName = tableName,
-                schema = schema
-            )
+                fileName = "${className}Petals",
+            ) {
+                createExposedTableClassTemplate(
+                    packageName = PACKAGE_NAME,
+                    baseName = className,
+                    tableName = tableName,
+                    schema = schema
+                )
 
-            createExposedEntityClassTemplate(
-                packageName = PACKAGE_NAME,
-                petalClasses = petalClasses,
-                schema = schema
-            )
-        }.writeToDisk()
+                createExposedEntityClassTemplate(
+                    packageName = PACKAGE_NAME,
+                    petalClasses = petalClasses,
+                    schema = schema
+                )
+            }
+        }
     }
 }
