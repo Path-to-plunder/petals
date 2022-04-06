@@ -37,7 +37,7 @@ internal fun createDataClassFromTemplate(accessorClassInfo: AccessorClassInfo) =
         fileName = accessorClassInfo.dataClassName.simpleName
     ) {
         classTemplate(
-            name = accessorClassInfo.dataClassName,
+            className = accessorClassInfo.dataClassName,
             modifiers = listOf(KModifier.DATA),
             annotations = listOf(AnnotationTemplate(Serializable::class))
         ) {

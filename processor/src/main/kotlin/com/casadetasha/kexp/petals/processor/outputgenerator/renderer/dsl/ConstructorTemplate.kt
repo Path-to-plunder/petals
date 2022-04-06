@@ -23,7 +23,7 @@ class ConstructorTemplate(function: ConstructorTemplate.() -> Unit) {
     }
 
     companion object {
-        fun ClassTemplate.primaryConstructorTemplate(function: ConstructorTemplate.() -> Unit) {
+        fun BaseTypeTemplate<*>.primaryConstructorTemplate(function: ConstructorTemplate.() -> Unit) {
             addPrimaryConstructor(ConstructorTemplate(function))
         }
     }
