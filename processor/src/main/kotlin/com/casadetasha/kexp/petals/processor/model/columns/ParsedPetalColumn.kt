@@ -385,7 +385,7 @@ internal class ReferencedByPetalColumn private constructor(
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (referencedByColumn?.hashCode() ?: 0)
+        result = 31 * result + (referencedByColumn.hashCode())
         return result
     }
 }

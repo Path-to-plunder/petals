@@ -4,7 +4,6 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowErro
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.model.columns.*
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn

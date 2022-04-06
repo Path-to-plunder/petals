@@ -66,12 +66,14 @@ class ConstructorPropertyTemplate(
     name: String,
     typeName: TypeName,
     isMutable: Boolean? = null,
-    annotations: Collection<AnnotationTemplate>? = null
+    annotations: Collection<AnnotationTemplate>? = null,
+    function: (PropertyTemplate.() -> Unit)? = null
 ): PropertyTemplate(
     name = name,
     typeName = typeName,
     isMutable =  isMutable,
     annotations = annotations,
+    function = function
 ) {
 
     init {
@@ -81,6 +83,22 @@ class ConstructorPropertyTemplate(
     companion object {
         fun ConstructorTemplate.collectConstructorProperties(classTemplate: ClassTemplate, function: ConstructorTemplate.() -> Collection<ConstructorPropertyTemplate>) {
             addConstructorProperties(classTemplate, this.function())
+        }
+
+        fun createConstructorPropertyTemplate(
+            name: String,
+            typeName: TypeName,
+            isMutable: Boolean? = null,
+            annotations: Collection<AnnotationTemplate>? = null,
+            function: (PropertyTemplate.() -> Unit)?
+        ): ConstructorPropertyTemplate {
+            return ConstructorPropertyTemplate(
+                name = name,
+                typeName = typeName,
+                isMutable =  isMutable,
+                annotations = annotations,
+                function = function
+            )
         }
     }
 }
