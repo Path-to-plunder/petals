@@ -35,10 +35,11 @@ internal class NestedPetalPropertySpecListBuilder(
     }
 
     private val petalManagerMethodBody: CodeBlock by lazy {
+        val nullabilityExtension = if (column.isNullable) { "?" } else { "" }
         CodeBlock.builder()
             .beginControlFlow("lazy")
             .addStatement(
-                "%M(%L) { dbEntity.%L?.%M() }",
+                "%M(%L) { dbEntity.%L$nullabilityExtension.%M() }",
                 nestedPetalManagerClassName.toMemberName(),
                 column.referencingIdName,
                 column.name,
