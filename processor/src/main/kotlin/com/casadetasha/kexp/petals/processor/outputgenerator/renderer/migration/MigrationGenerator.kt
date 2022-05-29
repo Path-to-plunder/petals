@@ -1,10 +1,10 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 
-import com.casadetasha.kexp.annotationparser.AnnotationParser
+import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
-import com.squareup.kotlinpoet.*
-import java.io.File
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
+import com.squareup.kotlinpoet.ClassName
 
 internal class MigrationGenerator(private val petal: ParsedPetal) {
 
@@ -16,9 +16,12 @@ internal class MigrationGenerator(private val petal: ParsedPetal) {
         petal.schemas[1] ?: printThenThrowError("All tables must contain a version 1")
         val className = "TableMigrations\$${petal.tableName}"
 
-        FileSpec.builder(packageName = PACKAGE_NAME, fileName = className)
-            .addType(MigrationClassSpecParser(petal, className).petalMigrationClassSpec)
-            .build()
-            .writeTo(File(AnnotationParser.kaptKotlinGeneratedDir))
+        FileTemplate.fileTemplate(
+            directory = kaptKotlinGeneratedDir,
+            packageName = PACKAGE_NAME,
+            fileName = className) {
+
+            createDbMigrationClassTemplate(petal, ClassName(PACKAGE_NAME, className))
+        }.writeToDisk()
     }
 }

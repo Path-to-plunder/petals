@@ -4,12 +4,10 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorPropertyTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorPropertyTemplate.Companion.createConstructorPropertyTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.createPropertyTemplate
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 
-internal class AccessorPropertiesBuilder(val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
+internal class AccessorPropertiesBuilder(val accessorClassInfo: AccessorClassInfo) {
 
     val properties: Iterable<PropertySpec> by lazy {
         accessorClassInfo.petalColumns
@@ -18,7 +16,7 @@ internal class AccessorPropertiesBuilder(val accessorClassInfo: com.casadetasha.
     }
 }
 
-internal fun TypeSpec.Builder.addAccessorProperties(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) = apply {
+internal fun TypeSpec.Builder.addAccessorProperties(accessorClassInfo: AccessorClassInfo) = apply {
     this.addProperties(AccessorPropertiesBuilder(accessorClassInfo).properties)
 }
 

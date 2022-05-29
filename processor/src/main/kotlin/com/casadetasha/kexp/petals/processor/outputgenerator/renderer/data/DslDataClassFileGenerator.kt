@@ -1,12 +1,20 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 
+import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
 @OptIn(KotlinPoetMetadataPreview::class)
 internal object DslDataClassFileGenerator {
 
     fun generateFile(accessorClassInfo: AccessorClassInfo) {
-        createDataClassFromTemplate(accessorClassInfo).writeToDisk()
+        FileTemplate.fileTemplate(
+            directory = AnnotationParser.kaptKotlinGeneratedDir,
+            packageName = DataClassTemplateValues.PACKAGE_NAME,
+            fileName = accessorClassInfo.dataClassName.simpleName
+        ) {
+            createDataClassFromTemplate(accessorClassInfo)
+        }.writeToDisk()
     }
 }

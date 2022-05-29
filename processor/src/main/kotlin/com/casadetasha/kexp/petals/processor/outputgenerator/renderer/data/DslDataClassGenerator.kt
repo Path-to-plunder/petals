@@ -15,6 +15,7 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataC
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.AnnotationTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorPropertyTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate.Companion.functionTemplate
 import com.squareup.kotlinpoet.KModifier
@@ -30,12 +31,7 @@ internal object DataClassTemplateValues {
     const val EXPORT_METHOD_SIMPLE_NAME = "asData"
 }
 
-internal fun createDataClassFromTemplate(accessorClassInfo: AccessorClassInfo) =
-    fileTemplate(
-        directory = kaptKotlinGeneratedDir,
-        packageName = PACKAGE_NAME,
-        fileName = accessorClassInfo.dataClassName.simpleName
-    ) {
+internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: AccessorClassInfo) = apply {
         classTemplate(
             className = accessorClassInfo.dataClassName,
             modifiers = listOf(KModifier.DATA),

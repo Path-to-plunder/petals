@@ -1,7 +1,10 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl
 
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
+import kotlin.reflect.KClass
 
 open class PropertyTemplate(
     val name: String,
@@ -13,6 +16,7 @@ open class PropertyTemplate(
 
     private var _initializer: CodeTemplate? = null
     private var _delegate: CodeTemplate? = null
+    private var _isOverride: Boolean? = null
 
     private val propertyBuilder = PropertySpec.builder(name, typeName)
 
@@ -23,6 +27,7 @@ open class PropertyTemplate(
         isMutable?.let { propertyBuilder.mutable() }
         _initializer?.let { propertyBuilder.initializer(it.codeBlock) }
         _delegate?.let { propertyBuilder.delegate(it.codeBlock) }
+        _isOverride?.let { if (_isOverride!!) { propertyBuilder.addModifiers(KModifier.OVERRIDE) } }
 
         propertyBuilder.build()
     }
@@ -39,9 +44,31 @@ open class PropertyTemplate(
         _delegate = function()
     }
 
+    fun isOverride(function: () -> Boolean) {
+        _isOverride = function()
+    }
+
     companion object {
         fun KotlinContainerTemplate.collectProperties(function: KotlinContainerTemplate.() -> Collection<PropertyTemplate>) {
             addProperties(function())
+        }
+
+        fun KotlinContainerTemplate.propertyTemplate(
+            name: String,
+            type: KClass<*>,
+            isMutable: Boolean? = null,
+            annotations: Collection<AnnotationTemplate>? = null,
+            function: PropertyTemplate.() -> Unit) {
+
+            val template = PropertyTemplate(
+                name = name,
+                typeName = type.asTypeName(),
+                isMutable = isMutable,
+                annotations = annotations,
+                function = function
+            )
+
+            addProperties(listOf(template))
         }
 
         fun createPropertyTemplate(
