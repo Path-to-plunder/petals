@@ -13,11 +13,16 @@ class SuperclassTemplate private constructor(val className: TypeName,
         function?.let{ this.function() }
     }
 
-    fun collectConstructorParams(function: () -> Collection<CodeTemplate>) {
-        constructorParams.addAll(function())
-    }
-
     companion object {
+
+        fun SuperclassTemplate.collectConstructorParamTemplates(function: () -> Collection<CodeTemplate>) {
+            constructorParams.addAll(function())
+        }
+
+        fun SuperclassTemplate.constructorParamTemplate(function: () -> CodeTemplate) {
+            constructorParams.add(function())
+        }
+
         fun BaseTypeTemplate<*>.superclassTemplate(className: KClass<*>,
                                                    function: (SuperclassTemplate.() -> Unit)? = null) {
             addSuperclass(SuperclassTemplate(className = className.asTypeName(), function = function))

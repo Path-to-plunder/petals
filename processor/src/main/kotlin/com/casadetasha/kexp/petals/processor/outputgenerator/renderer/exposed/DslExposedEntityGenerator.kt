@@ -19,6 +19,7 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.Parame
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.createPropertyTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.constructorParamTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.superclassTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityTemplateValues.getEntityClassSimpleName
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityTemplateValues.getTableClassSimpleName
@@ -48,9 +49,7 @@ internal fun FileTemplate.createExposedEntityClassTemplate(
         }
 
         superclassTemplate(schema.getSchemaEntitySuperclass()) {
-            collectConstructorParams {
-                listOf(CodeTemplate("id"))
-            }
+            constructorParamTemplate { CodeTemplate("id") }
         }
 
         collectPropertyTemplates {
@@ -61,7 +60,7 @@ internal fun FileTemplate.createExposedEntityClassTemplate(
 
         companionObjectTemplate {
             superclassTemplate(className = schema.getEntityCompanionSuperclassName(packageName)) {
-                collectConstructorParams { listOf(CodeTemplate(schema.getTableClassSimpleName())) }
+                constructorParamTemplate { CodeTemplate(schema.getTableClassSimpleName()) }
             }
         }
     }

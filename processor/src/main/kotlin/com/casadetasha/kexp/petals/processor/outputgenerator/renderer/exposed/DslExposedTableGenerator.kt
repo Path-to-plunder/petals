@@ -11,8 +11,10 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.f
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ObjectTemplate.Companion.objectTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.createPropertyTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.constructorParamTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.superclassTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.EXPOSED_TABLE_PACKAGE
 import com.squareup.kotlinpoet.ClassName
@@ -31,19 +33,15 @@ internal fun FileTemplate.createExposedTableClassTemplate(
 ) =
     objectTemplate(className = ClassName(packageName, "${baseName}Table")) {
         superclassTemplate(className = schema.getTableSuperclass()) {
-            collectConstructorParams {
-                listOf(CodeTemplate("name = %S", tableName))
+            constructorParamTemplate {
+                CodeTemplate("name = %S", tableName)
             }
         }
 
         collectPropertyTemplates {
             schema.parsedLocalPetalColumns
                 .filterNot { it is PetalIdColumn }
-                .map { column ->
-                    createPropertyTemplate( name = column.name, typeName = column.tablePropertyClassName) {
-                        initializer { getColumnInitializationBlock(column) }
-                    }
-                }
+                .map { it.toPropertyTemplate() }
         }
     }
 
@@ -52,6 +50,12 @@ private fun ParsedPetalSchema.getTableSuperclass(): ClassName {
         PetalPrimaryKey.INT -> IntIdTable::class.asClassName()
         PetalPrimaryKey.LONG -> LongIdTable::class.asClassName()
         PetalPrimaryKey.UUID -> UUIDTable::class.asClassName()
+    }
+}
+
+private fun LocalPetalColumn.toPropertyTemplate(): PropertyTemplate {
+    return createPropertyTemplate( name = name, typeName = tablePropertyClassName) {
+        initializer { getColumnInitializationBlock(this@toPropertyTemplate) }
     }
 }
 
