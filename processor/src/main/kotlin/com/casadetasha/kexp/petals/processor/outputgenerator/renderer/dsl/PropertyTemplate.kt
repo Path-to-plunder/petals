@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl
 
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate.toKModifier
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeName
@@ -17,10 +18,11 @@ open class PropertyTemplate(
     private var _initializer: CodeTemplate? = null
     private var _delegate: CodeTemplate? = null
     private var _isOverride: Boolean? = null
-
-    private val propertyBuilder = PropertySpec.builder(name, typeName)
+    private var _visibility: KotlinTemplate.Visibility? = null
 
     internal val propertySpec: PropertySpec by lazy {
+        val propertyBuilder = PropertySpec.builder(name, typeName)
+
         function?.let { this.function() }
 
         annotations?.let { propertyBuilder.addAnnotations(annotations.map { it.annotationSpec } ) }
@@ -28,6 +30,7 @@ open class PropertyTemplate(
         _initializer?.let { propertyBuilder.initializer(it.codeBlock) }
         _delegate?.let { propertyBuilder.delegate(it.codeBlock) }
         _isOverride?.let { if (_isOverride!!) { propertyBuilder.addModifiers(KModifier.OVERRIDE) } }
+        _visibility?.let { propertyBuilder.addModifiers( _visibility!!.toKModifier() ) }
 
         propertyBuilder.build()
     }
@@ -48,7 +51,12 @@ open class PropertyTemplate(
         _isOverride = function()
     }
 
+    fun visibility(function: () -> KotlinTemplate.Visibility) {
+        _visibility = function()
+    }
+
     companion object {
+
         fun KotlinContainerTemplate.collectPropertyTemplates(function: KotlinContainerTemplate.() -> Collection<PropertyTemplate>) {
             addProperties(function())
         }

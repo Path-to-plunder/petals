@@ -2,8 +2,13 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.TypeName
 
-class FunctionTemplate(name: String, receiverType: ClassName?, returnType: ClassName?, function: FunctionTemplate.() -> Unit) {
+class FunctionTemplate(name: String,
+                       receiverType: TypeName? = null,
+                       returnType: TypeName? = null,
+                       function: FunctionTemplate.() -> Unit
+) {
 
     private val functionBuilder = FunSpec.builder(name)
     internal val functionSpec: FunSpec
@@ -33,6 +38,10 @@ class FunctionTemplate(name: String, receiverType: ClassName?, returnType: Class
     }
 
     companion object {
+
+        fun KotlinContainerTemplate.collectFunctionTemplates(function: KotlinContainerTemplate.() -> Collection<FunctionTemplate>) {
+            function().forEach { addFunction(it) }
+        }
 
         fun KotlinContainerTemplate.functionTemplate(
             name: String,

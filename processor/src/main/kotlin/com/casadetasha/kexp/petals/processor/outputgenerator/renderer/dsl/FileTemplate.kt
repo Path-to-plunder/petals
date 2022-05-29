@@ -32,6 +32,10 @@ class FileTemplate private constructor(
         fileBuilder.addType(objectTemplate.typeSpec)
     }
 
+    internal fun addImport(importTemplate: ImportTemplate) {
+        fileBuilder.addImport(importTemplate.importPackage, importTemplate.importName)
+    }
+
     override fun addFunction(functionTemplate: FunctionTemplate) {
         fileBuilder.addFunction(functionTemplate.functionSpec)
     }

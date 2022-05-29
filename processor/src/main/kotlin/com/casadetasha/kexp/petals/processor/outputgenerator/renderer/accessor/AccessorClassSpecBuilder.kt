@@ -1,6 +1,5 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
-import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.DefaultPetalValue
@@ -13,55 +12,73 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ClassT
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorPropertyTemplate.Companion.collectConstructorProperties
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate.Companion.collectFunctionTemplates
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.collectParameterTemplates
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectPropertyTemplates
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.constructorParamTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.superclassTemplate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
+
+internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClassInfo) =
+        classTemplate(accessorClassInfo.className) {
+            superclassTemplate(
+                PetalAccessor::class.asClassName()
+                    .parameterizedBy(
+                        accessorClassInfo.className,
+                        accessorClassInfo.entityClassName,
+                        accessorClassInfo.idKotlinClassName
+                    )
+            ) {
+                constructorParamTemplate { CodeTemplate("dbEntity, id") }
+            }
+
+            primaryConstructorTemplate {
+                collectConstructorProperties(this@classTemplate) {
+                    accessorClassInfo.petalValueColumns
+                        .map { it.toConstructorPropertyTemplate() }
+                }
+
+                collectParameterTemplates {
+                    accessorClassInfo.petalReferenceColumns
+                        .map { it.asParameterTemplate() }
+                        .toMutableList()
+                        .apply {
+                            add(ParameterTemplate(name = "dbEntity", typeName = accessorClassInfo.entityClassName))
+                            add(ParameterTemplate(name = "id", typeName = accessorClassInfo.idKotlinClassName))
+                        }
+                }
+            }
+
+            collectPropertyTemplates {
+                createNestedPetalPropertyTemplates(accessorClassInfo)
+            }
+
+            collectFunctionTemplates {
+                createReferencingPetalPropertySpec(accessorClassInfo)
+            }
+
+            performOnTypeBuilder {
+                addStoreMethod(accessorClassInfo)
+                addEagerLoadMethod(accessorClassInfo)
+                addAccessorCompanionObject(accessorClassInfo)
+            }
+        }
 
 @OptIn(KotlinPoetMetadataPreview::class)
 internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo) {
 
     internal fun getClassSpec(): TypeSpec {
 
-//        fileTemplate(
-//            directory = kaptKotlinGeneratedDir,
-//            packageName = "",
-//            fileName = accessorClassInfo.className.simpleName,
-//        ) {
-//            classTemplate(accessorClassInfo.className) {
-//                superclassTemplate(
-//                    PetalAccessor::class.asClassName()
-//                        .parameterizedBy(
-//                            accessorClassInfo.className,
-//                            accessorClassInfo.entityClassName,
-//                            accessorClassInfo.idKotlinClassName
-//                        )
-//                ) {
-//                    collectConstructorParams { listOf(CodeTemplate("dbEntity, id")) }
-//                }
-//
-//                primaryConstructorTemplate {
-//                    collectConstructorProperties(this@classTemplate) {
-//                        accessorClassInfo.petalValueColumns
-//                            .map { it.toConstructorPropertyTemplate() }
-//                    }
-//
-//                    collectParameters {
-//
-//                    }
-//                }
-//            }
-//
-//        }
-
         return TypeSpec.classBuilder(accessorClassInfo.className)
-            .addSuperclass(accessorClassInfo)
-            .addAccessorProperties(accessorClassInfo)
-            .primaryConstructor(AccessorConstructorSpecBuilder(accessorClassInfo).constructorSpec)
-            .addNestedPetalPropertySpec(accessorClassInfo)
-            .addReferencingPetalPropertySpec(accessorClassInfo)
+//            .addSuperclass(accessorClassInfo)
+//            .addAccessorProperties(accessorClassInfo)
+//            .primaryConstructor(AccessorConstructorSpecBuilder(accessorClassInfo).constructorSpec)
+//            .addNestedPetalPropertySpec(accessorClassInfo)
+//            .addReferencingPetalPropertySpec(accessorClassInfo)
             .addStoreMethod(accessorClassInfo)
             .addEagerLoadMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)

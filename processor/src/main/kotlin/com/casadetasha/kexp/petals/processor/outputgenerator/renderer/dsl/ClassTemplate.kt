@@ -65,6 +65,10 @@ open class ClassTemplate protected constructor(
         typeBuilder.addType(companionObjectTemplate.typeSpec)
     }
 
+    fun performOnTypeBuilder(function: TypeSpec.Builder.() -> Unit) {
+        typeBuilder.function()
+    }
+
     companion object {
         fun FileTemplate.classTemplate(
             className: ClassName,
