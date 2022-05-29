@@ -1,8 +1,5 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl
 
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.addDefaultValue
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate.toKModifier
-import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeName
 
@@ -27,17 +24,29 @@ class ParameterTemplate internal constructor(val name: String,
     }
 
     companion object {
+
         fun ConstructorTemplate.collectParameterTemplates(function: () -> Collection<ParameterTemplate>) {
             addParameters(function())
         }
 
         fun ConstructorTemplate.parameterTemplate(name: String, typeName: TypeName) {
-            addParameters(
-                listOf(
-                    ParameterTemplate(
-                        name = name,
-                        typeName = typeName
-                    )
+            addParameter(
+                ParameterTemplate(
+                    name = name,
+                    typeName = typeName
+                )
+            )
+        }
+
+        fun FunctionTemplate.collectParameterTemplates(function: () -> Collection<ParameterTemplate>) {
+            addParameters(function())
+        }
+
+        fun FunctionTemplate.parameterTemplate(name: String, typeName: TypeName) {
+            addParameter(
+                ParameterTemplate(
+                    name = name,
+                    typeName = typeName
                 )
             )
         }

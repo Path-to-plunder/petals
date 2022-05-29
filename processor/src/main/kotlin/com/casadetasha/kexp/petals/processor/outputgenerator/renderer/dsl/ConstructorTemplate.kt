@@ -13,6 +13,10 @@ class ConstructorTemplate(function: ConstructorTemplate.() -> Unit) {
         constructorSpec = constructorBuilder.build()
     }
 
+    internal fun addParameter(parameterTemplate: ParameterTemplate) {
+        constructorBuilder.addParameter(parameterTemplate.parameterSpec)
+    }
+
     internal fun addParameters(parameterTemplates: Collection<ParameterTemplate>) {
         constructorBuilder.addParameters(parameterTemplates.map{ it.parameterSpec })
     }

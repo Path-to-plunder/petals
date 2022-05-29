@@ -1,122 +1,114 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
-import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
-import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.UPDATE_DEPENDENCIES_PARAM_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate.Companion.codeTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.parameterTemplate
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.LambdaTypeName
+import com.squareup.kotlinpoet.asClassName
 
-@OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorStoreFunSpecBuilder(private val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
+object StoreMethodNames {
+    const val STORE_METHOD_SIMPLE_NAME = "storeInsideOfTransaction"
+    const val STORE_DEPENDENCIES_METHOD_SIMPLE_NAME = "storeDependencies"
+    const val TRANSACT_METHOD_SIMPLE_NAME = "applyInsideTransaction"
 
-    val funSpecs: Iterable<FunSpec> by lazy {
-        setOf(
-            storeInsideOfTransactionFunSpec,
-            storeDependenciesFunSpec,
-            transactFunSpec
-        )
-    }
+    const val UPDATE_DEPENDENCIES_PARAM_NAME = "updateNestedDependencies"
+}
 
-    private val storeInsideOfTransactionFunSpec: FunSpec by lazy {
-        FunSpec.builder(STORE_METHOD_SIMPLE_NAME)
-            .addModifiers(
-                KModifier.OVERRIDE,
-                KModifier.PROTECTED
+internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate {
+    return FunctionTemplate(
+        name = STORE_METHOD_SIMPLE_NAME,
+        returnType = accessorClassInfo.className
+    ) {
+        override()
+
+        parameterTemplate( name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName() )
+
+        visibility { KotlinTemplate.Visibility.PROTECTED }
+
+        collectCode {
+            listOf(
+                createStoreMethodBody(accessorClassInfo)
             )
-            .addParameter(
-                ParameterSpec.builder(
-                    name = UPDATE_DEPENDENCIES_PARAM_NAME,
-                    type = Boolean::class.asClassName()
-                ).build())
-            .returns(accessorClassInfo.className)
-            .addCode(storeMethodBody)
-            .build()
+        }
     }
+}
 
-    private val nonIdColumns: Iterable<ParsedPetalColumn> by lazy {
-        accessorClassInfo.petalColumns.filterNot { it is PetalIdColumn }
-    }
 
-    private val valueColumns: Iterable<PetalValueColumn> by lazy {
-        nonIdColumns.filterIsInstance<PetalValueColumn>()
-    }
+private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = codeTemplate {
+    val codeBlockBuilder = CodeBlock.builder()
+    val classSimpleName = accessorClassInfo.className.simpleName
 
-    private val referenceColumns: Iterable<PetalReferenceColumn> by lazy {
-        nonIdColumns.filterIsInstance<PetalReferenceColumn>()
-    }
-
-    private val storeMethodBody: CodeBlock by lazy {
-        val codeBlockBuilder = CodeBlock.builder()
-        val classSimpleName = accessorClassInfo.className.simpleName
-
-        codeBlockBuilder.addStatement(
-            "if (%L) { %L() }\n",
-            UPDATE_DEPENDENCIES_PARAM_NAME,
-            STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
-        )
-            .beginControlFlow("return dbEntity.apply ")
-            .apply {
-                valueColumns.forEach { column ->
-                    val name = column.name
-                    addStatement("$name = this@${classSimpleName}.${name}")
-                }
+    codeBlockBuilder.addStatement(
+        "if (%L) { %L() }\n",
+        UPDATE_DEPENDENCIES_PARAM_NAME,
+        STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
+    )
+        .beginControlFlow("return dbEntity.apply ")
+        .apply {
+            accessorClassInfo.petalValueColumns.forEach { column ->
+                val name = column.name
+                addStatement("$name = this@${classSimpleName}.${name}")
             }
-            .apply {
-                referenceColumns.forEach { column ->
-                    val name = column.name
-                    val entityName = "${classSimpleName}.${name}" + if (column.isNullable) { "?" } else { "" }
-                    addStatement("if (${column.nestedPetalManagerName}.hasUpdated) { $name = this@${entityName}.dbEntity }")
+        }
+        .apply {
+            accessorClassInfo.petalReferenceColumns.forEach { column ->
+                val name = column.name
+                val entityName = "${classSimpleName}.${name}" + if (column.isNullable) {
+                    "?"
+                } else {
+                    ""
                 }
+                addStatement("if (${column.nestedPetalManagerName}.hasUpdated) { $name = this@${entityName}.dbEntity }")
             }
-            .unindent()
-            .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
-            .build()
-    }
+        }
+        .unindent()
+        .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
+        .build()
+}
 
-    private val storeDependenciesFunSpec: FunSpec by lazy {
-        FunSpec.builder(STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
-            .addModifiers(KModifier.PRIVATE)
-            .apply {
-                referenceColumns
-                    .forEach {
-                        val name = it.name + if (it.isNullable) { "?" } else { "" }
-                        addStatement("${name}.store(performInsideStandaloneTransaction = false)")
+
+internal fun createStoreDependenciesFunSpec(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
+    FunctionTemplate(name = STORE_DEPENDENCIES_METHOD_SIMPLE_NAME) {
+        visibility { KotlinTemplate.Visibility.PRIVATE }
+
+        collectCode {
+            accessorClassInfo.petalReferenceColumns
+                .map {
+                    val name = it.name + if (it.isNullable) {
+                        "?"
+                    } else {
+                        ""
                     }
-            }
-            .build()
+                    CodeTemplate("${name}.store(performInsideStandaloneTransaction = false)")
+                }
+        }
     }
 
-    private val transactFunSpec: FunSpec by lazy {
-        FunSpec.builder(TRANSACT_METHOD_SIMPLE_NAME)
-            .addModifiers(
-                KModifier.OVERRIDE
+internal fun createTransactFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
+    FunctionTemplate(
+        name = TRANSACT_METHOD_SIMPLE_NAME,
+        returnType = accessorClassInfo.className
+    ) {
+        override()
+
+        parameterTemplate(
+            name = "statement",
+            typeName = LambdaTypeName.get(
+                receiver = accessorClassInfo.className,
+                returnType = Unit::class.asClassName()
             )
-            .returns(accessorClassInfo.className)
-            .addParameter(
-                ParameterSpec.builder(
-                    name = "statement",
-                    type = LambdaTypeName.get(
-                        receiver = accessorClassInfo.className,
-                        returnType = Unit::class.asClassName()
-                    )
-                ).build()
-            )
-            .addStatement("return·apply·{·%M·{·statement()·}·}", TRANSACTION_MEMBER_NAME)
-            .build()
+        )
+
+        writeCode("return·apply·{·%M·{·statement()·}·}", TRANSACTION_MEMBER_NAME)
     }
 
-    companion object {
-        const val STORE_METHOD_SIMPLE_NAME = "storeInsideOfTransaction"
-        const val STORE_DEPENDENCIES_METHOD_SIMPLE_NAME = "storeDependencies"
-        const val TRANSACT_METHOD_SIMPLE_NAME = "applyInsideTransaction"
-
-        const val UPDATE_DEPENDENCIES_PARAM_NAME = "updateNestedDependencies"
-    }
-}
-
-internal fun TypeSpec.Builder.addStoreMethod(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) = apply {
-    this.addFunctions(AccessorStoreFunSpecBuilder(accessorClassInfo).funSpecs)
-}

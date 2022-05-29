@@ -8,13 +8,11 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.f
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorLoadFunSpecBuilder
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.addCreateMethod
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.*
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ClassTemplate.Companion.classTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorPropertyTemplate.Companion.collectConstructorProperties
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate.Companion.collectFunctionTemplates
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.collectParameterTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.constructorParamTemplate
@@ -58,11 +56,17 @@ internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClass
             }
 
             collectFunctionTemplates {
-                createReferencingPetalPropertySpec(accessorClassInfo)
+                createLoadReferencingPetalFunctionTemplate(accessorClassInfo)
+                    .toMutableList()
+                    .apply {
+                        add(createStoreFunctionTemplate(accessorClassInfo))
+                        add(createStoreDependenciesFunSpec(accessorClassInfo))
+                        add(createTransactFunctionTemplate(accessorClassInfo))
+                    }
             }
 
             performOnTypeBuilder {
-                addStoreMethod(accessorClassInfo)
+//                addStoreMethod(accessorClassInfo)
                 addEagerLoadMethod(accessorClassInfo)
                 addAccessorCompanionObject(accessorClassInfo)
             }
@@ -79,7 +83,7 @@ internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo
 //            .primaryConstructor(AccessorConstructorSpecBuilder(accessorClassInfo).constructorSpec)
 //            .addNestedPetalPropertySpec(accessorClassInfo)
 //            .addReferencingPetalPropertySpec(accessorClassInfo)
-            .addStoreMethod(accessorClassInfo)
+//            .addStoreMethod(accessorClassInfo)
             .addEagerLoadMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)
             .build()

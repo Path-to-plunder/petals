@@ -8,7 +8,7 @@ import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asClassName
 
-internal fun createReferencingPetalPropertySpec(accessorClassInfo: AccessorClassInfo): List<FunctionTemplate> =
+internal fun createLoadReferencingPetalFunctionTemplate(accessorClassInfo: AccessorClassInfo): List<FunctionTemplate> =
     accessorClassInfo.petalColumns
         .filterIsInstance<ReferencedByPetalColumn>()
         .map { it.asReferencingPetalFunctionTemplate() }
