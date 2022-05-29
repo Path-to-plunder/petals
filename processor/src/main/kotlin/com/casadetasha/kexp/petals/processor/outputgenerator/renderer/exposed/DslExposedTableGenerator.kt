@@ -1,6 +1,5 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 
-import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
@@ -12,11 +11,13 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.f
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ObjectTemplate.Companion.objectTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectProperties
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.createPropertyTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.superclassTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.EXPOSED_TABLE_PACKAGE
-import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.MemberName
+import com.squareup.kotlinpoet.asClassName
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.dao.id.UUIDTable
@@ -35,7 +36,7 @@ internal fun FileTemplate.createExposedTableClassTemplate(
             }
         }
 
-        collectProperties {
+        collectPropertyTemplates {
             schema.parsedLocalPetalColumns
                 .filterNot { it is PetalIdColumn }
                 .map { column ->
@@ -138,7 +139,7 @@ private fun getColumnCreationMemberName(column: LocalPetalColumn): MemberName {
         "TEXT" -> "text"
         "INT" -> "integer"
         "BIGINT" -> "long"
-        else -> AnnotationParser.printThenThrowError(
+        else -> printThenThrowError(
             "INTERNAL LIBRARY ERROR: unsupported column (${column.dataType})" +
                     " found while parsing Dao for table ${column.parentSchema.tableName}"
         )

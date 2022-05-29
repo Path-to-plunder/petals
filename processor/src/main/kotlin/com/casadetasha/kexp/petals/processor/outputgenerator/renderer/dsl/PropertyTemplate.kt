@@ -49,7 +49,7 @@ open class PropertyTemplate(
     }
 
     companion object {
-        fun KotlinContainerTemplate.collectProperties(function: KotlinContainerTemplate.() -> Collection<PropertyTemplate>) {
+        fun KotlinContainerTemplate.collectPropertyTemplates(function: KotlinContainerTemplate.() -> Collection<PropertyTemplate>) {
             addProperties(function())
         }
 

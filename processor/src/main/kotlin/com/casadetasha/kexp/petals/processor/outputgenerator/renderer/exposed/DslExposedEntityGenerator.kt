@@ -4,7 +4,6 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowErro
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.model.columns.*
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
@@ -16,10 +15,9 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTe
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CompanionObjectTemplate.Companion.companionObjectTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.collectParameters
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.parameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectProperties
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.createPropertyTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.superclassTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityTemplateValues.getEntityClassSimpleName
@@ -43,14 +41,10 @@ internal fun FileTemplate.createExposedEntityClassTemplate(
 ) =
     classTemplate(className = ClassName(packageName, schema.getEntityClassSimpleName())) {
         primaryConstructorTemplate {
-            collectParameters {
-                listOf(
-                    ParameterTemplate(
-                        name = "id",
-                        typeName = EntityID::class.asClassName().parameterizedBy(schema.getEntityIdParameter())
-                    )
-                )
-            }
+            parameterTemplate(
+                name = "id",
+                typeName = EntityID::class.asClassName().parameterizedBy(schema.getEntityIdParameter())
+            )
         }
 
         superclassTemplate(schema.getSchemaEntitySuperclass()) {
@@ -59,7 +53,7 @@ internal fun FileTemplate.createExposedEntityClassTemplate(
             }
         }
 
-        collectProperties {
+        collectPropertyTemplates {
             schema.parsedPetalColumns
                 .filterNot { it is PetalIdColumn }
                 .map { it.toEntityColumn(petalClasses) }
