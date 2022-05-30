@@ -1,42 +1,22 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorEagerLoadDependenciesFunSpecBuilder.Companion.PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
-@OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorEagerLoadDependenciesFunSpecBuilder(private val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
-
-    val petalEagerLoadDependenciesFunSpec by lazy {
-        FunSpec.builder(PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME)
-            .returns(accessorClassInfo.className)
-            .addModifiers(KModifier.OVERRIDE, KModifier.PROTECTED)
-            .addCode(petalEagerLoadMethodBody)
-            .build()
-    }
+internal class AccessorEagerLoadDependenciesFunSpecBuilder(private val accessorClassInfo: AccessorClassInfo) {
 
     val companionEagerLoadDependenciesFunSpec by lazy {
         FunSpec.builder(COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME)
             .receiver(accessorClassInfo.entityClassName)
             .returns(accessorClassInfo.className)
             .addCode(companionEagerLoadMethodBody)
-            .build()
-    }
-
-    private val petalEagerLoadMethodBody: CodeBlock by lazy {
-        CodeBlock.builder()
-            .beginControlFlow("return apply")
-            .apply {
-                accessorClassInfo.petalColumns
-                    .filterIsInstance<PetalReferenceColumn>()
-                    .forEach {
-                        addStatement("${it.name}NestedPetalManager.eagerLoadAccessor()")
-                    }
-            }
-            .endControlFlow()
             .build()
     }
 
@@ -58,13 +38,32 @@ internal class AccessorEagerLoadDependenciesFunSpecBuilder(private val accessorC
         const val COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "toPetalWithEagerLoadedDependencies"
         const val PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "eagerLoadDependenciesInsideTransaction"
     }
-
-//    override fun eagerLoadDependenciesInsideTransaction(): ParentPetalClass = apply {
-//        nestedPetalNestedPetalManager.eagerLoadAccessor()
-//    }
-
-//    public fun ParentPetalClassEntity.exportWithEagerLoadedDependencies(): ParentPetalClass =
-//        load(
-//            com.casadetasha.kexp.petals.ParentPetalClassEntity::nestedPetal,
-//        ).export().eagerLoadDependencies()
 }
+
+
+internal fun createEagerLoadMethod(accessorClassInfo: AccessorClassInfo) =
+    FunctionTemplate(
+        name = PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME,
+        returnType = accessorClassInfo.className,
+    ) {
+        override()
+        visibility { KotlinTemplate.Visibility.PROTECTED }
+
+        writeCode { createPetalEagerLoadMethodBody(accessorClassInfo) }
+    }
+
+private fun createPetalEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
+    CodeTemplate(
+        CodeBlock.builder()
+            .beginControlFlow("return apply")
+            .apply {
+                accessorClassInfo.petalColumns
+                    .filterIsInstance<PetalReferenceColumn>()
+                    .forEach {
+                        addStatement("${it.name}NestedPetalManager.eagerLoadAccessor()")
+                    }
+            }
+            .endControlFlow()
+            .build()
+    )
+

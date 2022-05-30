@@ -62,12 +62,14 @@ internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClass
                         add(createStoreFunctionTemplate(accessorClassInfo))
                         add(createStoreDependenciesFunSpec(accessorClassInfo))
                         add(createTransactFunctionTemplate(accessorClassInfo))
+
+                        add(createEagerLoadMethod(accessorClassInfo))
                     }
             }
 
             performOnTypeBuilder {
 //                addStoreMethod(accessorClassInfo)
-                addEagerLoadMethod(accessorClassInfo)
+//                addEagerLoadMethod(accessorClassInfo)
                 addAccessorCompanionObject(accessorClassInfo)
             }
         }
@@ -84,14 +86,10 @@ internal class AccessorClassSpecBuilder(val accessorClassInfo: AccessorClassInfo
 //            .addNestedPetalPropertySpec(accessorClassInfo)
 //            .addReferencingPetalPropertySpec(accessorClassInfo)
 //            .addStoreMethod(accessorClassInfo)
-            .addEagerLoadMethod(accessorClassInfo)
+//            .addEagerLoadMethod(accessorClassInfo)
             .addAccessorCompanionObject(accessorClassInfo)
             .build()
     }
-}
-
-private fun TypeSpec.Builder.addEagerLoadMethod(accessorClassInfo: AccessorClassInfo) = apply {
-    addFunction(AccessorEagerLoadDependenciesFunSpecBuilder(accessorClassInfo).petalEagerLoadDependenciesFunSpec)
 }
 
 private fun TypeSpec.Builder.addSuperclass(accessorClassInfo: AccessorClassInfo) = apply {

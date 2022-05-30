@@ -27,6 +27,10 @@ class FunctionTemplate(name: String,
         functionBuilder.addCode(format, *args)
     }
 
+    fun writeCode(function: () -> CodeTemplate) {
+        functionBuilder.addCode(function().codeBlock)
+    }
+
     fun collectCode(function: () -> Collection<CodeTemplate>) {
         function().forEach {
             functionBuilder.addCode(it.codeBlock)
