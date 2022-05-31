@@ -19,7 +19,7 @@ internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) 
             accessorClassInfo.localColumns.map { it.asCreateFunctionParameterTemplate() }
         }
 
-        writeCode {
+        methodBody {
             createCreateFunctionMethodBodyTemplate(accessorClassInfo)
         }
     }
@@ -27,48 +27,51 @@ internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) 
 
 private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorClassInfo): CodeTemplate {
     val entityMemberName = accessorClassInfo.entityMemberName
-    return CodeTemplate(
-        CodeBlock.builder()
-            .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-            .beginControlFlow("val storeValues: %M.() -> Unit = ", entityMemberName)
-            .add(createAssignAccessorValuesCodeBlock(accessorClassInfo))
-            .endControlFlow()
-            .beginControlFlow("return@transaction when (id) ")
-            .addStatement("null -> %M.new { storeValues() }", entityMemberName)
-            .addStatement("else -> %M.new(id) { storeValues() }", entityMemberName)
-            .addStatement("}")
-            .unindent()
-            .unindent()
-            .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
-            .build()
-    )
+    return CodeTemplate {
+        controlFlow(
+            prefix = "return %M", TRANSACTION_MEMBER_NAME,
+            suffix = ".$EXPORT_METHOD_SIMPLE_NAME()"
+        ) {
+            controlFlow("val storeValues: %M.() -> Unit = ", entityMemberName) {
+                codeTemplate { createAssignAccessorValuesCodeBlock(accessorClassInfo) }
+            }
+
+            controlFlow("return@transaction when (id) ") {
+                collectStatementTemplates {
+                    listOf(
+                        CodeTemplate("null -> %M.new { storeValues() }", entityMemberName),
+                        CodeTemplate("else -> %M.new(id) { storeValues() }", entityMemberName),
+                    )
+                }
+            }
+        }
+    }
 }
 
-private fun createAssignAccessorValuesCodeBlock(accessorClassInfo: AccessorClassInfo): CodeBlock {
-    val entityColumns = accessorClassInfo.localColumns
-        .filterNot { it is PetalIdColumn }
-
-    val valueColumns = entityColumns.filterIsInstance<PetalValueColumn>()
-    val referenceColumns = entityColumns.filterIsInstance<PetalReferenceColumn>()
-
-    val builder = CodeBlock.builder()
-
-    valueColumns
-        .forEach { column ->
-            builder.addStatement("this.%L = %L", column.name, column.name)
+private fun createAssignAccessorValuesCodeBlock(accessorClassInfo: AccessorClassInfo): CodeTemplate =
+    CodeTemplate {
+        collectStatementTemplates {
+            accessorClassInfo.petalValueColumns
+                .map { column ->
+                    CodeTemplate("this.%L = %L", column.name, column.name)
+                }
         }
 
-    referenceColumns
-        .forEach { column ->
-            val name = column.name + if (column.isNullable) {
-                "?"
-            } else {
-                ""
-            }
-            builder.addStatement("this.%L = %L", column.name, "$name.dbEntity")
+        collectStatementTemplates {
+            accessorClassInfo.petalReferenceColumns
+                .map { column ->
+                    val name = column.name + column.getNullabilityMarker()
+                    CodeTemplate("this.%L = %L", column.name, "$name.dbEntity")
+                }
         }
+    }
 
-    return builder.build()
+internal fun PetalReferenceColumn.getNullabilityMarker(): Any {
+    return if (isNullable) {
+        "?"
+    } else {
+        ""
+    }
 }
 
 internal object CreateMethodNames {

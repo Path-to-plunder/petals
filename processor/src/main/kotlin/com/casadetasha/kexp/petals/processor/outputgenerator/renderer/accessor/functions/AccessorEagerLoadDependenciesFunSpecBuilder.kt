@@ -23,7 +23,7 @@ internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInf
 
 private fun createPetalEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
     CodeTemplate {
-        controlBlock("return apply") {
+        controlFlow("return apply") {
             collectStatements {
                 accessorClassInfo.petalColumns
                     .filterIsInstance<PetalReferenceColumn>()

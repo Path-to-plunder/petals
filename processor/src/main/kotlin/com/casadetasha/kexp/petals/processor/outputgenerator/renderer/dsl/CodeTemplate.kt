@@ -18,8 +18,9 @@ class CodeTemplate(startingCodeBlock: CodeBlock? = null, function: (CodeTemplate
         codeBlock = builder.build()
     }
 
-    fun controlBlock(prefix: String, suffix: String = "", function: (CodeTemplate.() -> Unit)? = null) {
-        builder.add("$prefix·{\n")
+    fun controlFlow(prefix: String, vararg prefixArgs: Any?, suffix: String = "", function: (CodeTemplate.() -> Unit)? = null) {
+        builder.add(prefix, *prefixArgs)
+        builder.add("·{\n")
         builder.indent()
 
         function?.let { this.function() }
@@ -40,8 +41,20 @@ class CodeTemplate(startingCodeBlock: CodeBlock? = null, function: (CodeTemplate
         }
     }
 
+    fun collectStatementTemplates(function: () -> Collection<CodeTemplate>) {
+        function().forEach { template ->
+            builder.add("«")
+            builder.add(template.codeBlock)
+            builder.add("\n»")
+        }
+    }
+
     fun code(function: () -> String) {
         builder.add(function())
+    }
+
+    fun codeTemplate(function: () -> CodeTemplate) {
+        builder.add(function().codeBlock)
     }
 
     companion object {
