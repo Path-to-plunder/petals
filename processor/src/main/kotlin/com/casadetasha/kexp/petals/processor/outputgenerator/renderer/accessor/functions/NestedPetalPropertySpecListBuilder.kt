@@ -6,7 +6,7 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate.Companion.codeTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate.Companion.code
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate
 import com.squareup.kotlinpoet.*
@@ -52,7 +52,7 @@ private fun PetalReferenceColumn.petalManagerMethodBody(): CodeTemplate {
     } else {
         ""
     }
-    return codeTemplate {
+    return code {
         CodeBlock.builder()
             .beginControlFlow("lazy")
             .addStatement(

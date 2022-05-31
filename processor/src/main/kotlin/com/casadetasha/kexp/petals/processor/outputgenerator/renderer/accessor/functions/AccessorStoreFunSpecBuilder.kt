@@ -8,7 +8,7 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.f
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.UPDATE_DEPENDENCIES_PARAM_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate.Companion.codeTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate.Companion.code
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.parameterTemplate
@@ -41,7 +41,7 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
     }
 }
 
-private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = codeTemplate {
+private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = code {
     val codeBlockBuilder = CodeBlock.builder()
     val classSimpleName = accessorClassInfo.className.simpleName
 

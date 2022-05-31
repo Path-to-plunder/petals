@@ -8,7 +8,6 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.f
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
-import com.squareup.kotlinpoet.CodeBlock
 
 
 internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo) =
@@ -23,19 +22,15 @@ internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInf
     }
 
 private fun createPetalEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
-    CodeTemplate(
-        CodeBlock.builder()
-            .beginControlFlow("return apply")
-            .apply {
+    CodeTemplate {
+        controlBlock("return apply") {
+            collectStatements {
                 accessorClassInfo.petalColumns
                     .filterIsInstance<PetalReferenceColumn>()
-                    .forEach {
-                        addStatement("${it.name}NestedPetalManager.eagerLoadAccessor()")
-                    }
+                    .map { "${it.name}NestedPetalManager.eagerLoadAccessor()" }
             }
-            .endControlFlow()
-            .build()
-    )
+        }
+    }
 
 internal fun createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassInfo: AccessorClassInfo) =
     FunctionTemplate(
@@ -47,19 +42,14 @@ internal fun createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassI
     }
 
 private fun createCompanionEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
-    CodeTemplate(
-        CodeBlock.builder()
-            .add("return load(")
-            .apply {
-                accessorClassInfo.petalColumns
-                    .filterIsInstance<PetalReferenceColumn>()
-                    .forEach {
-                        add("\n  %M::${it.name},", accessorClassInfo.entityMemberName)
-                    }
-            }
-            .add("\n).$EXPORT_METHOD_SIMPLE_NAME().eagerLoadDependencies()")
-            .build()
-    )
+    CodeTemplate("return load(") {
+        collectCodeTemplates {
+            accessorClassInfo.petalReferenceColumns
+                .map { CodeTemplate("\n  %M::${it.name},", accessorClassInfo.entityMemberName) }
+        }
+
+        code { "\n).$EXPORT_METHOD_SIMPLE_NAME().eagerLoadDependencies()" }
+    }
 
 object EagerLoadDependenciesMethodNames {
     const val COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "toPetalWithEagerLoadedDependencies"
