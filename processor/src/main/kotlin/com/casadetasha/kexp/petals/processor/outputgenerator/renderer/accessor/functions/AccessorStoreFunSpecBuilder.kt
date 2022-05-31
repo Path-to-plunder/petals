@@ -41,7 +41,6 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
     }
 }
 
-
 private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = codeTemplate {
     val codeBlockBuilder = CodeBlock.builder()
     val classSimpleName = accessorClassInfo.className.simpleName
@@ -73,7 +72,6 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
         .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
         .build()
 }
-
 
 internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
     FunctionTemplate(name = STORE_DEPENDENCIES_METHOD_SIMPLE_NAME) {
