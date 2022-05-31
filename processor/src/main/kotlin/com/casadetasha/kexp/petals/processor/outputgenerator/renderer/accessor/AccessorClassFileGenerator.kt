@@ -20,18 +20,6 @@ internal class AccessorClassFileGenerator(
 
             accessorClassTemplate(accessorClassInfo)
         }.writeToDisk()
-//        val fileSpec = FileSpec.builder(
-//            packageName = PACKAGE_NAME,
-//            fileName = accessorClassInfo.className.simpleName
-//        )
-//            .addType(
-//                AccessorClassSpecBuilder(
-//                    accessorClassInfo
-//                ).getClassSpec())
-//            .addImport("org.jetbrains.exposed.dao", "load")
-//            .build()
-//
-//        fileSpec.writeTo(File(kaptKotlinGeneratedDir))
     }
 
     companion object {

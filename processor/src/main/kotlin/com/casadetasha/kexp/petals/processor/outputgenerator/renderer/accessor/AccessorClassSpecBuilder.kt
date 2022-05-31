@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.*
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ClassTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ClassTemplate.Companion.classTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CompanionObjectTemplate.Companion.companionObjectTemplate
@@ -20,68 +21,70 @@ import com.squareup.kotlinpoet.asClassName
 
 internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClassInfo) =
     classTemplate(accessorClassInfo.className) {
-        superclassTemplate(
-            PetalAccessor::class.asClassName()
-                .parameterizedBy(
-                    accessorClassInfo.className,
-                    accessorClassInfo.entityClassName,
-                    accessorClassInfo.idKotlinClassName
-                )
-        ) {
-            constructorParamTemplate { CodeTemplate("dbEntity, id") }
-        }
+        accessorConstructorTemplate(accessorClassInfo)
+        accessorSuperClassTemplate(accessorClassInfo)
 
-        primaryConstructorTemplate {
-            collectConstructorProperties(this@classTemplate) {
-                accessorClassInfo.petalValueColumns
-                    .map { it.toConstructorPropertyTemplate() }
-            }
-
-            collectParameterTemplates {
-                accessorClassInfo.petalReferenceColumns
-                    .map { it.asParameterTemplate() }
-                    .toMutableList()
-                    .apply {
-                        add(ParameterTemplate(name = "dbEntity", typeName = accessorClassInfo.entityClassName))
-                        add(ParameterTemplate(name = "id", typeName = accessorClassInfo.idKotlinClassName))
-                    }
-            }
-        }
-
-        collectPropertyTemplates {
-            createNestedPetalPropertyTemplates(accessorClassInfo)
-        }
+        collectPropertyTemplates { createNestedPetalPropertyTemplates(accessorClassInfo) }
 
         collectFunctionTemplates {
-            createLoadReferencingPetalFunctionTemplate(accessorClassInfo)
-                .toMutableList()
-                .apply {
-                    addAll(
-                        listOf(
-                            createStoreFunctionTemplate(accessorClassInfo),
-                            createStoreDependenciesFunSpec(accessorClassInfo),
-                            createTransactFunctionTemplate(accessorClassInfo),
-                            createEagerLoadMethod(accessorClassInfo),
-                        )
-                    )
-                }
+            mutableSetOf(
+                createStoreFunctionTemplate(accessorClassInfo),
+                createStoreDependenciesFunctionTemplate(accessorClassInfo),
+                createTransactFunctionTemplate(accessorClassInfo),
+                createEagerLoadFunctionTemplate(accessorClassInfo),
+            ).apply {
+                addAll( createLoadReferencingPetalFunctionTemplate(accessorClassInfo) )
+            }
         }
 
         companionObjectTemplate {
             collectFunctionTemplates {
-                listOf(
+                mutableSetOf(
                     createCreateFunctionTemplate(accessorClassInfo),
+
                     createLoadFunctionTemplate(accessorClassInfo),
                     createLoadAllFunctionTemplate(accessorClassInfo),
-                    createLazyLoadAllFunctionTemplate(accessorClassInfo)
-                )
-            }
-            performOnTypeBuilder {
-//                addFunctions(AccessorLoadFunSpecBuilder(accessorClassInfo).loadFunSpecs)
-                addFunction(AccessorExportFunSpecBuilder(accessorClassInfo).exportFunSpec)
-                if (accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {
-                    addFunction(AccessorEagerLoadDependenciesFunSpecBuilder(accessorClassInfo).companionEagerLoadDependenciesFunSpec)
+                    createLazyLoadAllFunctionTemplate(accessorClassInfo),
+
+                    createExportFunctionTemplate(accessorClassInfo)
+                ).apply {
+                    if (accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {
+                        add( createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassInfo) )
+                    }
                 }
             }
         }
     }
+
+internal fun ClassTemplate.accessorConstructorTemplate(accessorClassInfo: AccessorClassInfo) {
+    primaryConstructorTemplate {
+        collectConstructorProperties(this@accessorConstructorTemplate) {
+            accessorClassInfo.petalValueColumns
+                .map { it.toConstructorPropertyTemplate() }
+        }
+
+        collectParameterTemplates {
+            accessorClassInfo.petalReferenceColumns
+                .map { it.asParameterTemplate() }
+                .toMutableList()
+                .apply {
+                    add(ParameterTemplate(name = "dbEntity", typeName = accessorClassInfo.entityClassName))
+                    add(ParameterTemplate(name = "id", typeName = accessorClassInfo.idKotlinClassName))
+                }
+        }
+    }
+
+}
+
+internal fun ClassTemplate.accessorSuperClassTemplate(accessorClassInfo: AccessorClassInfo) {
+    superclassTemplate(
+        PetalAccessor::class.asClassName()
+            .parameterizedBy(
+                accessorClassInfo.className,
+                accessorClassInfo.entityClassName,
+                accessorClassInfo.idKotlinClassName
+            )
+    ) {
+        constructorParamTemplate { CodeTemplate("dbEntity, id") }
+    }
+}

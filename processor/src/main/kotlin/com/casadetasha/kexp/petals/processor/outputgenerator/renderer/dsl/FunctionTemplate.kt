@@ -1,10 +1,7 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl
 
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate.toKModifier
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.*
 
 class FunctionTemplate(name: String,
                        receiverType: TypeName? = null,

@@ -1,8 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.TRANSACTION_MEMBER_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
@@ -75,7 +75,7 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
 }
 
 
-internal fun createStoreDependenciesFunSpec(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
+internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
     FunctionTemplate(name = STORE_DEPENDENCIES_METHOD_SIMPLE_NAME) {
         visibility { KotlinTemplate.Visibility.PRIVATE }
 
