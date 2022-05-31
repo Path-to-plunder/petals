@@ -119,6 +119,10 @@ class CompanionObjectTemplate private constructor(
 
     override val typeBuilder = TypeSpec.companionObjectBuilder()
 
+    fun performOnTypeBuilder(function: TypeSpec.Builder.() -> Unit) {
+        typeBuilder.function()
+    }
+
     companion object {
         fun ClassTemplate.companionObjectTemplate(
             modifiers: Collection<KModifier>? = null,

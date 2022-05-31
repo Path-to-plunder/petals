@@ -1,78 +1,79 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
-import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
+import com.casadetasha.kexp.petals.processor.model.columns.*
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.CREATE_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.TRANSACTION_MEMBER_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.collectParameterTemplates
 import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
-@OptIn(KotlinPoetMetadataPreview::class)
-internal class AccessorCreateFunSpecBuilder(private val accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
+internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) =
+    FunctionTemplate(
+        name = CREATE_METHOD_SIMPLE_NAME,
+        returnType = accessorClassInfo.className
+    ) {
+        collectParameterTemplates {
+            accessorClassInfo.localColumns.map { it.asCreateFunctionParameterTemplate() }
+        }
 
-    companion object {
-        const val CREATE_METHOD_SIMPLE_NAME = "create"
-
-        val TRANSACTION_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql.transactions", "transaction")
-    }
-
-    fun getFunSpec(): FunSpec {
-        return FunSpec.builder(CREATE_METHOD_SIMPLE_NAME)
-            .returns(accessorClassInfo.className)
-            .addParameters(AccessorClassInfoCreateFunParameterSpec(accessorClassInfo).parameterSpecs)
-            .addCode(CreateFunctionParser(accessorClassInfo).methodBody)
-            .build()
-    }
-
-    private class CreateFunctionParser(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
-
-        val methodBody: CodeBlock by lazy {
-            val entityMemberName = accessorClassInfo.entityMemberName
-            CodeBlock.builder()
-                .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-                .beginControlFlow("val storeValues: %M.() -> Unit = ", entityMemberName)
-                .add(AssignAccessorValuesCodeBlockBuilder(accessorClassInfo).assignValuesCodeBlock)
-                .endControlFlow()
-                .beginControlFlow("return@transaction when (id) ")
-                .addStatement("null -> %M.new { storeValues() }", entityMemberName)
-                .addStatement("else -> %M.new(id) { storeValues() }", entityMemberName)
-                .addStatement("}")
-                .unindent()
-                .unindent()
-                .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
-                .build()
+        writeCode {
+            createCreateFunctionMethodBodyTemplate(accessorClassInfo)
         }
     }
+
+
+private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorClassInfo): CodeTemplate {
+    val entityMemberName = accessorClassInfo.entityMemberName
+    return CodeTemplate(
+        CodeBlock.builder()
+            .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
+            .beginControlFlow("val storeValues: %M.() -> Unit = ", entityMemberName)
+            .add(createAssignAccessorValuesCodeBlock(accessorClassInfo))
+            .endControlFlow()
+            .beginControlFlow("return@transaction when (id) ")
+            .addStatement("null -> %M.new { storeValues() }", entityMemberName)
+            .addStatement("else -> %M.new(id) { storeValues() }", entityMemberName)
+            .addStatement("}")
+            .unindent()
+            .unindent()
+            .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
+            .build()
+    )
 }
 
-private class AssignAccessorValuesCodeBlockBuilder(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) {
+private fun createAssignAccessorValuesCodeBlock(accessorClassInfo: AccessorClassInfo): CodeBlock {
+    val entityColumns = accessorClassInfo.localColumns
+        .filterNot { it is PetalIdColumn }
 
-    val assignValuesCodeBlock: CodeBlock by lazy {
-        val entityColumns = accessorClassInfo.petalColumns
-            .filterIsInstance<LocalPetalColumn>()
-            .filterNot { it is PetalIdColumn }
+    val valueColumns = entityColumns.filterIsInstance<PetalValueColumn>()
+    val referenceColumns = entityColumns.filterIsInstance<PetalReferenceColumn>()
 
-        val valueColumns = entityColumns.filterIsInstance<PetalValueColumn>()
-        val referenceColumns = entityColumns.filterIsInstance<PetalReferenceColumn>()
+    val builder = CodeBlock.builder()
 
-        val builder = CodeBlock.builder()
+    valueColumns
+        .forEach { column ->
+            builder.addStatement("this.%L = %L", column.name, column.name)
+        }
 
-        valueColumns
-            .forEach { column ->
-                builder.addStatement("this.%L = %L", column.name, column.name)
+    referenceColumns
+        .forEach { column ->
+            val name = column.name + if (column.isNullable) {
+                "?"
+            } else {
+                ""
             }
+            builder.addStatement("this.%L = %L", column.name, "$name.dbEntity")
+        }
 
-        referenceColumns
-            .forEach { column ->
-                val name = column.name + if (column.isNullable) { "?" } else { "" }
-                builder.addStatement("this.%L = %L", column.name, "$name.dbEntity")
-            }
-
-        return@lazy builder.build()
-    }
+    return builder.build()
 }
 
-internal fun TypeSpec.Builder.addCreateMethod(accessorClassInfo: com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo) = apply {
-    this.addFunction(AccessorCreateFunSpecBuilder(accessorClassInfo).getFunSpec())
+internal object CreateMethodNames {
+    const val CREATE_METHOD_SIMPLE_NAME = "create"
+
+    val TRANSACTION_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql.transactions", "transaction")
 }

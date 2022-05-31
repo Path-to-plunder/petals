@@ -1,8 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorCreateFunSpecBuilder.Companion.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.AccessorExportFunSpecBuilder.Companion.EXPORT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
@@ -30,10 +30,8 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
         returnType = accessorClassInfo.className
     ) {
         override()
-
-        parameterTemplate( name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName() )
-
         visibility { KotlinTemplate.Visibility.PROTECTED }
+        parameterTemplate( name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName() )
 
         collectCode {
             listOf(
