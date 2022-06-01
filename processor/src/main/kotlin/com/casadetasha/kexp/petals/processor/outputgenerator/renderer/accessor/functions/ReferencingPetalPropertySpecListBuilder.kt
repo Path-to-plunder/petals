@@ -21,7 +21,7 @@ private fun ReferencedByPetalColumn.asReferencingPetalFunctionTemplate(): Functi
         name = "load${name.uppercaseFirstChar()}",
         returnType = returnType
     ) {
-        writeCode(
+        methodBody(
             "return %M { dbEntity.${name}.map{ it.%M() } }",
             TRANSACTION_MEMBER_NAME,
             MemberName("${referencedByColumn.columnReference.accessorClassName}.Companion", "toPetal")

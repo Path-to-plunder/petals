@@ -47,10 +47,8 @@ internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClass
                     createLazyLoadAllFunctionTemplate(accessorClassInfo),
 
                     createExportFunctionTemplate(accessorClassInfo)
-                ).apply {
-                    if (accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {
-                        add( createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassInfo) )
-                    }
+                ).addIf(accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {
+                    createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassInfo)
                 }
             }
         }
@@ -86,5 +84,11 @@ internal fun ClassTemplate.accessorSuperClassTemplate(accessorClassInfo: Accesso
             )
     ) {
         constructorParamTemplate { CodeTemplate("dbEntity, id") }
+    }
+}
+
+private fun <E> MutableSet<E>.addIf(condition: Boolean, function: () -> E): MutableSet<E> = apply {
+    if (condition) {
+        add(function())
     }
 }

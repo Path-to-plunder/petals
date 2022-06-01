@@ -20,12 +20,8 @@ class FunctionTemplate(name: String,
         functionSpec = functionBuilder.build()
     }
 
-    fun writeCode(format: String, vararg args: Any?) {
+    fun methodBody(format: String, vararg args: Any?) {
         functionBuilder.addCode(format, *args)
-    }
-
-    fun writeCode(function: () -> CodeTemplate) {
-        functionBuilder.addCode(function().codeBlock)
     }
 
     fun methodBody(function: () -> CodeTemplate) {

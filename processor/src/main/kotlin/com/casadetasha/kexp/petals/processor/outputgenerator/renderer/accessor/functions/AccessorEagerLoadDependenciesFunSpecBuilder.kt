@@ -18,7 +18,7 @@ internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInf
         override()
         visibility { KotlinTemplate.Visibility.PROTECTED }
 
-        writeCode { createPetalEagerLoadMethodBody(accessorClassInfo) }
+        this.methodBody { createPetalEagerLoadMethodBody(accessorClassInfo) }
     }
 
 private fun createPetalEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
@@ -38,7 +38,7 @@ internal fun createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassI
         returnType = accessorClassInfo.className,
         receiverType = accessorClassInfo.entityClassName
     ) {
-        writeCode { createCompanionEagerLoadMethodBody(accessorClassInfo) }
+        this.methodBody { createCompanionEagerLoadMethodBody(accessorClassInfo) }
     }
 
 private fun createCompanionEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =

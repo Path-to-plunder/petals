@@ -26,7 +26,7 @@ internal fun createLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo): F
     ) {
         collectParameterTemplates { accessorClassInfo.getLoadMethodParameters() }
 
-        writeCode {
+        this.methodBody {
             accessorClassInfo.getLoadMethodBody()
         }
     }
@@ -41,27 +41,32 @@ private fun AccessorClassInfo.getLoadMethodParameters(): List<ParameterTemplate>
 }
 
 private fun AccessorClassInfo.getLoadMethodBody(): CodeTemplate {
-    return CodeTemplate(
-        when (petalColumns.any { it is PetalReferenceColumn }) {
-            true -> CodeBlock.builder()
-                .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-                .beginControlFlow("when (eagerLoad)")
-                .addStatement(
-                    "true -> %M.findById(id)?.$COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME()",
-                    entityMemberName
-                )
-                .addStatement("false -> %M.findById(id)?.$EXPORT_METHOD_SIMPLE_NAME()", entityMemberName)
-                .endControlFlow()
-                .endControlFlow()
-                .build()
-            false -> CodeBlock.builder()
-                .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-                .addStatement("%M.findById(id)", entityMemberName)
-                .unindent()
-                .add("}?.$EXPORT_METHOD_SIMPLE_NAME()")
-                .build()
+    return when (petalColumns.any { it is PetalReferenceColumn }) {
+        true -> CodeTemplate {
+            controlFlow("return %M", TRANSACTION_MEMBER_NAME) {
+                controlFlow("when (eagerLoad)") {
+                    codeTemplate {
+                        CodeTemplate(
+                            format = "true -> %M.findById(id)?.$COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME()",
+                            entityMemberName
+                        )
+                    }
+
+                    codeTemplate {
+                        CodeTemplate("false -> %M.findById(id)?.$EXPORT_METHOD_SIMPLE_NAME()", entityMemberName)
+                    }
+                }
+            }
         }
-    )
+        false -> CodeTemplate {
+            controlFlow(
+                prefix = "return %M", TRANSACTION_MEMBER_NAME,
+                suffix = "?.$EXPORT_METHOD_SIMPLE_NAME()"
+            ) {
+                codeTemplate { CodeTemplate("%M.findById(id)", entityMemberName) }
+            }
+        }
+    }
 }
 
 
@@ -71,17 +76,17 @@ internal fun createLoadAllFunctionTemplate(accessorClassInfo: AccessorClassInfo)
         returnType = List::class.asClassName()
             .parameterizedBy(accessorClassInfo.className)
     ) {
-        writeCode {
-            CodeTemplate(
-                CodeBlock.builder()
-                    .beginControlFlow("return %M", TRANSACTION_MEMBER_NAME)
-                    .addStatement(
-                        "%M.all().map { it.$EXPORT_METHOD_SIMPLE_NAME() }",
-                        accessorClassInfo.entityMemberName,
-                    )
-                    .endControlFlow()
-                    .build()
-            )
+        methodBody {
+            CodeTemplate {
+                controlFlow("return %M", TRANSACTION_MEMBER_NAME) {
+                    codeTemplate {
+                        CodeTemplate(
+                            "%M.all().map { it.$EXPORT_METHOD_SIMPLE_NAME() }",
+                            accessorClassInfo.entityMemberName
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -92,18 +97,14 @@ internal fun createLazyLoadAllFunctionTemplate(accessorClassInfo: AccessorClassI
         returnType = SizedIterable::class.asClassName()
             .parameterizedBy(accessorClassInfo.className)
     ) {
-        writeCode {
+        methodBody {
             CodeTemplate(
-                CodeBlock.builder()
-                    .addStatement(
-                        "return %M.all().%M { it.$EXPORT_METHOD_SIMPLE_NAME() }",
-                        accessorClassInfo.entityMemberName,
-                        MAP_LAZY_MEMBER_NAME
-                    )
-                    .build()
+                "return %M.all().%M { it.$EXPORT_METHOD_SIMPLE_NAME() }",
+                accessorClassInfo.entityMemberName,
+                MAP_LAZY_MEMBER_NAME
             )
         }
-}
+    }
 
 private object AccessorLoadMethods {
     const val LOAD_METHOD_SIMPLE_NAME = "load"

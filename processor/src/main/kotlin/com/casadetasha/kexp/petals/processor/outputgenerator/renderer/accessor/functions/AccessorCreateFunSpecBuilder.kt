@@ -19,7 +19,7 @@ internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) 
             accessorClassInfo.localColumns.map { it.asCreateFunctionParameterTemplate() }
         }
 
-        methodBody {
+        this.methodBody {
             createCreateFunctionMethodBodyTemplate(accessorClassInfo)
         }
     }
@@ -60,13 +60,13 @@ private fun createAssignAccessorValuesCodeBlock(accessorClassInfo: AccessorClass
         collectStatementTemplates {
             accessorClassInfo.petalReferenceColumns
                 .map { column ->
-                    val name = column.name + column.getNullabilityMarker()
+                    val name = column.name + column.getNullabilityExtension()
                     CodeTemplate("this.%L = %L", column.name, "$name.dbEntity")
                 }
         }
     }
 
-internal fun PetalReferenceColumn.getNullabilityMarker(): Any {
+internal fun PetalReferenceColumn.getNullabilityExtension(): Any {
     return if (isNullable) {
         "?"
     } else {

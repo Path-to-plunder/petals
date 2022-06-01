@@ -8,11 +8,9 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.f
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.UPDATE_DEPENDENCIES_PARAM_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate.Companion.code
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.parameterTemplate
-import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.asClassName
 
@@ -31,7 +29,7 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
     ) {
         override()
         visibility { KotlinTemplate.Visibility.PROTECTED }
-        parameterTemplate( name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName() )
+        parameterTemplate(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName())
 
         collectCode {
             listOf(
@@ -41,36 +39,34 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
     }
 }
 
-private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = code {
-    val codeBlockBuilder = CodeBlock.builder()
+private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = CodeTemplate {
     val classSimpleName = accessorClassInfo.className.simpleName
 
-    codeBlockBuilder.addStatement(
+    codeStatementTemplate(
         "if (%L) { %L() }\n",
         UPDATE_DEPENDENCIES_PARAM_NAME,
         STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
     )
-        .beginControlFlow("return dbEntity.apply ")
-        .apply {
-            accessorClassInfo.petalValueColumns.forEach { column ->
+
+    controlFlow(
+        prefix = "return dbEntity.apply ",
+        suffix = ".$EXPORT_METHOD_SIMPLE_NAME()"
+    ) {
+        collectStatements {
+            accessorClassInfo.petalValueColumns.map { column ->
                 val name = column.name
-                addStatement("$name = this@${classSimpleName}.${name}")
+                "$name = this@${classSimpleName}.${name}"
             }
         }
-        .apply {
-            accessorClassInfo.petalReferenceColumns.forEach { column ->
+
+        collectStatements {
+            accessorClassInfo.petalReferenceColumns.map { column ->
                 val name = column.name
-                val entityName = "${classSimpleName}.${name}" + if (column.isNullable) {
-                    "?"
-                } else {
-                    ""
-                }
-                addStatement("if (${column.nestedPetalManagerName}.hasUpdated) { $name = this@${entityName}.dbEntity }")
+                val entityName = "${classSimpleName}.${name}" + column.getNullabilityExtension()
+                "if (${column.nestedPetalManagerName}.hasUpdated) { $name = this@${entityName}.dbEntity }"
             }
         }
-        .unindent()
-        .add("}.$EXPORT_METHOD_SIMPLE_NAME()")
-        .build()
+    }
 }
 
 internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
@@ -80,11 +76,7 @@ internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: Accessor
         collectCode {
             accessorClassInfo.petalReferenceColumns
                 .map {
-                    val name = it.name + if (it.isNullable) {
-                        "?"
-                    } else {
-                        ""
-                    }
+                    val name = it.name + it.getNullabilityExtension()
                     CodeTemplate("${name}.store(performInsideStandaloneTransaction = false)")
                 }
         }
@@ -105,6 +97,5 @@ internal fun createTransactFunctionTemplate(accessorClassInfo: AccessorClassInfo
             )
         )
 
-        writeCode("return·apply·{·%M·{·statement()·}·}", TRANSACTION_MEMBER_NAME)
+        methodBody("return·apply·{·%M·{·statement()·}·}", TRANSACTION_MEMBER_NAME)
     }
-

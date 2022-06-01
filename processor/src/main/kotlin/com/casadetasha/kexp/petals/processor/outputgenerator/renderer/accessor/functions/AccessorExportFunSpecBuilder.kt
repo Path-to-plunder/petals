@@ -7,7 +7,6 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.A
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
-import com.squareup.kotlinpoet.CodeBlock
 
 internal fun createExportFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
     FunctionTemplate(
@@ -15,39 +14,38 @@ internal fun createExportFunctionTemplate(accessorClassInfo: AccessorClassInfo):
         returnType = accessorClassInfo.className,
         receiverType = accessorClassInfo.entityClassName
     ) {
-        writeCode {
+        this.methodBody {
             createExportFunctionBody(accessorClassInfo)
         }
 }
 
 private fun createExportFunctionBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
-    CodeTemplate(
-        CodeBlock.builder().add("return ${accessorClassInfo.className.simpleName}(")
-            .add("\n  dbEntity = this,")
-            .amendSettersForColumns(accessorClassInfo)
-            .add("\n)")
-            .build()
-    )
+    CodeTemplate {
+        code {  "return ${accessorClassInfo.className.simpleName}(" }
+        code { "\n  dbEntity = this," }
+        amendSettersForColumns(accessorClassInfo)
+        code { "\n)" }
+    }
 
-private fun CodeBlock.Builder.amendSettersForColumns(accessorClassInfo: AccessorClassInfo) = apply {
+private fun CodeTemplate.amendSettersForColumns(accessorClassInfo: AccessorClassInfo) = apply {
     accessorClassInfo.petalColumns
         .filterIsInstance<PetalValueColumn>()
         .forEach {
-            val constructorBlock = "\n  ${it.name} = ${it.name},"
-            add(constructorBlock)
+            code { "\n  ${it.name} = ${it.name}," }
         }
+
     accessorClassInfo.petalColumns
         .filterIsInstance<PetalReferenceColumn>()
         .forEach {
             val nullabilityState = if (it.isNullable) { "?" } else { "" }
             val constructorBlock = "\n  ${it.name}Id = readValues[%M.${it.name}]$nullabilityState.value,"
-            add(constructorBlock, accessorClassInfo.tableMemberName)
+            codeTemplate { CodeTemplate(constructorBlock, accessorClassInfo.tableMemberName) }
         }
+
     accessorClassInfo.petalColumns
         .filterIsInstance<PetalIdColumn>()
         .forEach {
-            val constructorBlock = "\n  ${it.name} = ${it.name}.value,"
-            add(constructorBlock)
+            code { "\n  ${it.name} = ${it.name}.value," }
         }
 }
 

@@ -43,9 +43,7 @@ class CodeTemplate(startingCodeBlock: CodeBlock? = null, function: (CodeTemplate
 
     fun collectStatementTemplates(function: () -> Collection<CodeTemplate>) {
         function().forEach { template ->
-            builder.add("«")
-            builder.add(template.codeBlock)
-            builder.add("\n»")
+            codeStatementTemplate(template)
         }
     }
 
@@ -57,9 +55,13 @@ class CodeTemplate(startingCodeBlock: CodeBlock? = null, function: (CodeTemplate
         builder.add(function().codeBlock)
     }
 
-    companion object {
-        fun code(function: () -> CodeBlock): CodeTemplate {
-            return CodeTemplate(function())
-        }
+    fun codeStatementTemplate(format: String, vararg args: Any?) {
+        codeStatementTemplate(CodeTemplate(format, *args))
+    }
+
+    private fun codeStatementTemplate(template: CodeTemplate) {
+        builder.add("«")
+        builder.add(template.codeBlock)
+        builder.add("\n»")
     }
 }

@@ -6,7 +6,6 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate.Companion.code
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate
 import com.squareup.kotlinpoet.*
@@ -27,7 +26,6 @@ private fun PetalReferenceColumn.toNestedPetalPropertyTemplate(): List<PropertyT
     this.nestedPetalAccessorPropertyTemplate()
 )
 
-
 private fun PetalReferenceColumn.asNestedPetalManagerPropertyTemplate(): PropertyTemplate {
     return PropertyTemplate(name = nestedPetalManagerName, typeName = getNestedPetalManagerClassName()) {
         delegate { petalManagerMethodBody() }
@@ -46,17 +44,11 @@ private fun PetalReferenceColumn.getNestedPetalManagerClassName(): Parameterized
     )
 }
 
-private fun PetalReferenceColumn.petalManagerMethodBody(): CodeTemplate {
-    val nullabilityExtension = if (isNullable) {
-        "?"
-    } else {
-        ""
-    }
-    return code {
-        CodeBlock.builder()
-            .beginControlFlow("lazy")
-            .addStatement(
-                "%M(%L) { dbEntity.%L$nullabilityExtension.%M() }",
+private fun PetalReferenceColumn.petalManagerMethodBody(): CodeTemplate =
+    CodeTemplate {
+        controlFlow("lazy") {
+            codeStatementTemplate(
+                "%M(%L) { dbEntity.%L${getNullabilityExtension()}.%M() }",
                 nestedPetalManagerClassName().toMemberName(),
                 referencingIdName,
                 name,
@@ -65,10 +57,8 @@ private fun PetalReferenceColumn.petalManagerMethodBody(): CodeTemplate {
                     EXPORT_METHOD_SIMPLE_NAME
                 ).toMemberName()
             )
-            .endControlFlow()
-            .build()
+        }
     }
-}
 
 private fun PetalReferenceColumn.nestedPetalManagerClassName(): ClassName {
     return when (isNullable) {
@@ -95,4 +85,3 @@ private fun PetalReferenceColumn.nestedPetalAccessorPropertyTemplate(): Property
         }
     }
 }
-
