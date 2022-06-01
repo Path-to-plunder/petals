@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.fileTemplate
 
 internal class ExposedClassesFileGenerator(
     private val petalClasses: PetalClasses,

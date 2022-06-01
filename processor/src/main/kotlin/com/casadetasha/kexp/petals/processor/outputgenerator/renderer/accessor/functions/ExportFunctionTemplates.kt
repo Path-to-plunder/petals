@@ -5,8 +5,8 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
+import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 
 internal fun createExportFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
     FunctionTemplate(

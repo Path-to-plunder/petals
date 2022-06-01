@@ -2,11 +2,11 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 
 import com.casadetasha.kexp.petals.annotations.BasePetalMigration
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ClassTemplate.Companion.classTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate.Companion.propertyTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.SuperclassTemplate.Companion.superclassTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.classTemplate
+import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.propertyTemplate
+import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.superclassTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.ConfiguredJson.json
 import com.squareup.kotlinpoet.ClassName
 import kotlinx.serialization.encodeToString

@@ -22,6 +22,7 @@ repositories {
 dependencies {
     implementation(project(":kexp:annotation-parser"))
     implementation(project(":kexp:petals:annotations"))
+    implementation(project(":kexp:kotlin-generation-dsl"))
 
     implementation("com.google.auto.service:auto-service:$googleAutoServiceVersion")
     kapt("com.google.auto.service:auto-service:$googleAutoServiceVersion")

@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
 import com.squareup.kotlinpoet.ClassName
 
 internal class MigrationGenerator(private val petal: ParsedPetal) {

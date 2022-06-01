@@ -1,8 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
 
 import com.casadetasha.kexp.petals.processor.model.columns.*
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate
+import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
 

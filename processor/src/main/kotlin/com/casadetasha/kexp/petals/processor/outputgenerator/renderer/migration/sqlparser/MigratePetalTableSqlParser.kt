@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
+package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.sqlparser
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn

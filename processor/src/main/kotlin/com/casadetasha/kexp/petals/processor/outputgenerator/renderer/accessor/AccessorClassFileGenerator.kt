@@ -1,10 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate.Companion.fileTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ImportTemplate.Companion.importTemplate
-import com.squareup.kotlinpoet.FileSpec
-import java.io.File
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.fileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ImportTemplate.Companion.importTemplate
 
 internal class AccessorClassFileGenerator(
     private val accessorClassInfo: AccessorClassInfo

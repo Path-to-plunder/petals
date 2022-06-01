@@ -5,9 +5,9 @@ import com.casadetasha.kexp.petals.annotations.OptionalNestedPetalManager
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.PropertyTemplate
+import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
+import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
+import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 

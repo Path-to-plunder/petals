@@ -5,6 +5,8 @@ import com.casadetasha.kexp.petals.annotations.PetalMigration
 import com.casadetasha.kexp.petals.annotations.PetalSchemaMigration
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.sqlparser.CreatePetalTableSqlParser
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.sqlparser.MigratePetalTableSqlParser
 
 internal fun parsePetalMigration(petal: ParsedPetal): PetalMigration {
     return PetalMigration(

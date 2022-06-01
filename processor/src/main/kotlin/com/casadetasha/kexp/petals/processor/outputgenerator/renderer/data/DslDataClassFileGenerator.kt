@@ -2,7 +2,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
 import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
 @OptIn(KotlinPoetMetadataPreview::class)

@@ -5,9 +5,9 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.A
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.CREATE_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.collectParameterTemplates
+import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.collectParameterTemplates
 import com.squareup.kotlinpoet.*
 
 internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) =

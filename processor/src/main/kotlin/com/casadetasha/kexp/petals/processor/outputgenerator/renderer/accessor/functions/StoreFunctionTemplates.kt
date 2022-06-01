@@ -7,10 +7,10 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.f
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.UPDATE_DEPENDENCIES_PARAM_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.CodeTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.FunctionTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.KotlinTemplate
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.dsl.ParameterTemplate.Companion.parameterTemplate
+import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
+import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.asClassName
 
