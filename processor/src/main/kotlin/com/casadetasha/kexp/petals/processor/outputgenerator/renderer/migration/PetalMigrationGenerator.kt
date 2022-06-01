@@ -24,7 +24,7 @@ internal class PetalMigrationSetupGenerator(private val migrations: Collection<P
                     parameterTemplate("dataSource", HikariDataSource::class.asClassName())
 
                     methodBodyTemplate {
-                        collectStatementTemplates {
+                        collectCodeLineTemplates {
                             migrations.map {
                                 CodeTemplate( "%M().migrateToLatest(dataSource)", it.classMemberName())
                             }

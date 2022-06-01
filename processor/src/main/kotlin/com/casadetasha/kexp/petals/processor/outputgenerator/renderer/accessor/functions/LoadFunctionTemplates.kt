@@ -42,8 +42,8 @@ private fun AccessorClassInfo.getLoadMethodParameters(): List<ParameterTemplate>
 private fun AccessorClassInfo.getLoadMethodBody(): CodeTemplate {
     return when (petalColumns.any { it is PetalReferenceColumn }) {
         true -> CodeTemplate {
-            controlFlow("return %M", TRANSACTION_MEMBER_NAME) {
-                controlFlow("when (eagerLoad)") {
+            controlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
+                controlFlowCode("when (eagerLoad)") {
                     codeTemplate {
                         CodeTemplate(
                             format = "true -> %M.findById(id)?.$COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME()",
@@ -58,7 +58,7 @@ private fun AccessorClassInfo.getLoadMethodBody(): CodeTemplate {
             }
         }
         false -> CodeTemplate {
-            controlFlow(
+            controlFlowCode(
                 prefix = "return %M", TRANSACTION_MEMBER_NAME,
                 suffix = "?.$EXPORT_METHOD_SIMPLE_NAME()"
             ) {
@@ -77,7 +77,7 @@ internal fun createLoadAllFunctionTemplate(accessorClassInfo: AccessorClassInfo)
     ) {
         methodBody {
             CodeTemplate {
-                controlFlow("return %M", TRANSACTION_MEMBER_NAME) {
+                controlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
                     codeTemplate {
                         CodeTemplate(
                             "%M.all().map { it.$EXPORT_METHOD_SIMPLE_NAME() }",

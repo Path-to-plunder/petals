@@ -9,7 +9,6 @@ import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
 
-
 internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo) =
     FunctionTemplate(
         name = PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME,
@@ -23,8 +22,8 @@ internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInf
 
 private fun createPetalEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
     CodeTemplate {
-        controlFlow("return apply") {
-            collectStatements {
+        controlFlowCode("return apply") {
+            collectCodeLines {
                 accessorClassInfo.petalColumns
                     .filterIsInstance<PetalReferenceColumn>()
                     .map { "${it.name}NestedPetalManager.eagerLoadAccessor()" }
@@ -48,7 +47,7 @@ private fun createCompanionEagerLoadMethodBody(accessorClassInfo: AccessorClassI
                 .map { CodeTemplate("\n  %M::${it.name},", accessorClassInfo.entityMemberName) }
         }
 
-        code { "\n).$EXPORT_METHOD_SIMPLE_NAME().eagerLoadDependencies()" }
+        code ( "\n).$EXPORT_METHOD_SIMPLE_NAME().eagerLoadDependencies()" )
     }
 
 object EagerLoadDependenciesMethodNames {

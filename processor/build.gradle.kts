@@ -27,11 +27,9 @@ dependencies {
     implementation("com.google.auto.service:auto-service:$googleAutoServiceVersion")
     kapt("com.google.auto.service:auto-service:$googleAutoServiceVersion")
 
-    implementation ("com.squareup:kotlinpoet-classinspector-elements:$kotlinpoetVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0")
     implementation("com.squareup:kotlinpoet:$kotlinpoetVersion")
     implementation("com.squareup:kotlinpoet-metadata:$kotlinpoetVersion")
-    implementation("com.squareup:kotlinpoet-metadata-specs:$kotlinpoetVersion")
 
     implementation("com.zaxxer:HikariCP:5.0.0")
 

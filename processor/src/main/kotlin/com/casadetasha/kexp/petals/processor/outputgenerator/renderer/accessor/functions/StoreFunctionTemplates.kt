@@ -42,24 +42,24 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
 private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = CodeTemplate {
     val classSimpleName = accessorClassInfo.className.simpleName
 
-    codeStatementTemplate(
+    codeLine(
         "if (%L) { %L() }\n",
         UPDATE_DEPENDENCIES_PARAM_NAME,
         STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
     )
 
-    controlFlow(
+    controlFlowCode(
         prefix = "return dbEntity.apply ",
         suffix = ".$EXPORT_METHOD_SIMPLE_NAME()"
     ) {
-        collectStatements {
+        collectCodeLines {
             accessorClassInfo.petalValueColumns.map { column ->
                 val name = column.name
                 "$name = this@${classSimpleName}.${name}"
             }
         }
 
-        collectStatements {
+        collectCodeLines {
             accessorClassInfo.petalReferenceColumns.map { column ->
                 val name = column.name
                 val entityName = "${classSimpleName}.${name}" + column.getNullabilityExtension()
