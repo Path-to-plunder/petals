@@ -9,7 +9,7 @@ import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.toMemberName
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.toMemberName
 import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.classTemplate
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.CompanionObjectTemplate.Companion.companionObjectTemplate

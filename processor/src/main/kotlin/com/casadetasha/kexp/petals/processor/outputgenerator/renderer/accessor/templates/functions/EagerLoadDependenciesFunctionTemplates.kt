@@ -1,10 +1,10 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
+package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.EagerLoadDependenciesMethodNames.COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.EagerLoadDependenciesMethodNames.PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.EagerLoadDependenciesMethodNames.COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.EagerLoadDependenciesMethodNames.PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
@@ -47,10 +47,5 @@ private fun createCompanionEagerLoadMethodBody(accessorClassInfo: AccessorClassI
                 .map { CodeTemplate("\n  %M::${it.name},", accessorClassInfo.entityMemberName) }
         }
 
-        code ( "\n).$EXPORT_METHOD_SIMPLE_NAME().eagerLoadDependencies()" )
+        code ( "\n).$EXPORT_PETAL_METHOD_SIMPLE_NAME().eagerLoadDependencies()" )
     }
-
-object EagerLoadDependenciesMethodNames {
-    const val COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "toPetalWithEagerLoadedDependencies"
-    const val PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME = "eagerLoadDependenciesInsideTransaction"
-}

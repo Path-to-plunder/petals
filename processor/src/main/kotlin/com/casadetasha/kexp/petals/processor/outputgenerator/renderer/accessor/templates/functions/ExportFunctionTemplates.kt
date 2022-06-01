@@ -1,13 +1,14 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
+package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
+import getNullabilityExtension
 
 internal fun createExportFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
     FunctionTemplate(
-        name = EXPORT_METHOD_SIMPLE_NAME,
+        name = EXPORT_PETAL_METHOD_SIMPLE_NAME,
         returnType = accessorClassInfo.className,
         receiverType = accessorClassInfo.entityClassName
     ) {
@@ -42,7 +43,3 @@ private fun AccessorClassInfo.createPetalReferenceColumnTemplates(): List<CodeTe
 
 private fun AccessorClassInfo.createPetalIdColumnTemplate(): CodeTemplate =
     CodeTemplate("\n${petalIdColumn.name} = ${petalIdColumn.name}.value,")
-
-object ExportMethodNames {
-    const val EXPORT_METHOD_SIMPLE_NAME = "toPetal"
-}

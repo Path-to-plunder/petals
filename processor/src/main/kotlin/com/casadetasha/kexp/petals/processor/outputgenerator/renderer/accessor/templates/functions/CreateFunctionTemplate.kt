@@ -1,14 +1,14 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
+package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
-import com.casadetasha.kexp.petals.processor.model.columns.*
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.CREATE_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.TRANSACTION_MEMBER_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.CREATE_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.collectParameterTemplates
-import com.squareup.kotlinpoet.*
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asCreateFunctionParameterTemplate
+import getNullabilityExtension
 
 internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) =
     FunctionTemplate(
@@ -26,21 +26,21 @@ internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) 
 
 
 private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorClassInfo): CodeTemplate {
-    val entityMemberName = accessorClassInfo.entityMemberName
+    val entitySimpleName = accessorClassInfo.entityClassName.simpleName
     return CodeTemplate {
         controlFlowCode(
             prefix = "return %M", TRANSACTION_MEMBER_NAME,
-            suffix = ".$EXPORT_METHOD_SIMPLE_NAME()"
+            suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()"
         ) {
-            controlFlowCode("val storeValues: %M.() -> Unit = ", entityMemberName) {
+            controlFlowCode("val storeValues: %L.() -> Unit = ", entitySimpleName) {
                 codeTemplate { createAssignAccessorValuesCodeBlock(accessorClassInfo) }
             }
 
             controlFlowCode("return@transaction when (id) ") {
                 collectCodeLineTemplates {
                     listOf(
-                        CodeTemplate("null -> %M.new { storeValues() }", entityMemberName),
-                        CodeTemplate("else -> %M.new(id) { storeValues() }", entityMemberName),
+                        CodeTemplate("null -> %L.new { storeValues() }", entitySimpleName),
+                        CodeTemplate("else -> %L.new(id) { storeValues() }", entitySimpleName),
                     )
                 }
             }
@@ -65,17 +65,3 @@ private fun createAssignAccessorValuesCodeBlock(accessorClassInfo: AccessorClass
                 }
         }
     }
-
-internal fun PetalReferenceColumn.getNullabilityExtension(): Any {
-    return if (isNullable) {
-        "?"
-    } else {
-        ""
-    }
-}
-
-internal object CreateMethodNames {
-    const val CREATE_METHOD_SIMPLE_NAME = "create"
-
-    val TRANSACTION_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql.transactions", "transaction")
-}

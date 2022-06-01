@@ -1,12 +1,13 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
+package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
 import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.TRANSACTION_MEMBER_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asClassName
+import uppercaseFirstChar
 
 internal fun createLoadReferencingPetalFunctionTemplate(accessorClassInfo: AccessorClassInfo): List<FunctionTemplate> =
     accessorClassInfo.petalColumns
@@ -28,5 +29,3 @@ private fun ReferencedByPetalColumn.asReferencingPetalFunctionTemplate(): Functi
         )
     }
 }
-
-private fun String.uppercaseFirstChar(): String = replaceFirstChar { it.uppercase() }

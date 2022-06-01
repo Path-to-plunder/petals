@@ -6,7 +6,6 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassTemplateValues.EXPORT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.AnnotationTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.classTemplate
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
@@ -15,6 +14,7 @@ import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate.Compan
 import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.functionTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassTemplateValues.EXPORT_DATA_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.TypeName
@@ -25,7 +25,7 @@ import kotlin.reflect.KClass
 
 internal object DataClassTemplateValues {
     const val PACKAGE_NAME = "com.casadetasha.kexp.petals.data"
-    const val EXPORT_METHOD_SIMPLE_NAME = "asData"
+    const val EXPORT_DATA_METHOD_SIMPLE_NAME = "asData"
 }
 
 internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: AccessorClassInfo) = apply {
@@ -43,7 +43,7 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
         }
 
         functionTemplate(
-            name = EXPORT_METHOD_SIMPLE_NAME,
+            name = EXPORT_DATA_METHOD_SIMPLE_NAME,
             receiverType = accessorClassInfo.entityClassName,
             returnType = accessorClassInfo.dataClassName
         ) {
@@ -56,7 +56,7 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
         }
 
         functionTemplate(
-            name = EXPORT_METHOD_SIMPLE_NAME,
+            name = EXPORT_DATA_METHOD_SIMPLE_NAME,
             receiverType = accessorClassInfo.className,
             returnType = accessorClassInfo.dataClassName
         ) {

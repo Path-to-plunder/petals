@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
+package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates
 
 import com.casadetasha.kexp.petals.processor.model.columns.*
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate

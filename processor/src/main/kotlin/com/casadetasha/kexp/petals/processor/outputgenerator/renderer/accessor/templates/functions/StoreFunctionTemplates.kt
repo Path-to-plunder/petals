@@ -1,26 +1,19 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions
+package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.CreateMethodNames.TRANSACTION_MEMBER_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.ExportMethodNames.EXPORT_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.functions.StoreMethodNames.UPDATE_DEPENDENCIES_PARAM_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.UPDATE_DEPENDENCIES_PARAM_NAME
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.asClassName
-
-object StoreMethodNames {
-    const val STORE_METHOD_SIMPLE_NAME = "storeInsideOfTransaction"
-    const val STORE_DEPENDENCIES_METHOD_SIMPLE_NAME = "storeDependencies"
-    const val TRANSACT_METHOD_SIMPLE_NAME = "applyInsideTransaction"
-
-    const val UPDATE_DEPENDENCIES_PARAM_NAME = "updateNestedDependencies"
-}
+import getNullabilityExtension
 
 internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate {
     return FunctionTemplate(
@@ -50,7 +43,7 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
 
     controlFlowCode(
         prefix = "return dbEntity.apply ",
-        suffix = ".$EXPORT_METHOD_SIMPLE_NAME()"
+        suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()"
     ) {
         collectCodeLines {
             accessorClassInfo.petalValueColumns.map { column ->
