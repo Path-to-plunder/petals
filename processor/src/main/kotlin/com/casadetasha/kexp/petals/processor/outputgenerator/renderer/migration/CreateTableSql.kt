@@ -7,7 +7,7 @@ import com.casadetasha.kexp.petals.processor.model.columns.DefaultPetalValue
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 
-internal class CreatePetalTableSqlParser(val petalSchema: ParsedPetalSchema): PetalTableSqlParser() {
+internal class CreatePetalTableSqlParser(private val petalSchema: ParsedPetalSchema): PetalTableSqlParser() {
 
     val createTableSql: List<String> by lazy {
         val tableCreationSqlRows = mutableListOf("CREATE TABLE \"${petalSchema.tableName}\" (")

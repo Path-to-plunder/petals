@@ -64,4 +64,10 @@ class CodeTemplate(startingCodeBlock: CodeBlock? = null, function: (CodeTemplate
         builder.add(template.codeBlock)
         builder.add("\n»")
     }
+
+    companion object {
+        internal fun FunctionTemplate.methodBodyTemplate(function: CodeTemplate.() -> Unit) {
+            methodBody { CodeTemplate(function = function) }
+        }
+    }
 }
