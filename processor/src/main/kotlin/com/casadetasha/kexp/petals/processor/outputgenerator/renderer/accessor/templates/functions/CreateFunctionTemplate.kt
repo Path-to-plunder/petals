@@ -19,23 +19,28 @@ internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) 
             accessorClassInfo.localColumns.map { it.asCreateFunctionParameterTemplate() }
         }
 
-        methodBody(createCreateFunctionMethodBodyTemplate(accessorClassInfo))
+        generateMethodBody(createCreateFunctionMethodBodyTemplate(accessorClassInfo))
     }
 
 
 private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorClassInfo): CodeTemplate {
     val entitySimpleName = accessorClassInfo.entityClassName.simpleName
     return CodeTemplate {
-        controlFlowCode(
+        generateControlFlowCode(
             prefix = "return %M", TRANSACTION_MEMBER_NAME,
             suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
             endFlowString = "}"
         ) {
-            controlFlowCode("val storeValues: %L.() -> Unit = ", entitySimpleName) {
-                codeTemplate { createAssignAccessorValuesCodeBlock(accessorClassInfo) }
+            generateControlFlowCode("val storeValues: %L.() -> Unit = ",
+                entitySimpleName,
+                endFlowString = "}"
+            ) {
+                generateCodeTemplate { createAssignAccessorValuesCodeBlock(accessorClassInfo) }
             }
 
-            controlFlowCode("return@transaction when (id) ", endFlowString = "}") {
+            generateNewLine()
+
+            generateControlFlowCode("return@transaction when (id) ", endFlowString = "}") {
                 collectCodeLineTemplates {
                     listOf(
                         CodeTemplate("null -> %L.new { storeValues() }", entitySimpleName),

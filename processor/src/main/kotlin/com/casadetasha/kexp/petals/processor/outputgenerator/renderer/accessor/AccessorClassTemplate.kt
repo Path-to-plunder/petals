@@ -3,18 +3,18 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.classTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.generateClass
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.CompanionObjectTemplate.Companion.companionObjectTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate.Companion.collectConstructorProperties
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
+import com.casadetasha.kexp.generationdsl.dsl.CompanionObjectTemplate.Companion.generateCompanionObject
+import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate.Companion.collectConstructorPropertyTemplates
+import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.generatePrimaryConstructor
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.collectFunctionTemplates
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.collectParameterTemplates
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.collectPropertyTemplates
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.constructorParamTemplate
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.superclassTemplate
+import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateConstructorParam
+import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateSuperClass
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.createNestedPetalPropertyTemplates
@@ -27,10 +27,10 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.t
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asClassName
 
-internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClassInfo) =
-    classTemplate(accessorClassInfo.className) {
-        accessorConstructorTemplate(accessorClassInfo)
-        accessorSuperClassTemplate(accessorClassInfo)
+internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClassInfo) =
+    generateClass(accessorClassInfo.className) {
+        generateAccessorConstructor(accessorClassInfo)
+        generateAccessorSuperClass(accessorClassInfo)
 
         collectPropertyTemplates { createNestedPetalPropertyTemplates(accessorClassInfo) }
 
@@ -45,7 +45,7 @@ internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClass
             }
         }
 
-        companionObjectTemplate {
+        generateCompanionObject {
             collectFunctionTemplates {
                 mutableSetOf(
                     createCreateFunctionTemplate(accessorClassInfo),
@@ -62,9 +62,9 @@ internal fun FileTemplate.accessorClassTemplate(accessorClassInfo: AccessorClass
         }
     }
 
-internal fun ClassTemplate.accessorConstructorTemplate(accessorClassInfo: AccessorClassInfo) {
-    primaryConstructorTemplate {
-        collectConstructorProperties(this@accessorConstructorTemplate) {
+internal fun ClassTemplate.generateAccessorConstructor(accessorClassInfo: AccessorClassInfo) {
+    generatePrimaryConstructor {
+        collectConstructorPropertyTemplates(this@generateAccessorConstructor) {
             accessorClassInfo.petalValueColumns
                 .map { it.toConstructorPropertyTemplate() }
         }
@@ -79,11 +79,10 @@ internal fun ClassTemplate.accessorConstructorTemplate(accessorClassInfo: Access
                 }
         }
     }
-
 }
 
-internal fun ClassTemplate.accessorSuperClassTemplate(accessorClassInfo: AccessorClassInfo) {
-    superclassTemplate(
+internal fun ClassTemplate.generateAccessorSuperClass(accessorClassInfo: AccessorClassInfo) {
+    generateSuperClass(
         PetalAccessor::class.asClassName()
             .parameterizedBy(
                 accessorClassInfo.className,
@@ -91,7 +90,7 @@ internal fun ClassTemplate.accessorSuperClassTemplate(accessorClassInfo: Accesso
                 accessorClassInfo.idKotlinClassName
             )
     ) {
-        constructorParamTemplate { CodeTemplate("dbEntity, id") }
+        generateConstructorParam { CodeTemplate("dbEntity, id") }
     }
 }
 

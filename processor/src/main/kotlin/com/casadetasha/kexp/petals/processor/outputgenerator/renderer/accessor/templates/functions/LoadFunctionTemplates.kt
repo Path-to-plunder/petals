@@ -24,7 +24,7 @@ internal fun createLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo): F
     ) {
         collectParameterTemplates { accessorClassInfo.getLoadMethodParameters() }
 
-        methodBody(accessorClassInfo.getLoadMethodBody())
+        generateMethodBody(accessorClassInfo.getLoadMethodBody())
     }
 
 private fun AccessorClassInfo.getLoadMethodParameters(): List<ParameterTemplate> {
@@ -40,23 +40,23 @@ private fun AccessorClassInfo.getLoadMethodBody(): CodeTemplate {
     val entitySimpleName = entityClassName.simpleName
     return when (petalColumns.any { it is PetalReferenceColumn }) {
         true -> CodeTemplate {
-            controlFlowCode("return %M", TRANSACTION_MEMBER_NAME, endFlowString = "}") {
-                controlFlowCode("when (eagerLoad)") {
-                    code (
+            generateControlFlowCode("return %M", TRANSACTION_MEMBER_NAME, endFlowString = "}") {
+                generateControlFlowCode("when (eagerLoad)") {
+                    generateCode (
                         format = "true -> %L.findById(id)?.$COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME()",
                         entitySimpleName
                     )
 
-                    code("false -> %L.findById(id)?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()", entitySimpleName)
+                    generateCode("false -> %L.findById(id)?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()", entitySimpleName)
                 }
             }
         }
         false -> CodeTemplate {
-            controlFlowCode (
+            generateControlFlowCode (
                 prefix = "return %M", TRANSACTION_MEMBER_NAME,
                 suffix = "?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()"
             ) {
-                code("%L.findById(id)", entitySimpleName)
+                generateCode("%L.findById(id)", entitySimpleName)
             }
         }
     }
@@ -69,9 +69,9 @@ internal fun createLoadAllFunctionTemplate(accessorClassInfo: AccessorClassInfo)
         returnType = List::class.asClassName()
             .parameterizedBy(accessorClassInfo.className)
     ) {
-        methodBody {
-            controlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
-                code (
+        generateMethodBody {
+            generateControlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
+                generateCode (
                     "%L.all().map { it.$EXPORT_PETAL_METHOD_SIMPLE_NAME() }",
                     accessorClassInfo.entityClassName.simpleName
                 )
@@ -86,12 +86,12 @@ internal fun createLazyLoadAllFunctionTemplate(accessorClassInfo: AccessorClassI
         returnType = SizedIterable::class.asClassName()
             .parameterizedBy(accessorClassInfo.className)
     ) {
-        methodBody {
-            controlFlowCode("return %L.all().%M",
+        generateMethodBody {
+            generateControlFlowCode("return %L.all().%M",
                 accessorClassInfo.entityClassName.simpleName,
                 MAP_LAZY_MEMBER_NAME
             ) {
-                code("it.$EXPORT_PETAL_METHOD_SIMPLE_NAME()")
+                generateCode("it.$EXPORT_PETAL_METHOD_SIMPLE_NAME()")
             }
         }
     }

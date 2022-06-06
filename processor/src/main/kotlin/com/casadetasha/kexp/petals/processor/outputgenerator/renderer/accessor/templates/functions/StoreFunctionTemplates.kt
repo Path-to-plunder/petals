@@ -24,8 +24,8 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
         visibility { KotlinTemplate.Visibility.PROTECTED }
         parameterTemplate(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName())
 
-        methodBody {
-            codeTemplate { createStoreMethodBody(accessorClassInfo) }
+        generateMethodBody {
+            generateCodeTemplate { createStoreMethodBody(accessorClassInfo) }
         }
     }
 }
@@ -33,15 +33,16 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
 private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = CodeTemplate {
     val classSimpleName = accessorClassInfo.className.simpleName
 
-    codeLine(
-        "if (%L) { %L() }\n",
-        UPDATE_DEPENDENCIES_PARAM_NAME,
-        STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
-    )
+    generateControlFlowCode("if (%L) ", UPDATE_DEPENDENCIES_PARAM_NAME) {
+        generateCode("%L()", STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
+    }
 
-    controlFlowCode(
+    generateNewLine()
+
+    generateControlFlowCode(
         prefix = "return dbEntity.apply ",
-        suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()"
+        suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
+        endFlowString = "}"
     ) {
         collectCodeLines {
             accessorClassInfo.petalValueColumns.map { column ->
@@ -50,11 +51,15 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
             }
         }
 
+        if (accessorClassInfo.petalValueColumns.size > 1) {
+            generateNewLine()
+        }
+
         collectCodeLines {
             accessorClassInfo.petalReferenceColumns.map { column ->
                 val name = column.name
                 val entityName = "${classSimpleName}.${name}" + column.getNullabilityExtension()
-                "if (${column.nestedPetalManagerName}.hasUpdated) { $name = this@${entityName}.dbEntity }"
+                "if·(${column.nestedPetalManagerName}.hasUpdated)·{·$name·=·this@${entityName}.dbEntity·}"
             }
         }
     }
@@ -64,7 +69,7 @@ internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: Accessor
     FunctionTemplate(name = STORE_DEPENDENCIES_METHOD_SIMPLE_NAME) {
         visibility { KotlinTemplate.Visibility.PRIVATE }
 
-        methodBody {
+        generateMethodBody {
             collectCodeTemplates {
                 accessorClassInfo.petalReferenceColumns
                     .map {
@@ -90,5 +95,9 @@ internal fun createTransactFunctionTemplate(accessorClassInfo: AccessorClassInfo
             )
         )
 
-        methodBody("return·apply·{·%M·{·statement()·}·}", TRANSACTION_MEMBER_NAME)
+        generateMethodBody {
+            generateControlFlowCode("return·apply·") {
+                generateCode("·%M·{·statement()·}·", TRANSACTION_MEMBER_NAME)
+            }
+        }
     }

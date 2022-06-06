@@ -17,12 +17,12 @@ internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInf
         override()
         visibility { KotlinTemplate.Visibility.PROTECTED }
 
-        methodBody(createPetalEagerLoadMethodBody(accessorClassInfo))
+        generateMethodBody(createPetalEagerLoadMethodBody(accessorClassInfo))
     }
 
 private fun createPetalEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
     CodeTemplate {
-        controlFlowCode("return apply", endFlowString = "}") {
+        generateControlFlowCode("return apply", endFlowString = "}") {
             collectCodeLines {
                 accessorClassInfo.petalColumns
                     .filterIsInstance<PetalReferenceColumn>()
@@ -37,7 +37,7 @@ internal fun createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassI
         returnType = accessorClassInfo.className,
         receiverType = accessorClassInfo.entityClassName
     ) {
-        methodBody(createCompanionEagerLoadMethodBody(accessorClassInfo))
+        generateMethodBody(createCompanionEagerLoadMethodBody(accessorClassInfo))
     }
 
 private fun createCompanionEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
@@ -47,5 +47,5 @@ private fun createCompanionEagerLoadMethodBody(accessorClassInfo: AccessorClassI
                 .map { CodeTemplate("\n  %M::${it.name},", accessorClassInfo.entityMemberName) }
         }
 
-        code ( "\n).$EXPORT_PETAL_METHOD_SIMPLE_NAME().eagerLoadDependencies()" )
+        generateCode ( "\n).$EXPORT_PETAL_METHOD_SIMPLE_NAME().eagerLoadDependencies()" )
     }

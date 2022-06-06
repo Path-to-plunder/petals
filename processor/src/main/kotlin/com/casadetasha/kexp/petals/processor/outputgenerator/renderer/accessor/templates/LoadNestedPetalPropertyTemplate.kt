@@ -32,8 +32,8 @@ private fun PetalReferenceColumn.toNestedPetalPropertyTemplate(): List<PropertyT
 
 private fun PetalReferenceColumn.petalManagerMethodBody(): CodeTemplate =
     CodeTemplate {
-        controlFlowCode("lazy", endFlowString = "}") {
-            codeLine(
+        generateControlFlowCode("lazy", endFlowString = "}") {
+            generateCodeLine(
                 "%L(%L) { dbEntity.%L${getNullabilityExtension()}.%M() }",
                 nestedPetalManagerClassName().simpleName,
                 referencingIdName,

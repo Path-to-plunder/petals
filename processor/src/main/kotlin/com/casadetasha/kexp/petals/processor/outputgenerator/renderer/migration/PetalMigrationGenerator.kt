@@ -3,8 +3,8 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.createFileTemplate
-import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.functionTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.generateFile
+import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.generateFunction
 import com.casadetasha.kexp.generationdsl.dsl.ObjectTemplate.Companion.objectTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
 import com.squareup.kotlinpoet.*
@@ -13,16 +13,16 @@ import com.zaxxer.hikari.HikariDataSource
 internal class PetalMigrationSetupGenerator(private val migrations: Collection<ParsedPetal>) {
 
     fun createPetalMigrationSetupClass() {
-        createFileTemplate(
+        generateFile(
             directory = kaptKotlinGeneratedDir,
             packageName = PACKAGE_NAME,
             fileName = CLASS_NAME) {
 
             objectTemplate(className = ClassName(PACKAGE_NAME, CLASS_NAME)) {
-                functionTemplate(name = MIGRATE_METHOD_NAME) {
+                generateFunction(name = MIGRATE_METHOD_NAME) {
                     parameterTemplate("dataSource", HikariDataSource::class.asClassName())
 
-                    methodBody {
+                    generateMethodBody {
                         collectCodeLineTemplates {
                             migrations.map {
                                 CodeTemplate( "%M().migrateToLatest(dataSource)", it.classMemberName())

@@ -12,19 +12,19 @@ internal fun createExportFunctionTemplate(accessorClassInfo: AccessorClassInfo):
         returnType = accessorClassInfo.className,
         receiverType = accessorClassInfo.entityClassName
     ) {
-        methodBody(createExportFunctionBody(accessorClassInfo))
+        generateMethodBody(createExportFunctionBody(accessorClassInfo))
     }
 
 private fun createExportFunctionBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
     CodeTemplate {
-        controlFlowCode("return ${accessorClassInfo.className.simpleName}",
+        generateControlFlowCode("return ${accessorClassInfo.className.simpleName}",
             beginFlowString = "(",
             endFlowString = "\n)"
         ) {
-            code("dbEntity = this,")
+            generateCode("dbEntity = this,")
             collectCodeTemplates { accessorClassInfo.createPetalValueColumnTemplates() }
             collectCodeTemplates { accessorClassInfo.createPetalReferenceColumnTemplates() }
-            codeTemplate { accessorClassInfo.createPetalIdColumnTemplate() }
+            generateCodeTemplate { accessorClassInfo.createPetalIdColumnTemplate() }
         }
     }
 

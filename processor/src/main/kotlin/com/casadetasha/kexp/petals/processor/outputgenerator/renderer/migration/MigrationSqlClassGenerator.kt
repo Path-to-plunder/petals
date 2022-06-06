@@ -16,7 +16,7 @@ internal class MigrationSqlClassGenerator(private val petal: ParsedPetal) {
         petal.schemas[1] ?: printThenThrowError("All tables must contain a version 1")
         val className = "TableMigrations\$${petal.tableName}"
 
-        FileTemplate.createFileTemplate(
+        FileTemplate.generateFile(
             directory = kaptKotlinGeneratedDir,
             packageName = PACKAGE_NAME,
             fileName = className) {

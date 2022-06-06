@@ -9,7 +9,7 @@ import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 internal object DslDataClassFileGenerator {
 
     fun generateFile(accessorClassInfo: AccessorClassInfo) {
-        FileTemplate.createFileTemplate(
+        FileTemplate.generateFile(
             directory = AnnotationParser.kaptKotlinGeneratedDir,
             packageName = DataClassTemplateValues.PACKAGE_NAME,
             fileName = accessorClassInfo.dataClassName.simpleName

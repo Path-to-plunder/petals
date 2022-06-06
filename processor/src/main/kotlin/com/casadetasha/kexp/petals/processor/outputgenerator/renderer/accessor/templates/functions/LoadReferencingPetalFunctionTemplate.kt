@@ -22,7 +22,7 @@ private fun ReferencedByPetalColumn.asReferencingPetalFunctionTemplate(): Functi
         name = "load${name.uppercaseFirstChar()}",
         returnType = returnType
     ) {
-        methodBody(
+        generateMethodBody(
             "return %M { dbEntity.${name}.map{ it.%M() } }",
             TRANSACTION_MEMBER_NAME,
             MemberName("${referencedByColumn.columnReference.accessorClassName}.Companion", "toPetal")

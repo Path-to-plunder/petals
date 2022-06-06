@@ -14,8 +14,8 @@ import com.casadetasha.kexp.generationdsl.dsl.ObjectTemplate.Companion.objectTem
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.createPropertyTemplate
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.constructorParamTemplate
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.superclassTemplate
+import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateConstructorParam
+import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateSuperClass
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.EXPOSED_TABLE_PACKAGE
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.MemberName
@@ -31,8 +31,8 @@ internal fun FileTemplate.createExposedTableClassTemplate(
     schema: ParsedPetalSchema,
 ) =
     objectTemplate(className = ClassName(packageName, "${baseName}Table")) {
-        superclassTemplate(className = schema.getTableSuperclass()) {
-            constructorParamTemplate {
+        generateSuperClass(className = schema.getTableSuperclass()) {
+            generateConstructorParam {
                 CodeTemplate("name = %S", tableName)
             }
         }

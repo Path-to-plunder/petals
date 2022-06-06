@@ -7,13 +7,13 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.AnnotationTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.classTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.generateClass
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate.Companion.collectConstructorProperties
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate.Companion.collectConstructorPropertyTemplates
+import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.generatePrimaryConstructor
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
-import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.functionTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.generateFunction
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassTemplateValues.EXPORT_DATA_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
@@ -29,26 +29,26 @@ internal object DataClassTemplateValues {
 }
 
 internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: AccessorClassInfo) = apply {
-        classTemplate(
+        generateClass(
             className = accessorClassInfo.dataClassName,
             modifiers = listOf(KModifier.DATA),
             annotations = listOf(AnnotationTemplate(Serializable::class))
         ) {
-            primaryConstructorTemplate {
-                collectConstructorProperties(this@classTemplate) {
+            generatePrimaryConstructor {
+                collectConstructorPropertyTemplates(this@generateClass) {
                     accessorClassInfo.localColumns
                         .map { column -> column.constructorProperty() }
                 }
             }
         }
 
-        functionTemplate(
+        generateFunction(
             name = EXPORT_DATA_METHOD_SIMPLE_NAME,
             receiverType = accessorClassInfo.entityClassName,
             returnType = accessorClassInfo.dataClassName
         ) {
-            methodBody {
-                parenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
+            generateMethodBody {
+                generateParenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
                     collectCodeTemplates {
                         accessorClassInfo.localColumns
                             .map { column -> column.entityDataExportCode(accessorClassInfo) }
@@ -57,13 +57,13 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             }
         }
 
-        functionTemplate(
+        generateFunction(
             name = EXPORT_DATA_METHOD_SIMPLE_NAME,
             receiverType = accessorClassInfo.className,
             returnType = accessorClassInfo.dataClassName
         ) {
-            methodBody {
-                parenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
+            generateMethodBody {
+                generateParenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
                     collectCodeTemplates {
                         accessorClassInfo.localColumns.map {
                             CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},")

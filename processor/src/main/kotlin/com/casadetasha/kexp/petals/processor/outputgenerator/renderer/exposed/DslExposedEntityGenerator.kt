@@ -10,17 +10,17 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.toMemberName
-import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.classTemplate
+import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.generateClass
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.CompanionObjectTemplate.Companion.companionObjectTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.primaryConstructorTemplate
+import com.casadetasha.kexp.generationdsl.dsl.CompanionObjectTemplate.Companion.generateCompanionObject
+import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.generatePrimaryConstructor
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.createPropertyTemplate
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.constructorParamTemplate
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.superclassTemplate
+import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateConstructorParam
+import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateSuperClass
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityTemplateValues.getEntityClassSimpleName
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityTemplateValues.getTableClassSimpleName
 import com.squareup.kotlinpoet.*
@@ -40,16 +40,16 @@ internal fun FileTemplate.createExposedEntityClassTemplate(
     petalClasses: PetalClasses,
     schema: ParsedPetalSchema
 ) =
-    classTemplate(className = ClassName(packageName, schema.getEntityClassSimpleName())) {
-        primaryConstructorTemplate {
+    generateClass(className = ClassName(packageName, schema.getEntityClassSimpleName())) {
+        generatePrimaryConstructor {
             parameterTemplate(
                 name = "id",
                 typeName = EntityID::class.asClassName().parameterizedBy(schema.getEntityIdParameter())
             )
         }
 
-        superclassTemplate(schema.getSchemaEntitySuperclass()) {
-            constructorParamTemplate { CodeTemplate("id") }
+        generateSuperClass(schema.getSchemaEntitySuperclass()) {
+            generateConstructorParam { CodeTemplate("id") }
         }
 
         collectPropertyTemplates {
@@ -58,9 +58,9 @@ internal fun FileTemplate.createExposedEntityClassTemplate(
                 .map { it.toEntityColumn(petalClasses) }
         }
 
-        companionObjectTemplate {
-            superclassTemplate(className = schema.getEntityCompanionSuperclassName(packageName)) {
-                constructorParamTemplate { CodeTemplate(schema.getTableClassSimpleName()) }
+        generateCompanionObject {
+            generateSuperClass(className = schema.getEntityCompanionSuperclassName(packageName)) {
+                generateConstructorParam { CodeTemplate(schema.getTableClassSimpleName()) }
             }
         }
     }
