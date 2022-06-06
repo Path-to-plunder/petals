@@ -1,7 +1,7 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.EagerLoadDependenciesMethodNames.COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.EagerLoadDependenciesMethodNames.PETAL_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
@@ -17,12 +17,12 @@ internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInf
         override()
         visibility { KotlinTemplate.Visibility.PROTECTED }
 
-        this.methodBody { createPetalEagerLoadMethodBody(accessorClassInfo) }
+        methodBody(createPetalEagerLoadMethodBody(accessorClassInfo))
     }
 
 private fun createPetalEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
     CodeTemplate {
-        controlFlowCode("return apply") {
+        controlFlowCode("return apply", endFlowString = "}") {
             collectCodeLines {
                 accessorClassInfo.petalColumns
                     .filterIsInstance<PetalReferenceColumn>()
@@ -37,7 +37,7 @@ internal fun createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassI
         returnType = accessorClassInfo.className,
         receiverType = accessorClassInfo.entityClassName
     ) {
-        this.methodBody { createCompanionEagerLoadMethodBody(accessorClassInfo) }
+        methodBody(createCompanionEagerLoadMethodBody(accessorClassInfo))
     }
 
 private fun createCompanionEagerLoadMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =

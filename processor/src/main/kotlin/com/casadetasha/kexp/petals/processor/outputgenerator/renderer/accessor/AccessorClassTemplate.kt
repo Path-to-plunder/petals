@@ -15,6 +15,7 @@ import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.collec
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.collectPropertyTemplates
 import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.constructorParamTemplate
 import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.superclassTemplate
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.createNestedPetalPropertyTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions.*

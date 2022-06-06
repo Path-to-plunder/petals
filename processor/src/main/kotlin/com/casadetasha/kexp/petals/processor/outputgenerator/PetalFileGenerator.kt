@@ -3,10 +3,10 @@ package com.casadetasha.kexp.petals.processor.outputgenerator
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DslDataClassFileGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.MigrationGenerator
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.MigrationSqlClassGenerator
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration.PetalMigrationSetupGenerator
 import com.squareup.kotlinpoet.ClassName
 
@@ -26,7 +26,7 @@ internal class PetalFileGenerator(
     }
 
     private fun generatePetalClasses(petal: ParsedPetal) {
-        MigrationGenerator(petal).createMigrationForTable()
+        MigrationSqlClassGenerator(petal).createMigrationForTable()
         petal.currentSchema?.let {
             val accessorClassInfo = petal.getAccessorClassInfo()
 

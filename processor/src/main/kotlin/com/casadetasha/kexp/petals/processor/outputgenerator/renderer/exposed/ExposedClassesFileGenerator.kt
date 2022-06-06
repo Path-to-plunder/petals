@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
-import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.fileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.createFileTemplate
 
 internal class ExposedClassesFileGenerator(
     private val petalClasses: PetalClasses,
@@ -18,7 +18,7 @@ internal class ExposedClassesFileGenerator(
     }
 
     fun generateFile() {
-        fileTemplate(
+        createFileTemplate(
             directory = kaptKotlinGeneratedDir,
             packageName = PACKAGE_NAME,
             fileName = "${className}Petals",

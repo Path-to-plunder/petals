@@ -3,8 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.migration
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate.Companion.methodBodyTemplate
-import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.fileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.createFileTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.functionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ObjectTemplate.Companion.objectTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
@@ -14,7 +13,7 @@ import com.zaxxer.hikari.HikariDataSource
 internal class PetalMigrationSetupGenerator(private val migrations: Collection<ParsedPetal>) {
 
     fun createPetalMigrationSetupClass() {
-        fileTemplate(
+        createFileTemplate(
             directory = kaptKotlinGeneratedDir,
             packageName = PACKAGE_NAME,
             fileName = CLASS_NAME) {
@@ -23,7 +22,7 @@ internal class PetalMigrationSetupGenerator(private val migrations: Collection<P
                 functionTemplate(name = MIGRATE_METHOD_NAME) {
                     parameterTemplate("dataSource", HikariDataSource::class.asClassName())
 
-                    methodBodyTemplate {
+                    methodBody {
                         collectCodeLineTemplates {
                             migrations.map {
                                 CodeTemplate( "%M().migrateToLatest(dataSource)", it.classMemberName())

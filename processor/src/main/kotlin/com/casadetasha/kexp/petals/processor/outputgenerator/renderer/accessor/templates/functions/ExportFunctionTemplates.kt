@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
@@ -12,16 +12,14 @@ internal fun createExportFunctionTemplate(accessorClassInfo: AccessorClassInfo):
         returnType = accessorClassInfo.className,
         receiverType = accessorClassInfo.entityClassName
     ) {
-        this.methodBody {
-            createExportFunctionBody(accessorClassInfo)
-        }
+        methodBody(createExportFunctionBody(accessorClassInfo))
     }
 
 private fun createExportFunctionBody(accessorClassInfo: AccessorClassInfo): CodeTemplate =
     CodeTemplate {
         controlFlowCode("return ${accessorClassInfo.className.simpleName}",
             beginFlowString = "(",
-            endFlowString = ")"
+            endFlowString = "\n)"
         ) {
             code("dbEntity = this,")
             collectCodeTemplates { accessorClassInfo.createPetalValueColumnTemplates() }

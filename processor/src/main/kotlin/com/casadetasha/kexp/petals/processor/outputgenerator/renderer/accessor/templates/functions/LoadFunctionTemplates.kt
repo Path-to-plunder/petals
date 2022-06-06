@@ -1,7 +1,7 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate
@@ -24,9 +24,7 @@ internal fun createLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo): F
     ) {
         collectParameterTemplates { accessorClassInfo.getLoadMethodParameters() }
 
-        this.methodBody {
-            accessorClassInfo.getLoadMethodBody()
-        }
+        methodBody(accessorClassInfo.getLoadMethodBody())
     }
 
 private fun AccessorClassInfo.getLoadMethodParameters(): List<ParameterTemplate> {
@@ -42,27 +40,23 @@ private fun AccessorClassInfo.getLoadMethodBody(): CodeTemplate {
     val entitySimpleName = entityClassName.simpleName
     return when (petalColumns.any { it is PetalReferenceColumn }) {
         true -> CodeTemplate {
-            controlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
+            controlFlowCode("return %M", TRANSACTION_MEMBER_NAME, endFlowString = "}") {
                 controlFlowCode("when (eagerLoad)") {
-                    codeTemplate {
-                        CodeTemplate(
-                            format = "true -> %L.findById(id)?.$COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME()\n",
-                            entitySimpleName
-                        )
-                    }
+                    code (
+                        format = "true -> %L.findById(id)?.$COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME()",
+                        entitySimpleName
+                    )
 
-                    codeTemplate {
-                        CodeTemplate("false -> %L.findById(id)?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()\n", entitySimpleName)
-                    }
+                    code("false -> %L.findById(id)?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()", entitySimpleName)
                 }
             }
         }
         false -> CodeTemplate {
-            controlFlowCode(
+            controlFlowCode (
                 prefix = "return %M", TRANSACTION_MEMBER_NAME,
                 suffix = "?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()"
             ) {
-                codeTemplate { CodeTemplate("%L.findById(id)\n", entitySimpleName) }
+                code("%L.findById(id)", entitySimpleName)
             }
         }
     }
@@ -76,15 +70,11 @@ internal fun createLoadAllFunctionTemplate(accessorClassInfo: AccessorClassInfo)
             .parameterizedBy(accessorClassInfo.className)
     ) {
         methodBody {
-            CodeTemplate {
-                controlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
-                    codeTemplate {
-                        CodeTemplate(
-                            "%L.all().map { it.$EXPORT_PETAL_METHOD_SIMPLE_NAME() }\n",
-                            accessorClassInfo.entityClassName.simpleName
-                        )
-                    }
-                }
+            controlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
+                code (
+                    "%L.all().map { it.$EXPORT_PETAL_METHOD_SIMPLE_NAME() }",
+                    accessorClassInfo.entityClassName.simpleName
+                )
             }
         }
     }
@@ -97,10 +87,11 @@ internal fun createLazyLoadAllFunctionTemplate(accessorClassInfo: AccessorClassI
             .parameterizedBy(accessorClassInfo.className)
     ) {
         methodBody {
-            CodeTemplate(
-                "return %L.all().%M·{ it.$EXPORT_PETAL_METHOD_SIMPLE_NAME() }\n",
+            controlFlowCode("return %L.all().%M",
                 accessorClassInfo.entityClassName.simpleName,
                 MAP_LAZY_MEMBER_NAME
-            )
+            ) {
+                code("it.$EXPORT_PETAL_METHOD_SIMPLE_NAME()")
+            }
         }
     }

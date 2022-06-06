@@ -41,7 +41,7 @@ internal class ParsedPetalSchema private constructor(
 
     companion object {
 
-        fun parseFromAnnotatedSchemaClass(parsedSchemalessPetals: Map<ClassName, ParsedSchemalessPetal>,
+        fun parseWithAnnotatedSchemaClass(parsedSchemalessPetals: Map<ClassName, ParsedSchemalessPetal>,
                                           petalSchemaClass: KotlinContainer.KotlinClass
         ): ParsedPetalSchema {
             return parsePetalSchema(parsedSchemalessPetals, petalSchemaClass).apply {
@@ -56,7 +56,7 @@ internal class ParsedPetalSchema private constructor(
         ): ParsedPetalSchema {
             val petalSchemaAnnotation: PetalSchema = petalSchemaClass.getAnnotation(PetalSchema::class)!!
             val petalClass = checkNotNull(parsedSchemalessPetals[petalSchemaAnnotation.petalTypeName]) {
-                "Parameter \"petal\" for PetalSchema must be a Petal annotated class."
+                "INTERNAL LIBRARY ERROR: Parameter \"petal\" for PetalSchema must be a Petal annotated class."
             }
 
             return ParsedPetalSchema(
@@ -92,4 +92,3 @@ internal val PetalSchema.petalTypeName: TypeName
     } catch (exception: MirroredTypeException) {
         exception.typeMirror.asTypeName()
     }
-

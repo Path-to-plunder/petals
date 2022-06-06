@@ -3,7 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.
 import com.casadetasha.kexp.petals.annotations.NestedPetalManager
 import com.casadetasha.kexp.petals.annotations.OptionalNestedPetalManager
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
@@ -32,19 +32,21 @@ private fun PetalReferenceColumn.toNestedPetalPropertyTemplate(): List<PropertyT
 
 private fun PetalReferenceColumn.petalManagerMethodBody(): CodeTemplate =
     CodeTemplate {
-        controlFlowCode("lazy") {
+        controlFlowCode("lazy", endFlowString = "}") {
             codeLine(
                 "%L(%L) { dbEntity.%L${getNullabilityExtension()}.%M() }",
                 nestedPetalManagerClassName().simpleName,
                 referencingIdName,
                 name,
-                ClassName(
-                    "${referencingAccessorClassName.packageName}.${referencingAccessorClassName.simpleName}.Companion",
-                    EXPORT_PETAL_METHOD_SIMPLE_NAME
-                ).toMemberName()
+                getPetalExportMemberName()
             )
         }
     }
+
+private fun PetalReferenceColumn.getPetalExportMemberName(): MemberName = ClassName(
+        "${referencingAccessorClassName.packageName}.${referencingAccessorClassName.simpleName}.Companion",
+        EXPORT_PETAL_METHOD_SIMPLE_NAME
+    ).toMemberName()
 
 private fun PetalReferenceColumn.getNestedPetalManagerClassName(): ParameterizedTypeName {
     return when (this.isNullable) {

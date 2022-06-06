@@ -14,7 +14,7 @@ internal object PetalAnnotationParser {
             .mapValues { (_, petalClass) -> ParsedSchemalessPetal.parseFromKotlinClass(petalClass) }
 
         petalClasses.petalMap = petalClasses.schemaClasses
-            .map { ParsedPetalSchema.parseFromAnnotatedSchemaClass(parsedSchemalessPetals, it) }
+            .map { ParsedPetalSchema.parseWithAnnotatedSchemaClass(parsedSchemalessPetals, it) }
             .groupBy { it.parsedSchemalessPetal }
             .map { (petal, schemaList) ->
                 petal.className to ParsedPetal(

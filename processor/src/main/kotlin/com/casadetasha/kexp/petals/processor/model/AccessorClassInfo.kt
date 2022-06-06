@@ -1,4 +1,4 @@
-package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
+package com.casadetasha.kexp.petals.processor.model
 
 import com.casadetasha.kexp.petals.processor.model.columns.*
 import com.squareup.kotlinpoet.ClassName

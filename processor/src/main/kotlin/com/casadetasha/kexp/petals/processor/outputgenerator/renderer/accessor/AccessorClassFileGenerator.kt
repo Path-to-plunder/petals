@@ -1,15 +1,16 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGeneratedDir
-import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.fileTemplate
+import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.createFileTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ImportTemplate.Companion.importTemplate
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 
 internal class AccessorClassFileGenerator(
     private val accessorClassInfo: AccessorClassInfo
 ) {
 
     fun generateFile() {
-        fileTemplate(
+        createFileTemplate(
             directory = kaptKotlinGeneratedDir,
             packageName = PACKAGE_NAME,
             fileName = accessorClassInfo.className.simpleName

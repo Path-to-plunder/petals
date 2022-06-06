@@ -5,7 +5,7 @@ import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.AnnotationTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.classTemplate
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
@@ -47,10 +47,12 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             receiverType = accessorClassInfo.entityClassName,
             returnType = accessorClassInfo.dataClassName
         ) {
-            parenthesizedBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
-                collectCode{
-                    accessorClassInfo.localColumns
-                        .map { column -> column.entityDataExportCode(accessorClassInfo) }
+            methodBody {
+                parenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
+                    collectCodeTemplates {
+                        accessorClassInfo.localColumns
+                            .map { column -> column.entityDataExportCode(accessorClassInfo) }
+                    }
                 }
             }
         }
@@ -60,10 +62,12 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             receiverType = accessorClassInfo.className,
             returnType = accessorClassInfo.dataClassName
         ) {
-            parenthesizedBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
-                collectCode {
-                    accessorClassInfo.localColumns.map {
-                        CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},")
+            methodBody {
+                parenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
+                    collectCodeTemplates {
+                        accessorClassInfo.localColumns.map {
+                            CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},")
+                        }
                     }
                 }
             }

@@ -1,7 +1,7 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
 import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.squareup.kotlinpoet.MemberName

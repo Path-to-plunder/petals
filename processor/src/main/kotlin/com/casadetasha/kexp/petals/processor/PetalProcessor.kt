@@ -5,6 +5,8 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERA
 import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.inputparser.PetalAnnotationParser
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
+import com.casadetasha.kexp.petals.processor.model.PetalClasses.Companion.SUPPORTED_PROPERTY_ANNOTATIONS
+import com.casadetasha.kexp.petals.processor.model.PetalClasses.Companion.SUPPORTED_SCHEMA_ANNOTATIONS
 import com.casadetasha.kexp.petals.processor.outputgenerator.PetalFileGenerator
 import com.google.auto.service.AutoService
 import javax.annotation.processing.*
@@ -17,15 +19,11 @@ import javax.lang.model.element.TypeElement
 class PetalProcessor : AbstractProcessor() {
 
     override fun getSupportedAnnotationTypes() : MutableSet<String> {
-        val supportedAnnotationTypes = setOf(
-            Petal::class.java.canonicalName,
-        ) + PetalClasses.SUPPORTED_SCHEMA_ANNOTATIONS.map {
-            it.java.canonicalName
-        } + PetalClasses.SUPPORTED_PROPERTY_ANNOTATIONS.map {
-            it.java.canonicalName
-        }
+        val petalAnnotations = listOf(Petal::class.java.canonicalName)
+        val schemaAnnotations = SUPPORTED_SCHEMA_ANNOTATIONS.map { it.java.canonicalName }
+        val propertyAnnotations = SUPPORTED_PROPERTY_ANNOTATIONS.map { it.java.canonicalName }
 
-        return supportedAnnotationTypes.toMutableSet()
+        return setOf(petalAnnotations + schemaAnnotations + propertyAnnotations).flatten().toMutableSet()
     }
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
@@ -41,7 +39,6 @@ class PetalProcessor : AbstractProcessor() {
 
     private fun generateClasses() {
         val petalClasses: PetalClasses = PetalAnnotationParser.parsePetalClasses()
-
         PetalFileGenerator(petalClasses).generateFiles()
     }
 }

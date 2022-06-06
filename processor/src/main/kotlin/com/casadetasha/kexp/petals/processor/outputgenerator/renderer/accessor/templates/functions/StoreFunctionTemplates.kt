@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions
 
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
@@ -24,10 +24,8 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
         visibility { KotlinTemplate.Visibility.PROTECTED }
         parameterTemplate(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName())
 
-        collectCode {
-            listOf(
-                createStoreMethodBody(accessorClassInfo)
-            )
+        methodBody {
+            codeTemplate { createStoreMethodBody(accessorClassInfo) }
         }
     }
 }
@@ -66,12 +64,14 @@ internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: Accessor
     FunctionTemplate(name = STORE_DEPENDENCIES_METHOD_SIMPLE_NAME) {
         visibility { KotlinTemplate.Visibility.PRIVATE }
 
-        collectCode {
-            accessorClassInfo.petalReferenceColumns
-                .map {
-                    val name = it.name + it.getNullabilityExtension()
-                    CodeTemplate("${name}.store(performInsideStandaloneTransaction = false)")
-                }
+        methodBody {
+            collectCodeTemplates {
+                accessorClassInfo.petalReferenceColumns
+                    .map {
+                        val name = it.name + it.getNullabilityExtension()
+                        CodeTemplate("${name}.store(performInsideStandaloneTransaction = false)")
+                    }
+            }
         }
     }
 
