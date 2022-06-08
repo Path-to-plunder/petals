@@ -4,9 +4,6 @@ import com.casadetasha.kexp.annotationparser.AnnotationParser.kaptKotlinGenerate
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate.Companion.generateFile
-import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.generateFunction
-import com.casadetasha.kexp.generationdsl.dsl.ObjectTemplate.Companion.objectTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
 import com.squareup.kotlinpoet.*
 import com.zaxxer.hikari.HikariDataSource
 
@@ -18,9 +15,9 @@ internal class PetalMigrationSetupGenerator(private val migrations: Collection<P
             packageName = PACKAGE_NAME,
             fileName = CLASS_NAME) {
 
-            objectTemplate(className = ClassName(PACKAGE_NAME, CLASS_NAME)) {
+            generateObject(className = ClassName(PACKAGE_NAME, CLASS_NAME)) {
                 generateFunction(name = MIGRATE_METHOD_NAME) {
-                    parameterTemplate("dataSource", HikariDataSource::class.asClassName())
+                    generateParameter("dataSource", HikariDataSource::class.asClassName())
 
                     generateMethodBody {
                         collectCodeLineTemplates {

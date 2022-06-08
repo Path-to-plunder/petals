@@ -38,11 +38,6 @@ class PetalCompileSpeedCheck {
     }
 
     @Test
-    fun `time test for 10 columns and 100 tables`() {
-        testTables(tableCount = 100)
-    }
-
-    @Test
     fun `time test for 10 columns and 150 tables`() {
         testTables(tableCount = 150)
     }
@@ -78,7 +73,7 @@ class PetalCompileSpeedCheck {
             compilationResult!!.messages
         }
 
-        val migrations = parsePetalMigrations(compilationResult!!, "test_table_1")
+        val migrations = parsePetalMigrations(compilationResult!!, "test_small_table_1")
 
         assertThat(migrations.size).isEqualTo(1)
         assertThat(compileTime).isEqualTo(0L)

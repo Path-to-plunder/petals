@@ -5,7 +5,6 @@ import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.collectParameterTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.LoadMethodNames.LAZY_LOAD_ALL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.LoadMethodNames.LOAD_ALL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.LoadMethodNames.LOAD_METHOD_SIMPLE_NAME

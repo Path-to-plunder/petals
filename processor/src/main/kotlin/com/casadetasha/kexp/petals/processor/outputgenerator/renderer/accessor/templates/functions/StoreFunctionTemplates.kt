@@ -3,8 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
-import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
+import com.casadetasha.kexp.generationdsl.dsl.KotlinModifiers
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
@@ -21,8 +20,8 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
         returnType = accessorClassInfo.className
     ) {
         override()
-        visibility { KotlinTemplate.Visibility.PROTECTED }
-        parameterTemplate(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName())
+        visibility { KotlinModifiers.Visibility.PROTECTED }
+        generateParameter(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName())
 
         generateMethodBody {
             generateCodeTemplate { createStoreMethodBody(accessorClassInfo) }
@@ -67,7 +66,7 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
 
 internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
     FunctionTemplate(name = STORE_DEPENDENCIES_METHOD_SIMPLE_NAME) {
-        visibility { KotlinTemplate.Visibility.PRIVATE }
+        visibility { KotlinModifiers.Visibility.PRIVATE }
 
         generateMethodBody {
             collectCodeTemplates {
@@ -87,7 +86,7 @@ internal fun createTransactFunctionTemplate(accessorClassInfo: AccessorClassInfo
     ) {
         override()
 
-        parameterTemplate(
+        generateParameter(
             name = "statement",
             typeName = LambdaTypeName.get(
                 receiver = accessorClassInfo.className,

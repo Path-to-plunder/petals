@@ -1,7 +1,6 @@
 package com.casadetasha.kexp.petals.processor.migration
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
 import assertk.assertions.isNotEmpty
 import assertk.assertions.isNotNull
 import com.casadetasha.kexp.petals.annotations.PetalMigration

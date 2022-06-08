@@ -20,9 +20,9 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":kexp:annotation-parser"))
     implementation(project(":kexp:petals:annotations"))
-    implementation(project(":kexp:kotlin-generation-dsl"))
+    implementation("com.casadetasha:annotation-parser:0.1.0")
+    implementation("com.casadetasha:kotlin-generation-dsl:0.1.0")
 
     implementation("com.google.auto.service:auto-service:$googleAutoServiceVersion")
     kapt("com.google.auto.service:auto-service:$googleAutoServiceVersion")

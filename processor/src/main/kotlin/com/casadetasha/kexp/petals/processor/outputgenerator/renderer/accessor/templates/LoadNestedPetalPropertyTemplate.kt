@@ -6,7 +6,7 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
+import com.casadetasha.kexp.generationdsl.dsl.KotlinModifiers
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -24,7 +24,7 @@ internal fun createNestedPetalPropertyTemplates(accessorClassInfo: AccessorClass
 private fun PetalReferenceColumn.toNestedPetalPropertyTemplate(): List<PropertyTemplate> = listOf(
     PropertyTemplate(name = nestedPetalManagerName, typeName = getNestedPetalManagerClassName()) {
         delegate { petalManagerMethodBody() }
-        visibility { KotlinTemplate.Visibility.PRIVATE }
+        visibility { KotlinModifiers.Visibility.PRIVATE }
     },
     this.nestedPetalIdPropertyTemplate(),
     this.nestedPetalAccessorPropertyTemplate()
