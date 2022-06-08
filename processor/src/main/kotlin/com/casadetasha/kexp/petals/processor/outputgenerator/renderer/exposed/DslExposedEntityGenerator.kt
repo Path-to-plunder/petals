@@ -10,17 +10,9 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.toMemberName
-import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.generateClass
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.CompanionObjectTemplate.Companion.generateCompanionObject
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.generatePrimaryConstructor
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.parameterTemplate
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate
-import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.collectPropertyTemplates
-import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.createPropertyTemplate
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateConstructorParam
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateSuperClass
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityTemplateValues.getEntityClassSimpleName
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedEntityTemplateValues.getTableClassSimpleName
 import com.squareup.kotlinpoet.*
@@ -42,7 +34,7 @@ internal fun FileTemplate.createExposedEntityClassTemplate(
 ) =
     generateClass(className = ClassName(packageName, schema.getEntityClassSimpleName())) {
         generatePrimaryConstructor {
-            parameterTemplate(
+            generateParameterTemplate(
                 name = "id",
                 typeName = EntityID::class.asClassName().parameterizedBy(schema.getEntityIdParameter())
             )
@@ -75,7 +67,7 @@ private fun ParsedPetalColumn.toEntityColumn(petalClasses: PetalClasses): Proper
 
 private fun PetalReferenceColumn.toReferenceEntityColumn(): PropertyTemplate {
     val referencedOnMethod: String = if (isNullable) { "optionalReferencedOn" } else { "referencedOn" }
-    return createPropertyTemplate(
+    return PropertyTemplate(
         name = name,
         typeName = referencingEntityClassName.copy(nullable = isNullable),
         isMutable = true
@@ -105,7 +97,7 @@ private fun ReferencedByPetalColumn.toReferencedByColumn(petalClasses: PetalClas
                 " column ${name} for petal ${parentSchema.baseClassName}")
 
     val referrersOnMethod: String = if (referencedByLocalColumn.isNullable) { "optionalReferrersOn" } else { "referrersOn" }
-    return createPropertyTemplate(
+    return PropertyTemplate(
         name = name,
         typeName = SizedIterable::class.asClassName().parameterizedBy(referencedByColumnInfo.entityClassName)
     ) {
@@ -122,7 +114,7 @@ private fun ReferencedByPetalColumn.toReferencedByColumn(petalClasses: PetalClas
 }
 
 private fun LocalPetalColumn.toNonReferenceLocalColumn(): PropertyTemplate {
-    return createPropertyTemplate(
+    return PropertyTemplate(
         name = name,
         typeName = kotlinType.copy(nullable = isNullable),
         isMutable = true,

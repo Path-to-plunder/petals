@@ -6,7 +6,6 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.C
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.collectParameterTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asCreateFunctionParameterTemplate
 import getNullabilityExtension
 
@@ -22,7 +21,6 @@ internal fun createCreateFunctionTemplate(accessorClassInfo: AccessorClassInfo) 
         generateMethodBody(createCreateFunctionMethodBodyTemplate(accessorClassInfo))
     }
 
-
 private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorClassInfo): CodeTemplate {
     val entitySimpleName = accessorClassInfo.entityClassName.simpleName
     return CodeTemplate {
@@ -31,8 +29,7 @@ private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorCl
             suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
             endFlowString = "}"
         ) {
-            generateControlFlowCode("val storeValues: %L.() -> Unit = ",
-                entitySimpleName,
+            generateControlFlowCode("val storeValues: %L.() -> Unit = ", entitySimpleName,
                 endFlowString = "}"
             ) {
                 generateCodeTemplate { createAssignAccessorValuesCodeBlock(accessorClassInfo) }

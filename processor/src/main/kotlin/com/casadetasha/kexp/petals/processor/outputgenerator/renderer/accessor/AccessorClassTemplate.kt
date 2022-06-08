@@ -1,20 +1,8 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
+import com.casadetasha.kexp.generationdsl.dsl.*
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
-import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.generateClass
-import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.CompanionObjectTemplate.Companion.generateCompanionObject
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate.Companion.collectConstructorPropertyTemplates
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.generatePrimaryConstructor
-import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
-import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.collectFunctionTemplates
-import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate.Companion.collectParameterTemplates
-import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate.Companion.collectPropertyTemplates
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateConstructorParam
-import com.casadetasha.kexp.generationdsl.dsl.SuperclassTemplate.Companion.generateSuperClass
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.createNestedPetalPropertyTemplates

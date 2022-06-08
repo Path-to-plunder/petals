@@ -1,19 +1,12 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 
+import com.casadetasha.kexp.generationdsl.dsl.*
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
-import com.casadetasha.kexp.generationdsl.dsl.AnnotationTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ClassTemplate.Companion.generateClass
-import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorPropertyTemplate.Companion.collectConstructorPropertyTemplates
-import com.casadetasha.kexp.generationdsl.dsl.ConstructorTemplate.Companion.generatePrimaryConstructor
-import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
-import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate.Companion.generateFunction
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassTemplateValues.EXPORT_DATA_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
@@ -37,7 +30,7 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             generatePrimaryConstructor {
                 collectConstructorPropertyTemplates(this@generateClass) {
                     accessorClassInfo.localColumns
-                        .map { column -> column.constructorProperty() }
+                        .map { column -> column.createConstructorProperty() }
                 }
             }
         }
@@ -88,7 +81,7 @@ private fun LocalPetalColumn.entityDataExportCode(accessorClassInfo: AccessorCla
     }
 }
 
-private fun LocalPetalColumn.constructorProperty(): ConstructorPropertyTemplate {
+private fun LocalPetalColumn.createConstructorProperty(): ConstructorPropertyTemplate {
     return ConstructorPropertyTemplate(
         name = propertyName,
         typeName = propertyTypeName,
@@ -124,7 +117,7 @@ private val LocalPetalColumn.propertyName: String
 private val uuidSerializableAnnotation: AnnotationTemplate
     get() {
     return AnnotationTemplate(Serializable::class) {
-        addMember("with = %M::class", UUIDSerializer::class.asMemberName())
+        generateMember("with = %M::class", UUIDSerializer::class.asMemberName())
     }
 }
 

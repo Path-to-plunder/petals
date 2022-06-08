@@ -7,7 +7,7 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.E
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
-import com.casadetasha.kexp.generationdsl.dsl.KotlinTemplate
+import com.casadetasha.kexp.generationdsl.dsl.KotlinModifiers
 
 internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo) =
     FunctionTemplate(
@@ -15,7 +15,7 @@ internal fun createEagerLoadFunctionTemplate(accessorClassInfo: AccessorClassInf
         returnType = accessorClassInfo.className,
     ) {
         override()
-        visibility { KotlinTemplate.Visibility.PROTECTED }
+        visibility { KotlinModifiers.Visibility.PROTECTED }
 
         generateMethodBody(createPetalEagerLoadMethodBody(accessorClassInfo))
     }
