@@ -11,6 +11,8 @@ val googleAutoServiceVersion: String by project
 
 val exposedVersion: String by project
 
+val assertKVersion: String by project
+
 plugins {
     `java-library`
     `maven-publish`
@@ -41,13 +43,13 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
 
     // Escape SQL Strings
     implementation("org.apache.commons:commons-text:1.9")
 
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertKVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
 }
 
@@ -104,15 +106,15 @@ publishing {
             artifact(javadocJar.get())
 
             pom {
-                name.set("Petals for exposed with PostgreSql")
+                name.set("Petals processor for exposed with PostgreSql")
                 description.set("KAPT processor to manage boilderplate for using Exposed to manage PostgreSql DB. Use" +
                         " in conjunction with petals")
-                url.set("http://www.sproutes.io")
+                url.set("https://github.com/konk3r/petals")
 
                 scm {
-                    connection.set("scm:git://github.com/Path-to-plunder/Sproutes")
-                    developerConnection.set("scm:git:git@github.com:konk3r/petals/petals.git")
-                    url.set("https://github.com/Path-to-plunder/Sproutes")
+                    connection.set("scm:git://github.com/konk3r/petals")
+                    developerConnection.set("scm:git:git@github.com:konk3r/petals.git")
+                    url.set("https://github.com/konk3r/petals")
                 }
 
                 licenses {

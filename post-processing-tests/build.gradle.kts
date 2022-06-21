@@ -3,6 +3,7 @@ val kotlinVersion: String by project
 val postgresqlVersion: String by project
 
 val exposedVersion: String by project
+val assertKVersion: String by project
 
 plugins {
     application
@@ -28,7 +29,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
 
     testImplementation(project(":processor"))
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertKVersion")
     testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
 
