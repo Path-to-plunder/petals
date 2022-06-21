@@ -16,8 +16,8 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":kexp:petals:annotations"))
-    kapt(project(":kexp:petals:processor"))
+    implementation(project(":annotations"))
+    kapt(project(":processor"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
@@ -27,7 +27,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
 
-    testImplementation(project(":kexp:petals:processor"))
+    testImplementation(project(":processor"))
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.24")
     testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
