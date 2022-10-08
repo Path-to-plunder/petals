@@ -36,8 +36,9 @@ private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorCl
             }
 
             generateNewLine()
+            generateNewLine()
 
-            generateControlFlowCode("return@transaction when (id) ", endFlowString = "}") {
+            generateControlFlowCode("return@transaction when (id) ", endFlowString = "}\n") {
                 collectCodeLineTemplates {
                     listOf(
                         CodeTemplate("null -> %L.new { storeValues() }", entitySimpleName),

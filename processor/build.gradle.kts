@@ -29,7 +29,7 @@ repositories {
 dependencies {
     implementation(project(":annotations"))
     implementation("com.casadetasha:annotation-parser:0.1.0")
-    implementation("com.casadetasha:kotlin-generation-dsl:0.1.0")
+    implementation("com.casadetasha:kotlin-generation-dsl:0.2.0")
 
     implementation("com.google.auto.service:auto-service:$googleAutoServiceVersion")
     kapt("com.google.auto.service:auto-service:$googleAutoServiceVersion")

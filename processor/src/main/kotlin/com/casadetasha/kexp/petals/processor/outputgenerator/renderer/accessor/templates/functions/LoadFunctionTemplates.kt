@@ -53,7 +53,8 @@ private fun AccessorClassInfo.getLoadMethodBody(): CodeTemplate {
         false -> CodeTemplate {
             generateControlFlowCode (
                 prefix = "return %M", TRANSACTION_MEMBER_NAME,
-                suffix = "?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()"
+                suffix = "?.$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
+                endFlowString = "\n}"
             ) {
                 generateCode("%L.findById(id)", entitySimpleName)
             }

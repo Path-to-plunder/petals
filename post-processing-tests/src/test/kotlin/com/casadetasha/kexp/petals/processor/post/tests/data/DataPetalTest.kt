@@ -2,12 +2,7 @@ package com.casadetasha.kexp.petals.processor.post.tests.data
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import assertk.assertions.isNull
-import com.casadetasha.kexp.petals.BasicPetalEntity
 import com.casadetasha.kexp.petals.DataPetalEntity
-import com.casadetasha.kexp.petals.PetalTables
-import com.casadetasha.kexp.petals.accessor.BasicPetal
-import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.toPetal
 import com.casadetasha.kexp.petals.accessor.DataPetal
 import com.casadetasha.kexp.petals.annotations.BasePetalMigration
 import com.casadetasha.kexp.petals.data.DataPetalData
@@ -19,7 +14,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.test.AfterTest
