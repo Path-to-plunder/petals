@@ -43,6 +43,20 @@ class SchemaColumnErrorsTest {
         assertThat(compilationResult.messages).contains("invalidReferenceByColumnName")
     }
 
+    @Test
+    fun `using a pre-existing petal class name fails with internal error referencing duplicate class name`() {
+        val compilationResult = compileSources(duplicateClassNameSchema)
+        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
+        assertThat(compilationResult.messages).contains("Duplicate petal class names found. All petal class names must be unique. Duplicate class names: DuplicatePetal")
+    }
+
+    @Test
+    fun `using a pre-existing petal table name fails with internal error referencing duplicate table name`() {
+        val compilationResult = compileSources(duplicateTableNameSchema)
+        assertThat(compilationResult.exitCode).isEqualTo(KotlinCompilation.ExitCode.INTERNAL_ERROR)
+        assertThat(compilationResult.messages).contains("Duplicate petal table names found. All petal table names must be unique. Duplicate table names: duplicated_petal_table")
+    }
+
     companion object {
 
         private val unsupportedColumnTypeSchema = SourceFile.kotlin(
@@ -125,6 +139,59 @@ class SchemaColumnErrorsTest {
             @PetalSchema(petal = FailurePetal::class)
             interface FailurePetalSchema {
                 @ReferencedBy("wrongColumn") val invalidReferenceByColumnName: ReferencingFailurePetal
+            }
+        """.trimIndent())
+
+
+        private val duplicateClassNameSchema = SourceFile.kotlin(
+            "FailureSchema.kt", """
+            package com.casadetasha
+            
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
+            import com.casadetasha.kexp.petals.annotations.ReferencedBy
+            import java.util.*
+            
+            @Petal(tableName = "petal_table", className = "DuplicatePetal")
+            interface OriginalPetal
+            
+            @Petal(tableName = "duplicated_petal_table", className = "DuplicatePetal")
+            interface DuplicatedPetal
+            
+            @PetalSchema(petal = OriginalPetal::class)
+            interface PetalSchema {
+                val thing: String
+            }
+            
+            @PetalSchema(petal = DuplicatedPetal::class)
+            interface DuplicatedPetalSchema {
+                val thing: String
+            }
+        """.trimIndent())
+
+        private val duplicateTableNameSchema = SourceFile.kotlin(
+            "FailureSchema.kt", """
+            package com.casadetasha
+            
+            import com.casadetasha.kexp.petals.annotations.Petal
+            import com.casadetasha.kexp.petals.annotations.PetalSchema
+            import com.casadetasha.kexp.petals.annotations.ReferencedBy
+            import java.util.*
+            
+            @Petal(tableName = "duplicated_petal_table", className = "OriginalPetal")
+            interface OriginalPetal
+            
+            @Petal(tableName = "duplicated_petal_table", className = "DuplicatePetal")
+            interface DuplicatedPetal
+            
+            @PetalSchema(petal = OriginalPetal::class)
+            interface PetalSchema {
+                val thing: String
+            }
+            
+            @PetalSchema(petal = DuplicatedPetal::class)
+            interface DuplicatedPetalSchema {
+                val thing: String
             }
         """.trimIndent())
     }
