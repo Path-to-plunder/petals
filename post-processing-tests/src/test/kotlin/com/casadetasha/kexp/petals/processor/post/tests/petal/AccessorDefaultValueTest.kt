@@ -2,14 +2,10 @@ package com.casadetasha.kexp.petals.processor.post.tests.petal
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import com.casadetasha.kexp.petals.DefaultValuePetalEntity
-import com.casadetasha.kexp.petals.PetalTables
-import com.casadetasha.kexp.petals.accessor.DefaultValuePetal
+import com.casadetasha.kexp.petals.PartiallyDefaultValuePetalEntity
+import com.casadetasha.kexp.petals.accessor.PartiallyDefaultValuePetal
 import com.casadetasha.kexp.petals.annotations.BasePetalMigration
-import com.casadetasha.kexp.petals.migration.`TableMigrations$default_value_petal`
-import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
-import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
-import com.casadetasha.kexp.petals.processor.post.ktx.runForEach
+import com.casadetasha.kexp.petals.migration.`TableMigrations$partially_default_value_petal`
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -19,7 +15,7 @@ import kotlin.test.Test
 
 class AccessorDefaultValueTest: ContainerizedTestBase() {
 
-    private val tableMigration: BasePetalMigration = `TableMigrations$default_value_petal`()
+    private val tableMigration: BasePetalMigration = `TableMigrations$partially_default_value_petal`()
 
     private val tableName: String by lazy {
         tableMigration.tableName
@@ -40,7 +36,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
     @Test
     fun `store() without provided Int column value stores default value for column`() {
         val baseUuid = UUID.randomUUID()
-        val id: UUID = DefaultValuePetal.create(
+        val id: UUID = PartiallyDefaultValuePetal.create(
             sporeCount = 2,
             color = "Blue",
             startingDefaultColor = "Also blue, but like a slightly darker shade",
@@ -50,7 +46,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         ).store().id
 
         val loadedEntity = transaction {
-            checkNotNull(DefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
+            checkNotNull(PartiallyDefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
         }
 
         assertThat(loadedEntity.id.value).isEqualTo(id)
@@ -66,7 +62,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
     @Test
     fun `store() without provided Long column value stores default value for column`() {
         val baseUuid = UUID.randomUUID()
-        val id: UUID = DefaultValuePetal.create(
+        val id: UUID = PartiallyDefaultValuePetal.create(
             count = 1,
             color = "Blue",
             startingDefaultColor = "Also blue, but like a slightly darker shade",
@@ -76,7 +72,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         ).store().id
 
         val loadedEntity = transaction {
-            checkNotNull(DefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
+            checkNotNull(PartiallyDefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
         }
 
         assertThat(loadedEntity.id.value).isEqualTo(id)
@@ -92,7 +88,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
     @Test
     fun `store() without provided String column value stores default value for column`() {
         val baseUuid = UUID.randomUUID()
-        val id: UUID = DefaultValuePetal.create(
+        val id: UUID = PartiallyDefaultValuePetal.create(
             count = 1,
             sporeCount = 2,
             startingDefaultColor = "Also blue, but like a slightly darker shade",
@@ -101,7 +97,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
         ).store().id
 
         val loadedEntity = transaction {
-            checkNotNull(DefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
+            checkNotNull(PartiallyDefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
         }
 
         assertThat(loadedEntity.id.value).isEqualTo(id)

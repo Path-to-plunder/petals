@@ -14,6 +14,7 @@ internal object LoadMethodNames {
     const val LOAD_METHOD_SIMPLE_NAME = "load"
     const val LOAD_ALL_METHOD_SIMPLE_NAME = "loadAll"
     const val LAZY_LOAD_ALL_METHOD_SIMPLE_NAME = "lazyLoadAll"
+    const val LOAD_FROM_QUERY_METHOD_SIMPLE_NAME = "loadFromQuery"
     val MAP_LAZY_MEMBER_NAME = MemberName("org.jetbrains.exposed.sql", "mapLazy")
 }
 

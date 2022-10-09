@@ -41,6 +41,7 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
                     createLoadFunctionTemplate(accessorClassInfo),
                     createLoadAllFunctionTemplate(accessorClassInfo),
                     createLazyLoadAllFunctionTemplate(accessorClassInfo),
+                    createLoadWhereFunctionTemplate(accessorClassInfo),
 
                     createExportFunctionTemplate(accessorClassInfo)
                 ).addIf(accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {

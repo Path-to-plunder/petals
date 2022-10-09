@@ -12,8 +12,11 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.L
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.EagerLoadDependenciesMethodNames.COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.LoadMethodNames.LOAD_FROM_QUERY_METHOD_SIMPLE_NAME
+import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asClassName
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SizedIterable
 
 internal fun createLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo): FunctionTemplate =
@@ -95,3 +98,32 @@ internal fun createLazyLoadAllFunctionTemplate(accessorClassInfo: AccessorClassI
             }
         }
     }
+
+
+internal fun createLoadWhereFunctionTemplate(accessorClassInfo: AccessorClassInfo) =
+    FunctionTemplate(
+        name = LOAD_FROM_QUERY_METHOD_SIMPLE_NAME,
+        returnType = List::class.asClassName()
+            .parameterizedBy(accessorClassInfo.className)
+    ) {
+        collectParameterTemplates { accessorClassInfo.getLoadWithQueryMethodParameters() }
+
+        generateMethodBody {
+            generateControlFlowCode("return %M", TRANSACTION_MEMBER_NAME) {
+                generateCode(
+                    "%L.find(op(%L)).map { it.%L() }",
+                    accessorClassInfo.entityClassName.simpleName,
+                    accessorClassInfo.tableClassName.simpleName,
+                    EXPORT_PETAL_METHOD_SIMPLE_NAME
+                )
+            }
+        }
+    }
+
+
+private fun AccessorClassInfo.getLoadWithQueryMethodParameters(): List<ParameterTemplate> {
+    val lambdaReturnType = Op::class.asClassName().parameterizedBy(Boolean::class.asClassName())
+    val lambdaParameters = arrayOf(tableClassName)
+    val lambdaTypeName = LambdaTypeName.get(returnType = lambdaReturnType, parameters = lambdaParameters)
+    return listOf( ParameterTemplate(name = "op", typeName = lambdaTypeName) )
+}
