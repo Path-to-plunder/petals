@@ -105,7 +105,7 @@ fun query(name: String): List<ExampleClass> {
 ```kt
 MyServer.kt
 
-fun loadAsJsonString(it: Int): String {
+fun loadAsJsonString(id: Int): String {
     val loadedExample = ExampleClass.load(id)
     return Json.encodeToString( loadedExample.asData() )
 }
