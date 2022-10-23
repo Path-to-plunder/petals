@@ -68,35 +68,12 @@ class NestedPetalManager<PETAL_ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: E
 abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID>> (val dbEntity: ENTITY, val id: ID) {
 
     abstract fun applyInsideTransaction(statement: ACCESSOR.() -> Unit): ACCESSOR
-//
-//    /**
-//     * Update the object as is in the database. If any nested entities have changed, the associated ID will be updated.
-//     *
-//     * The update operation acts as a standalone transaction. If you want manual control over the transaction, call from
-//     * inside a [transaction] with [performInsideStandaloneTransaction] set to false.
-//     *
-//     * Nested entities will not be updated by default. Call with "updateNestedDependencies = true" to store all nested
-//     * dependencies. This will only update first level nested dependencies, if you wish to update deeply nested
-//     * dependencies it must be done manually.
-//     */
-//    fun store(performInsideStandaloneTransaction: Boolean = true, updateNestedDependencies: Boolean = false): ACCESSOR =
-//        runTransactionStatement(performInsideStandaloneTransaction) {
-//            storeInsideOfTransaction(updateNestedDependencies)
-//        }
-//
-//    /** Delete the object from the database. */
-//    fun delete(performInsideStandaloneTransaction: Boolean = true) =
-//        runTransactionStatement(performInsideStandaloneTransaction) {
-//            dbEntity.delete()
-//        }
 
     /** Prepare nested dependencies so they can be accessed outside a transaction. */
     fun eagerLoadDependencies(performInsideStandaloneTransaction: Boolean = true): ACCESSOR =
         runTransactionStatement(performInsideStandaloneTransaction) { eagerLoadDependenciesInsideTransaction() }
 
     protected abstract fun eagerLoadDependenciesInsideTransaction(): ACCESSOR
-
-//    protected abstract fun storeInsideOfTransaction(updateNestedDependencies: Boolean = false): ACCESSOR
 
     companion object {
         fun <RESULT> runTransactionStatement(performInsideStandaloneTransaction: Boolean, function: () -> RESULT): RESULT =
