@@ -2,6 +2,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
 import com.casadetasha.kexp.generationdsl.dsl.*
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
+import com.casadetasha.kexp.petals.annotations.PetalAccessorCompanion
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asParameterTemplate
@@ -34,6 +35,8 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
         }
 
         generateCompanionObject {
+
+
             collectFunctionTemplates {
                 mutableListOf(
                     createCreateFunctionTemplate(accessorClassInfo),
@@ -73,6 +76,19 @@ internal fun ClassTemplate.generateAccessorConstructor(accessorClassInfo: Access
 internal fun ClassTemplate.generateAccessorSuperClass(accessorClassInfo: AccessorClassInfo) {
     generateSuperClass(
         PetalAccessor::class.asClassName()
+            .parameterizedBy(
+                accessorClassInfo.className,
+                accessorClassInfo.entityClassName,
+                accessorClassInfo.idKotlinClassName
+            )
+    ) {
+        generateConstructorParam { CodeTemplate("dbEntity, id") }
+    }
+}
+
+internal fun CompanionObjectTemplate.generateAccessorCompanionSuperClass(accessorClassInfo: AccessorClassInfo) {
+    generateSuperClass(
+        PetalAccessorCompanion::class.asClassName()
             .parameterizedBy(
                 accessorClassInfo.className,
                 accessorClassInfo.entityClassName,
