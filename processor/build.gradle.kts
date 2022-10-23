@@ -100,14 +100,14 @@ publishing {
 
             group = "com.casadetasha"
             artifactId = "petals-processor"
-            version = "1.6.3-alpha-1"
+            version = "1.6.4-beta"
 
             artifact(sourcesJar.get())
             artifact(javadocJar.get())
 
             pom {
                 name.set("Petals processor for exposed with PostgreSql")
-                description.set("KAPT processor to manage boilderplate for using Exposed to manage PostgreSql DB. Use" +
+                description.set("KAPT processor to manage boilerplate for using Exposed to manage PostgreSql DB. Use" +
                         " in conjunction with petals")
                 url.set("https://github.com/konk3r/petals")
 

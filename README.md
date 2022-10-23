@@ -23,11 +23,20 @@ Petals manage this in 2 ways:
     * Data accessor class to manage transactions under the hood
     * Kotlin Data class, along with extension methods for the entity and accessor classes to export to it
 
-In its current alpha state, it supports Postgres databases using Hikari as your database connector.
+In its current beta state, it supports Postgres databases using Hikari as your database connector.
 
 ## Getting started
 
 ### Setup
+Add the annotations and kapt processor to your gradle dependencies:
+
+```kts
+    implementation("com.casadetasha:petals:1.6.4-beta")
+    kapt("com.casadetasha:petals-processor:1.6.4-beta")
+```
+
+(For instructions on setting up kapt, see https://kotlinlang.org/docs/kapt.html#using-in-gradle)
+
 Inside your application's setup: call Exposed's `Database.connect(dbSource)` method, then call the generated `setupAndMigrateTables(dbSource)` method with the same `dbSource`.
 
 ```

@@ -63,7 +63,7 @@ publishing {
 
             group = "com.casadetasha"
             artifactId = "petals"
-            version = "1.6.3-alpha-1"
+            version = "1.6.4-beta"
 
             artifact(sourcesJar.get())
             artifact(javadocJar.get())
