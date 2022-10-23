@@ -2,7 +2,7 @@
 
 ## Overview
 
-Petals are a way to manage database interactions without boilerplate.
+Petals are a way to manage Jetbrains Exposed database interactions without boilerplate.
 
 This means:
 * No creating multiple classes or interfaces with the same values for exposed
@@ -30,9 +30,9 @@ In its current beta state, it supports Postgres databases using Hikari as your d
 ### Setup
 Add the annotations and kapt processor to your gradle dependencies:
 
-```kts
-    implementation("com.casadetasha:petals:1.6.5-beta")
-    kapt("com.casadetasha:petals-processor:1.6.5-beta")
+```kt
+implementation("com.casadetasha:petals:1.6.5-beta")
+kapt("com.casadetasha:petals-processor:1.6.5-beta")
 ```
 
 (For instructions on setting up kapt, see https://kotlinlang.org/docs/kapt.html#using-in-gradle)
@@ -74,18 +74,14 @@ interface ExamplePetalSchema {
 ```kt
 MyServer.kt
 
-fun create(name: String): ExampleClass {
-    return ExampleClass.create(name = name)
-}
+ExampleClass.create(name = "Luke")
 ```
 
 #### Loading
 ```kt
 MyServer.kt
 
-fun load(id: Int): ExampleClass {
-    return ExampleClass.load(id)
-}
+ExampleClass.load(id)
 ```
 
 #### Updating
@@ -94,10 +90,8 @@ MyServer.kt
 
 val myExample: ExampleClass // already loaded ExampleClass
 
-fun update(newName: String) {
-    myExample.name = newName
-    ExampleClass.store(myExample)
-}
+myExample.name = "Formerly Luke"
+ExampleClass.store(myExample)
 ```
 
 #### Deleting
@@ -106,18 +100,14 @@ MyServer.kt
 
 val myExample: ExampleClass // already loaded ExampleClass
 
-fun update(newName: String) {
-    ExampleClass.delete(myExample)
-}
+ExampleClass.delete(myExample)
 ```
 
 #### Querying
 ```kt
 MyServer.kt
 
-fun query(name: String): List<ExampleClass> {
-    return ExampleClass.loadFromQuery { table -> table.name eq name }
-}
+ExampleClass.loadFromQuery { row -> row.name eq "John" }
 ```
 
 ### Serializing
@@ -125,10 +115,8 @@ fun query(name: String): List<ExampleClass> {
 ```kt
 MyServer.kt
 
-fun loadAsJsonString(id: Int): String {
-    val loadedExample = ExampleClass.load(id)
-    return Json.encodeToString( loadedExample.asData() )
-}
+val loadedExample = ExampleClass.load(id)
+return Json.encodeToString( loadedExample.asData() )
 ```
 
 ## Full API
