@@ -87,7 +87,7 @@ val myExample: ExampleClass // already loaded ExampleClass
 
 fun update(newName: String) {
     myExample.name = newName
-    myExample.store()
+    ExampleClass.store(myExample)
 }
 ```
 
@@ -98,7 +98,7 @@ MyServer.kt
 val myExample: ExampleClass // already loaded ExampleClass
 
 fun update(newName: String) {
-    myExample.delete()
+    ExampleClass.delete(myExample)
 }
 ```
 
