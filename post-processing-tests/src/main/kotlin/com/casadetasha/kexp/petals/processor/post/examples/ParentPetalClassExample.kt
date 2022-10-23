@@ -37,18 +37,6 @@ public class ParentPetalClassExample private constructor(
      */
     public var nestedPetal: NestedPetalClassExample by nestedPetalManager::nestedPetal
 
-    override fun storeInsideOfTransaction(updateNestedDependencies: Boolean): ParentPetalClassExample {
-        if (updateNestedDependencies) { storeFullDependencyChain() }
-
-        return dbEntity.apply {
-            if (nestedPetalManager.hasUpdated) { nestedPetal = this@ParentPetalClassExample.nestedPetal.dbEntity }
-        }.export()
-    }
-
-    private fun storeFullDependencyChain() {
-        nestedPetal.store(performInsideStandaloneTransaction = false)
-    }
-
     public companion object: AccessorCompanion<ParentPetalClassExample, ParentPetalClassEntity, UUID>() {
 
         public fun create(

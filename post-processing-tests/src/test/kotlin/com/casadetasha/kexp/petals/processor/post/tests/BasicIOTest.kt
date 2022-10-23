@@ -6,7 +6,9 @@ import assertk.assertions.isNull
 import com.casadetasha.kexp.petals.BasicPetalEntity
 import com.casadetasha.kexp.petals.PetalTables
 import com.casadetasha.kexp.petals.accessor.BasicPetal
-import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.toPetal
+import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.delete
+import com.casadetasha.kexp.petals.accessor.BasicPetal.Companion.store
+import com.casadetasha.kexp.petals.accessor.toPetal
 import com.casadetasha.kexp.petals.migration.`TableMigrations$basic_petal`
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.sql.SizedIterable
@@ -124,7 +126,7 @@ class BasicIOTest: ContainerizedTestBase() {
             color = "Blue",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id
+        ).id
 
         val loadedEntity = transaction {
             checkNotNull(BasicPetalEntity.findById(id))
@@ -149,7 +151,7 @@ class BasicIOTest: ContainerizedTestBase() {
             color = "Blue",
             secondColor = "Yellow",
             uuid = secondUuid
-        ).store()
+        )
 
         val loadedEntity = transaction {
              checkNotNull(BasicPetalEntity.findById(recordUuid))
@@ -207,7 +209,7 @@ class BasicIOTest: ContainerizedTestBase() {
         }.toPetal()
 
         loadedPetal.color = "Orange"
-        loadedPetal.store()
+        store(loadedPetal)
 
         val reloadedPetalEntity = transaction {
             checkNotNull(BasicPetalEntity.findById(petalId))
@@ -233,7 +235,7 @@ class BasicIOTest: ContainerizedTestBase() {
             checkNotNull(BasicPetalEntity.findById(petalId))
         }.toPetal()
 
-        loadedPetal.delete()
+        delete(loadedPetal)
 
         val reloadedPetalEntity = transaction {
             BasicPetalEntity.findById(petalId)
@@ -253,6 +255,6 @@ class BasicIOTest: ContainerizedTestBase() {
             uuid = baseUuid,
         )
 
-        petal.delete()
+        delete(petal)
     }
 }

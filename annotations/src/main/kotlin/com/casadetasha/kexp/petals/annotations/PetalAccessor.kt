@@ -107,7 +107,7 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
     }
 }
 
-abstract class PetalAccessorCompanion<ACCESSOR: PetalAccessor<*, *, *>, in ENTITY: Entity<ID>, ID: Comparable<ID>> {
+abstract class PetalAccessorCompanion<ACCESSOR: PetalAccessor<*, *, *>> {
 
     protected abstract fun storeInsideOfTransaction(accessor: ACCESSOR, updateNestedDependencies: Boolean = false): ACCESSOR
 

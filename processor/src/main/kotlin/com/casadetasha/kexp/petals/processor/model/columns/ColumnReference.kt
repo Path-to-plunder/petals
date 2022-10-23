@@ -7,4 +7,5 @@ internal data class ColumnReference(
     val accessorClassName: ClassName,
     val tableClassName: ClassName,
     val entityClassName: ClassName,
-)
+) {
+}

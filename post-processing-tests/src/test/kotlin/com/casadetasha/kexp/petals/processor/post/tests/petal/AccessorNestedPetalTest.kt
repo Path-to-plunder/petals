@@ -49,7 +49,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
             )
-        ).store().id
+        ).id
 
         val parentPetal = ParentPetalClass.load(parentPetalId)!!
         assertThat(parentPetal.nestedPetal.name).isEqualTo("Nester")
@@ -62,7 +62,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
             )
-        ).store().id
+        ).id
 
         val lazyLoadTime = countMilliseconds {
             ParentPetalClass.load(parentPetalId, eagerLoad = false)!!
@@ -82,7 +82,7 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
             nestedPetal = NestedPetalClass.create(
                 name = "Nester"
             )
-        ).store().id
+        ).id
 
         val eagerLoadedParentPetal = ParentPetalClass.load(parentPetalId, eagerLoad = true)!!
         val eagerLoadTime = countMilliseconds {
@@ -107,7 +107,8 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
 
         parentPetal.apply {
             nestedPetal.name = "Updated name"
-        }.store(updateNestedDependencies = false)
+            ParentPetalClass.store(this, updateNestedDependencies = false)
+        }
 
         val loadedNestedPetal = NestedPetalClass.load(nestedPetal.id)!!
         assertThat(loadedNestedPetal.name).isEqualTo("Nester")
@@ -122,7 +123,8 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
 
         parentPetal.apply {
             this.nestedPetal.name = "Updated name"
-        }.store(updateNestedDependencies = true)
+            ParentPetalClass.store(this, updateNestedDependencies = true)
+        }
 
         val loadedNestedPetal = NestedPetalClass.load(nestedPetal.id)!!
         assertThat(loadedNestedPetal.name).isEqualTo("Updated name")
@@ -138,7 +140,8 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
 
         parentPetal.apply {
             nestedPetal = secondNestedPetal
-        }.store()
+            ParentPetalClass.store(this)
+        }
 
         val loadedParentPetalClass = ParentPetalClass.load(parentPetal.id)!!
         assertThat(loadedParentPetalClass.nestedPetalId).isEqualTo(secondNestedPetal.id)
@@ -155,7 +158,8 @@ class AccessorNestedPetalTest : ContainerizedTestBase() {
         secondNestedPetal.name = "RenamedSecondNester"
         parentPetal.apply {
             nestedPetal = secondNestedPetal
-        }.store(updateNestedDependencies = false)
+            ParentPetalClass.store(this, updateNestedDependencies = false)
+        }
 
         val loadedSecondNestedPetal = NestedPetalClass.load(secondNestedPetal.id)!!
         assertThat(loadedSecondNestedPetal.name).isEqualTo("SecondNester")

@@ -34,19 +34,13 @@ private fun PetalReferenceColumn.petalManagerMethodBody(): CodeTemplate =
     CodeTemplate {
         generateControlFlowCode("lazy", endFlowString = "}") {
             generateCodeLine(
-                "%L(%L) { dbEntity.%L${getNullabilityExtension()}.%M() }",
+                "%L(%L) { dbEntity.%L${getNullabilityExtension()}.$EXPORT_PETAL_METHOD_SIMPLE_NAME() }",
                 nestedPetalManagerClassName().simpleName,
                 referencingIdName,
                 name,
-                getPetalExportMemberName()
             )
         }
     }
-
-private fun PetalReferenceColumn.getPetalExportMemberName(): MemberName = ClassName(
-        "${referencingAccessorClassName.packageName}.${referencingAccessorClassName.simpleName}.Companion",
-        EXPORT_PETAL_METHOD_SIMPLE_NAME
-    ).toMemberName()
 
 private fun PetalReferenceColumn.getNestedPetalManagerClassName(): ParameterizedTypeName {
     return when (this.isNullable) {

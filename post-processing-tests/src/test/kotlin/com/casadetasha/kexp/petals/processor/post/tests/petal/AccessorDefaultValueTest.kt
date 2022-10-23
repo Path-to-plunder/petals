@@ -43,7 +43,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
             endingDefaultColor = "Not even close to blue. Like THE OPPOSITE.",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id
+        ).id
 
         val loadedEntity = transaction {
             checkNotNull(PartiallyDefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
@@ -69,7 +69,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
             endingDefaultColor = "Not even close to blue. Like THE OPPOSITE.",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id
+        ).id
 
         val loadedEntity = transaction {
             checkNotNull(PartiallyDefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }
@@ -94,7 +94,7 @@ class AccessorDefaultValueTest: ContainerizedTestBase() {
             startingDefaultColor = "Also blue, but like a slightly darker shade",
             secondColor = "Yellow",
             uuid = baseUuid
-        ).store().id
+        ).id
 
         val loadedEntity = transaction {
             checkNotNull(PartiallyDefaultValuePetalEntity.findById(id)) { "Did not find petal $id in DB" }

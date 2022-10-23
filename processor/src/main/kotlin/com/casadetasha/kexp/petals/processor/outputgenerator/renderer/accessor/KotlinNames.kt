@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator.Companion.PACKAGE_NAME
 import com.squareup.kotlinpoet.MemberName
 
 internal object StoreMethodNames {

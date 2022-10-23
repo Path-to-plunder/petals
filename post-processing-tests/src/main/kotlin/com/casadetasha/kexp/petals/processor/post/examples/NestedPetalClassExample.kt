@@ -14,11 +14,6 @@ public class NestedPetalClassExample(
     public var name: String
 ): PetalAccessor<NestedPetalClassExample, ExampleNestedPetalClassEntity, UUID>(dbEntity, id) {
 
-    override fun storeInsideOfTransaction(updateNestedDependencies: Boolean): NestedPetalClassExample {
-        dbEntity.name = this@NestedPetalClassExample.name
-        return this
-    }
-
     public companion object: AccessorCompanion<NestedPetalClassExample, ExampleNestedPetalClassEntity, UUID>() {
 
         override fun load(id: UUID): NestedPetalClassExample? = transaction {

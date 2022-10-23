@@ -4,7 +4,7 @@ import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColu
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
-import com.squareup.kotlinpoet.MemberName
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asClassName
 import uppercaseFirstChar
@@ -23,9 +23,8 @@ private fun ReferencedByPetalColumn.asReferencingPetalFunctionTemplate(): Functi
         returnType = returnType
     ) {
         generateMethodBody(
-            "return %M { dbEntity.${name}.map{ it.%M() } }",
+            "return %M { dbEntity.${name}.map{ it.${EXPORT_PETAL_METHOD_SIMPLE_NAME}() } }",
             TRANSACTION_MEMBER_NAME,
-            MemberName("${referencedByColumn.columnReference.accessorClassName}.Companion", "toPetal")
         )
     }
 }

@@ -44,8 +44,8 @@ class AccessorLoadWithTest: ContainerizedTestBase() {
     fun `loading with an expression returns matches if found`() {
         val stringValue = "Testy McStringFriend"
 
-        DefaultValuePetal.create(stringValue = "Different not real test string value").store().id
-        val id: UUID = DefaultValuePetal.create(stringValue = stringValue).store().id
+        DefaultValuePetal.create(stringValue = "Different not real test string value").id
+        val id: UUID = DefaultValuePetal.create(stringValue = stringValue).id
 
         val queryMatches = DefaultValuePetal.loadFromQuery { table -> table.stringValue eq stringValue }
         val match = checkNotNull(queryMatches.firstOrNull()) {
@@ -58,7 +58,7 @@ class AccessorLoadWithTest: ContainerizedTestBase() {
 
     @Test
     fun `loading with an expression returns empty list if no matches found`() {
-        DefaultValuePetal.create(stringValue = "Testy mcFrandyStringPerson").store()
+        DefaultValuePetal.create(stringValue = "Testy mcFrandyStringPerson")
         val queryMatches: List<DefaultValuePetal> = DefaultValuePetal.loadFromQuery { table ->
             table.stringValue eq "This wasn't it!"
         }

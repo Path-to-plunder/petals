@@ -25,17 +25,16 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
 
         collectFunctionTemplates {
             mutableSetOf(
-                createStoreFunctionTemplate(accessorClassInfo),
-                createStoreDependenciesFunctionTemplate(accessorClassInfo),
                 createTransactFunctionTemplate(accessorClassInfo),
                 createEagerLoadFunctionTemplate(accessorClassInfo),
+                createStoreDependenciesFunctionTemplate(accessorClassInfo),
             ).apply {
                 addAll( createLoadReferencingPetalFunctionTemplate(accessorClassInfo) )
             }
         }
 
         generateCompanionObject {
-
+            generateAccessorCompanionSuperClass(accessorClassInfo)
 
             collectFunctionTemplates {
                 mutableListOf(
@@ -46,8 +45,8 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
                     createLazyLoadAllFunctionTemplate(accessorClassInfo),
                     createLoadWhereFunctionTemplate(accessorClassInfo),
 
-                    createExportFunctionTemplate(accessorClassInfo)
-                ).addIf(accessorClassInfo.petalColumns.any { it is PetalReferenceColumn }) {
+                    createStoreFunctionTemplate(accessorClassInfo),
+                ).addIf(accessorClassInfo.petalValueColumns.isNotEmpty()) {
                     createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassInfo)
                 }
             }
@@ -90,12 +89,9 @@ internal fun CompanionObjectTemplate.generateAccessorCompanionSuperClass(accesso
     generateSuperClass(
         PetalAccessorCompanion::class.asClassName()
             .parameterizedBy(
-                accessorClassInfo.className,
-                accessorClassInfo.entityClassName,
-                accessorClassInfo.idKotlinClassName
+                accessorClassInfo.className
             )
     ) {
-        generateConstructorParam { CodeTemplate("dbEntity, id") }
     }
 }
 

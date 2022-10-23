@@ -4,12 +4,14 @@ import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FunctionTemplate
 import com.casadetasha.kexp.generationdsl.dsl.KotlinModifiers
+import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.UPDATE_DEPENDENCIES_PARAM_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.toMemberName
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.asClassName
 import getNullabilityExtension
@@ -21,7 +23,12 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
     ) {
         override()
         visibility { KotlinModifiers.Visibility.PROTECTED }
-        generateParameter(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName())
+        collectParameterTemplates {
+            listOf(
+                ParameterTemplate(name = accessorClassInfo.variableName, typeName = accessorClassInfo.className),
+                ParameterTemplate(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName()),
+            )
+        }
 
         generateMethodBody {
             generateCodeTemplate { createStoreMethodBody(accessorClassInfo) }
@@ -30,23 +37,23 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
 }
 
 private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = CodeTemplate {
-    val classSimpleName = accessorClassInfo.className.simpleName
+    val variableName = accessorClassInfo.variableName
 
     generateControlFlowCode("if (%L) ", UPDATE_DEPENDENCIES_PARAM_NAME) {
-        generateCode("%L()", STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
+        generateCode("$variableName.%L()", STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
     }
 
     generateNewLine()
 
     generateControlFlowCode(
-        prefix = "return dbEntity.apply ",
+        prefix = "return ${variableName}.dbEntity.apply ",
         suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
         endFlowString = "}"
     ) {
         collectCodeLines {
             accessorClassInfo.petalValueColumns.map { column ->
                 val name = column.name
-                "$name = this@${classSimpleName}.${name}"
+                "$name = ${variableName}.${name}"
             }
         }
 
@@ -57,8 +64,8 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
         collectCodeLines {
             accessorClassInfo.petalReferenceColumns.map { column ->
                 val name = column.name
-                val entityName = "${classSimpleName}.${name}" + column.getNullabilityExtension()
-                "if·(${column.nestedPetalManagerName}.hasUpdated)·{·$name·=·this@${entityName}.dbEntity·}"
+                val entityName = "${variableName}.${name}" + column.getNullabilityExtension()
+                "if·(${variableName}.${column.nestedPetalManagerName}.hasUpdated)·{·$name·=·${entityName}.dbEntity·}"
             }
         }
     }
@@ -73,7 +80,7 @@ internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: Accessor
                 accessorClassInfo.petalReferenceColumns
                     .map {
                         val name = it.name + it.getNullabilityExtension()
-                        CodeTemplate("${name}.store(performInsideStandaloneTransaction = false)")
+                        CodeTemplate("${name}.let { %M.store(it, performInsideStandaloneTransaction = false) }", it.referencingAccessorClassName.toMemberName())
                     }
             }
         }

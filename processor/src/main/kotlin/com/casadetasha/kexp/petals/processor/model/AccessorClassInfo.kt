@@ -26,6 +26,7 @@ internal class AccessorClassInfo(
         idColumn?.kotlinType ?: Int::class.asClassName()
     }
     val className: ClassName = ClassName(packageName, simpleName)
+    val variableName: String = className.simpleName.replaceFirstChar { it.lowercaseChar() }
 
     val entityMemberName by lazy { MemberName(entityClassName.packageName, entityClassName.simpleName) }
     val tableMemberName by lazy { MemberName(tableClassName.packageName, tableClassName.simpleName) }
