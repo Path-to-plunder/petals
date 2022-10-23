@@ -1,6 +1,5 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
-import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator.Companion.PACKAGE_NAME
 import com.squareup.kotlinpoet.MemberName
 
 internal object StoreMethodNames {
@@ -8,6 +7,7 @@ internal object StoreMethodNames {
     const val STORE_DEPENDENCIES_METHOD_SIMPLE_NAME = "storeDependencies"
     const val TRANSACT_METHOD_SIMPLE_NAME = "applyInsideTransaction"
 
+    const val STORE_ACCESSOR_PARAM_NAME = "accessor"
     const val UPDATE_DEPENDENCIES_PARAM_NAME = "updateNestedDependencies"
 }
 

@@ -7,6 +7,7 @@ import com.casadetasha.kexp.generationdsl.dsl.KotlinModifiers
 import com.casadetasha.kexp.generationdsl.dsl.ParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.CreateMethodNames.TRANSACTION_MEMBER_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_ACCESSOR_PARAM_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.STORE_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.StoreMethodNames.TRANSACT_METHOD_SIMPLE_NAME
@@ -25,7 +26,7 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
         visibility { KotlinModifiers.Visibility.PROTECTED }
         collectParameterTemplates {
             listOf(
-                ParameterTemplate(name = accessorClassInfo.variableName, typeName = accessorClassInfo.className),
+                ParameterTemplate(name = STORE_ACCESSOR_PARAM_NAME, typeName = accessorClassInfo.className),
                 ParameterTemplate(name = UPDATE_DEPENDENCIES_PARAM_NAME, typeName = Boolean::class.asClassName()),
             )
         }
@@ -37,23 +38,21 @@ internal fun createStoreFunctionTemplate(accessorClassInfo: AccessorClassInfo): 
 }
 
 private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTemplate = CodeTemplate {
-    val variableName = accessorClassInfo.variableName
-
     generateControlFlowCode("if (%L) ", UPDATE_DEPENDENCIES_PARAM_NAME) {
-        generateCode("$variableName.%L()", STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
+        generateCode("$STORE_ACCESSOR_PARAM_NAME.%L()", STORE_DEPENDENCIES_METHOD_SIMPLE_NAME)
     }
 
     generateNewLine()
 
     generateControlFlowCode(
-        prefix = "return ${variableName}.dbEntity.apply ",
+        prefix = "return ${STORE_ACCESSOR_PARAM_NAME}.dbEntity.apply ",
         suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
         endFlowString = "}"
     ) {
         collectCodeLines {
             accessorClassInfo.petalValueColumns.map { column ->
                 val name = column.name
-                "$name = ${variableName}.${name}"
+                "$name = ${STORE_ACCESSOR_PARAM_NAME}.${name}"
             }
         }
 
@@ -64,8 +63,8 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
         collectCodeLines {
             accessorClassInfo.petalReferenceColumns.map { column ->
                 val name = column.name
-                val entityName = "${variableName}.${name}" + column.getNullabilityExtension()
-                "if·(${variableName}.${column.nestedPetalManagerName}.hasUpdated)·{·$name·=·${entityName}.dbEntity·}"
+                val entityName = "${STORE_ACCESSOR_PARAM_NAME}.${name}" + column.getNullabilityExtension()
+                "if·(${STORE_ACCESSOR_PARAM_NAME}.${column.nestedPetalManagerName}.hasUpdated)·{·$name·=·${entityName}.dbEntity·}"
             }
         }
     }

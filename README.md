@@ -31,8 +31,8 @@ In its current beta state, it supports Postgres databases using Hikari as your d
 Add the annotations and kapt processor to your gradle dependencies:
 
 ```kts
-    implementation("com.casadetasha:petals:1.6.4-beta")
-    kapt("com.casadetasha:petals-processor:1.6.4-beta")
+    implementation("com.casadetasha:petals:1.6.5-beta")
+    kapt("com.casadetasha:petals-processor:1.6.5-beta")
 ```
 
 (For instructions on setting up kapt, see https://kotlinlang.org/docs/kapt.html#using-in-gradle)
