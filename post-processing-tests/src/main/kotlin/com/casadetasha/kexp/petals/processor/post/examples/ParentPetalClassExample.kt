@@ -1,6 +1,5 @@
 package com.casadetasha.kexp.petals.processor.post.examples
 
-import com.casadetasha.kexp.petals.annotations.AccessorCompanion
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.annotations.NestedPetalManager
 import com.casadetasha.kexp.petals.processor.post.examples.NestedPetalClassExample.Companion.export
@@ -50,12 +49,7 @@ public class ParentPetalClassExample private constructor(
         nestedPetal.store(performInsideStandaloneTransaction = false)
     }
 
-    public companion object: AccessorCompanion<ParentPetalClassExample, ParentPetalClassEntity, UUID> {
-
-//        override val all: Flow<ParentPetalClass>
-//            get() = flow {
-//                ParentPetalClassEntity.all().forEach { emit(it.export()) }
-//            }
+    public companion object: AccessorCompanion<ParentPetalClassExample, ParentPetalClassEntity, UUID>() {
 
         public fun create(
             id: UUID? = null,
@@ -88,6 +82,13 @@ public class ParentPetalClassExample private constructor(
         }
 
         override fun loadAll(): SizedIterable<ParentPetalClassExample> {
+            TODO("Not yet implemented")
+        }
+
+        override fun storeInsideOfTransaction(
+            accessor: ParentPetalClassExample,
+            updateNestedDependencies: Boolean
+        ): ParentPetalClassExample {
             TODO("Not yet implemented")
         }
     }

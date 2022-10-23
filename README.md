@@ -18,7 +18,7 @@ Petals manage this in 2 ways:
     * Compares schema values to validate data before migrating
     * Runs through all migrations in order starting with the current database version in the meta table (or creates a new table for schema version 1 if no existing table is found)
    
-2) Generates database classes for you
+2) Generated database classes
     * Exposed Table/Entity classes
     * Data accessor class to manage transactions under the hood
     * Kotlin Data class, along with extension methods for the entity and accessor classes to export to it
@@ -88,6 +88,17 @@ val myExample: ExampleClass // already loaded ExampleClass
 fun update(newName: String) {
     myExample.name = newName
     myExample.store()
+}
+```
+
+#### Deleting
+```kt
+MyServer.kt
+
+val myExample: ExampleClass // already loaded ExampleClass
+
+fun update(newName: String) {
+    myExample.delete()
 }
 ```
 

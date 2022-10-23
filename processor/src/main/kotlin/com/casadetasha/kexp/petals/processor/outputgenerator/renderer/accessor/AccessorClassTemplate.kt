@@ -35,7 +35,7 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
 
         generateCompanionObject {
             collectFunctionTemplates {
-                mutableSetOf(
+                mutableListOf(
                     createCreateFunctionTemplate(accessorClassInfo),
 
                     createLoadFunctionTemplate(accessorClassInfo),
@@ -83,7 +83,7 @@ internal fun ClassTemplate.generateAccessorSuperClass(accessorClassInfo: Accesso
     }
 }
 
-private fun <E> MutableSet<E>.addIf(condition: Boolean, function: () -> E): MutableSet<E> = apply {
+internal fun <E> MutableList<E>.addIf(condition: Boolean, function: () -> E): MutableList<E> = apply {
     if (condition) {
         add(function())
     }

@@ -73,7 +73,7 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
      * Update the object as is in the database. If any nested entities have changed, the associated ID will be updated.
      *
      * The update operation acts as a standalone transaction. If you want manual control over the transaction, call from
-     * inside of a [transaction] with [performInsideStandaloneTransaction] set to false.
+     * inside a [transaction] with [performInsideStandaloneTransaction] set to false.
      *
      * Nested entities will not be updated by default. Call with "updateNestedDependencies = true" to store all nested
      * dependencies. This will only update first level nested dependencies, if you wish to update deeply nested
@@ -105,13 +105,4 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
                 false -> function()
             }
     }
-}
-
-interface AccessorCompanion<ACCESSOR, in ENTITY: Entity<ID>, ID: Comparable<ID>> {
-
-    fun load(id: ID): ACCESSOR?
-    fun loadAll(): SizedIterable<ACCESSOR>
-    fun ENTITY.export(): ACCESSOR
-
-//    suspend fun flowAll(): Flow<ACCESSOR> = flow { loadAll().forEach { emit(it) } }
 }

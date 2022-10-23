@@ -13,6 +13,7 @@ import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.C
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.EagerLoadDependenciesMethodNames.COMPANION_EAGER_LOAD_DEPENDENCIES_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.ExportMethodNames.EXPORT_PETAL_METHOD_SIMPLE_NAME
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.LoadMethodNames.LOAD_FROM_QUERY_METHOD_SIMPLE_NAME
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.addIf
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asClassName
@@ -30,12 +31,13 @@ internal fun createLoadFunctionTemplate(accessorClassInfo: AccessorClassInfo): F
     }
 
 private fun AccessorClassInfo.getLoadMethodParameters(): List<ParameterTemplate> {
-    return listOf(
+    return mutableListOf(
         ParameterTemplate(name = "id", typeName = idKotlinClassName),
+    ).addIf(petalValueColumns.isNotEmpty()) {
         ParameterTemplate(name = "eagerLoad", typeName = Boolean::class.asClassName()) {
             defaultValue { CodeTemplate("false") }
         }
-    )
+    }
 }
 
 private fun AccessorClassInfo.getLoadMethodBody(): CodeTemplate {
