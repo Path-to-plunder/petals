@@ -116,7 +116,7 @@ fun update(newName: String) {
 MyServer.kt
 
 fun query(name: String): List<ExampleClass> {
-    return ExampleClass.loadWithQuery { table -> table.name eq name }
+    return ExampleClass.loadFromQuery { table -> table.name eq name }
 }
 ```
 
@@ -241,7 +241,7 @@ val parentPetal: ParentPetalClass = ParentPetalClass.create(
     nestedPetal = nestedPetal
 )
 
-val loadedParentPetal = ParentPetalClass.load(nestedPetal.id).parents.first()
+val loadedParentPetal = NestedPetalClass.load(nestedPetal.id).loadParents().first()
 ```
 
 ### Migrations
