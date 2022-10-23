@@ -13,15 +13,15 @@ This means:
 Petals manage this in 2 ways:
 
 1) Database precheck/migrations
-    * Checks your current database to see if the table already exists
-    * Creates a petal meta table to manage versions (if table match is found, it is assumed to be schema version 1)
-    * Compares schema values to validate data before migrating
-    * Runs through all migrations in order starting with the current database version in the meta table (or creates a new table for schema version 1 if no existing table is found)
-   
+   * Checks your current database to see if the table already exists
+   * Creates a petal meta table to manage versions (if table match is found, it is assumed to be schema version 1)
+   * Compares schema values to validate data before migrating
+   * Runs through all migrations in order starting with the current database version in the meta table (or creates a new table for schema version 1 if no existing table is found)
+
 2) Generated database classes
-    * Exposed Table/Entity classes
-    * Data accessor class to manage transactions under the hood
-    * Kotlin Data class, along with extension methods for the entity and accessor classes to export to it
+   * Exposed Table/Entity classes
+   * Data accessor class to manage transactions under the hood
+   * Kotlin Data class, along with extension methods for the entity and accessor classes to export to it
 
 In its current beta state, it supports Postgres databases using Hikari as your database connector.
 
@@ -116,7 +116,7 @@ fun update(newName: String) {
 MyServer.kt
 
 fun query(name: String): List<ExampleClass> {
-    return ExampleClass.loadWithQuery { table -> table.name eq name }
+    return ExampleClass.loadFromQuery { table -> table.name eq name }
 }
 ```
 
@@ -241,7 +241,7 @@ val parentPetal: ParentPetalClass = ParentPetalClass.create(
     nestedPetal = nestedPetal
 )
 
-val loadedParentPetal = ParentPetalClass.load(nestedPetal.id).parents.first()
+val loadedParentPetal = NestedPetalClass.load(nestedPetal.id).loadParents().first()
 ```
 
 ### Migrations
