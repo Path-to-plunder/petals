@@ -1,6 +1,6 @@
 package com.casadetasha.kexp.petals.processor.post
 
-import org.testcontainers.shaded.org.apache.commons.lang.time.StopWatch
+import org.testcontainers.shaded.org.apache.commons.lang3.time.StopWatch
 
 internal fun countMilliseconds(function: () -> Unit): Long {
     val stopWatch = StopWatch()

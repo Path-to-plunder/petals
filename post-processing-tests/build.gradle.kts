@@ -20,10 +20,10 @@ dependencies {
     implementation(project(":annotations"))
     kapt(project(":processor"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
-    implementation("com.zaxxer:HikariCP:5.0.0")
+    implementation("com.zaxxer:HikariCP:5.0.1")
 
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
@@ -34,10 +34,10 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
 
     // DB Container
-    testImplementation("org.testcontainers:testcontainers:1.16.3")
-    testImplementation("org.testcontainers:postgresql:1.16.3")
+    testImplementation("org.testcontainers:testcontainers:1.17.4")
+    testImplementation("org.testcontainers:postgresql:1.17.4")
     testImplementation("org.postgresql:postgresql:$postgresqlVersion")
-    testImplementation("org.jetbrains.exposed:exposed-jdbc:0.30.2")
+    testImplementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

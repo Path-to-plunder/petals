@@ -28,8 +28,8 @@ repositories {
 
 dependencies {
     implementation(project(":annotations"))
-    implementation("com.casadetasha:annotation-parser:0.1.0")
-    implementation("com.casadetasha:kotlin-generation-dsl:0.2.0")
+    implementation("com.casadetasha:annotation-parser:0.2.1")
+    implementation("com.casadetasha:kotlin-generation-dsl:0.2.1")
 
     implementation("com.google.auto.service:auto-service:$googleAutoServiceVersion")
     kapt("com.google.auto.service:auto-service:$googleAutoServiceVersion")
@@ -38,15 +38,15 @@ dependencies {
     implementation("com.squareup:kotlinpoet:$kotlinpoetVersion")
     implementation("com.squareup:kotlinpoet-metadata:$kotlinpoetVersion")
 
-    implementation("com.zaxxer:HikariCP:5.0.0")
+    implementation("com.zaxxer:HikariCP:5.0.1")
 
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
     // Escape SQL Strings
-    implementation("org.apache.commons:commons-text:1.9")
+    implementation("org.apache.commons:commons-text:1.10.0")
 
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9")
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertKVersion")
