@@ -9,3 +9,9 @@ internal fun PetalReferenceColumn.getNullabilityExtension(): Any {
         ""
     }
 }
+
+internal fun <E> MutableList<E>.addIf(condition: Boolean, function: () -> E): MutableList<E> = apply {
+    if (condition) {
+        add(function())
+    }
+}

@@ -1,9 +1,9 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor
 
+import addIf
 import com.casadetasha.kexp.generationdsl.dsl.*
 import com.casadetasha.kexp.petals.annotations.PetalAccessor
 import com.casadetasha.kexp.petals.annotations.PetalAccessorCompanion
-import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.createNestedPetalPropertyTemplates
@@ -46,7 +46,7 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
                     createLoadWhereFunctionTemplate(accessorClassInfo),
 
                     createStoreFunctionTemplate(accessorClassInfo),
-                ).addIf(accessorClassInfo.petalValueColumns.isNotEmpty()) {
+                ).addIf(accessorClassInfo.petalReferenceColumns.isNotEmpty()) {
                     createCompanionEagerLoadDependenciesFunctionTemplate(accessorClassInfo)
                 }
             }
@@ -92,11 +92,5 @@ internal fun CompanionObjectTemplate.generateAccessorCompanionSuperClass(accesso
                 accessorClassInfo.className
             )
     ) {
-    }
-}
-
-internal fun <E> MutableList<E>.addIf(condition: Boolean, function: () -> E): MutableList<E> = apply {
-    if (condition) {
-        add(function())
     }
 }
