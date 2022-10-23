@@ -294,6 +294,20 @@ interface DefaultValuePetalSchema {
 ### Pre-migration sql
 To run custom sql before a migration, add a `@ExecuteSqlBeforeMigration("SQL GOES HERE")` annotation to the migration you want to run it before.
 
+This example showcases dropping a table with the same name before creating a new one
+
+```kt
+
+@Petal(tableName = "example_table", className = "ExampleClass")
+interface ExamplePetal
+
+@ExecuteSqlBeforeMigration("DROP TABLE example_table")
+@PetalSchema(petal = ExamplePetal::class)
+interface DefaultValuePetalSchema {
+   val intValue: Int
+}
+```
+
 Post-migration sql is planned to be supported, but has not yet been implemented.
 
 ### Accessing Exposed DB Entity
