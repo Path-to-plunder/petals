@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 internal class PetalClasses {
 
     val petalClasses: Map<ClassName, KotlinContainer.KotlinClass> by lazy {
-        val annotatedClasses = AnnotationParser.getClassesAnnotatedWith(
+        val annotatedClasses = AnnotationParser.getClassesAndInterfacesAnnotatedWith(
             annotationClass = Petal::class
         )
 
@@ -19,7 +19,7 @@ internal class PetalClasses {
     }
 
     val schemaClasses: Set<KotlinContainer.KotlinClass> by lazy {
-        AnnotationParser.getClassesAnnotatedWith(
+        AnnotationParser.getClassesAndInterfacesAnnotatedWith(
             annotationClass = PetalSchema::class,
             propertyAnnotations = SUPPORTED_PROPERTY_ANNOTATIONS
         )

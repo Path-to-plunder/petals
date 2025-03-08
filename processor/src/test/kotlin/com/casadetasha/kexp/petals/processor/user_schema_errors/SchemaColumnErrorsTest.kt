@@ -6,8 +6,10 @@ import assertk.assertions.isEqualTo
 import com.casadetasha.kexp.petals.processor.util.compileSources
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Test
 
+@OptIn(ExperimentalCompilerApi::class)
 class SchemaColumnErrorsTest {
 
     @Test

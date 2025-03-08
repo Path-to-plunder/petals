@@ -17,3 +17,11 @@ interface BasicPetalSchemaV1 {
     var count: Int
     var sporeCount: Long
 }
+
+@Petal(tableName = "user", className = "User", primaryKeyType = PetalPrimaryKey.UUID)
+interface UserPetal
+
+@PetalSchema(petal = UserPetal::class)
+interface UserPetalV1 {
+    @VarChar(charLimit = 50) var name: String
+}

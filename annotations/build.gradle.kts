@@ -3,6 +3,7 @@ import java.io.FileInputStream
 import java.util.*
 
 val exposedVersion: String by project
+val mavenReleaseVersion: String by project
 
 plugins {
     `java-library`
@@ -49,10 +50,16 @@ val sourcesJar by tasks.registering(Jar::class) {
 publishing {
     repositories {
         maven {
+            name = "local"
+            isAllowInsecureProtocol = true
+            url = uri("http://localhost:8081/repository/maven-local")
+        }
+        maven {
+            name = "sonatype"
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = prop.getProperty("ossrhUsername")
-                password = prop.getProperty("ossrhPassword")
+                username = prop.getProperty("newOssrhUsername")
+                password = prop.getProperty("newOssrhPassword")
             }
         }
     }
@@ -63,7 +70,7 @@ publishing {
 
             group = "com.casadetasha"
             artifactId = "petals"
-            version = "1.6.5-beta"
+            version = mavenReleaseVersion
 
             artifact(sourcesJar.get())
             artifact(javadocJar.get())

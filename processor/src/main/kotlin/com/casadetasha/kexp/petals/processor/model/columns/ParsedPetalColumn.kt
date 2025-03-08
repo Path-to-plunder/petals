@@ -85,7 +85,7 @@ internal sealed class ParsedPetalColumn(
     }
 }
 
-internal sealed class LocalPetalColumn private constructor(
+internal sealed class LocalPetalColumn constructor(
     parentSchema: ParsedPetalSchema,
     name: String,
     isNullable: Boolean,

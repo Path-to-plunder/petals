@@ -11,18 +11,36 @@ object MetaTableInfo {
     private const val META_TABLE_NAME: String = "kotlin_petal_table_version_info_table"
 
     private const val CREATE_META_TABLE_SQL: String = "CREATE TABLE $META_TABLE_NAME (" +
-            " table_name TEXT NOT NULL," +
-            " version INT NOT NULL," +
-            " PRIMARY KEY (table_name)" +
+            " id BIGSERIAL PRIMARY KEY," +
+            " table_name TEXT NOT NULL UNIQUE," +
+            " version INT NOT NULL" +
             ")"
 
-    private const val UPDATE_TABLE_VERSION_SQL = "INSERT INTO $META_TABLE_NAME (table_name, version) VALUES(?, ?)" +
+    private const val UPDATE_TABLE_VERSION_SQL: String = "INSERT INTO $META_TABLE_NAME (" +
+            " table_name," +
+            " version" +
+            ")" +
+            " VALUES(?, ?)" +
             " ON CONFLICT (table_name) DO UPDATE SET table_name=?, version=?"
 
-    private const val LOAD_TABLE_VERSION_SQL: String = "SELECT version FROM $META_TABLE_NAME WHERE table_name = ?"
+    private const val UPDATE_TABLE_VERSION_SQL_H2 = """
+    MERGE INTO $META_TABLE_NAME 
+    USING (SELECT 1) AS dummy  -- Dummy table required for H2
+    ON $META_TABLE_NAME.table_name = ?
+    WHEN MATCHED THEN 
+        UPDATE SET version = ?
+    WHEN NOT MATCHED THEN 
+        INSERT (table_name, version) VALUES (?, ?)
+"""
+
+    private const val LOAD_TABLE_VERSION_SQL: String = "SELECT version" +
+            " FROM $META_TABLE_NAME" +
+            " WHERE table_name = ?"
 
     private const val LOAD_TABLE_INFO_SQL: String = "SELECT table_name, column_name, data_type, is_nullable," +
-            " character_maximum_length FROM information_schema.columns WHERE table_name = ?"
+            " character_maximum_length" +
+            " FROM information_schema.columns" +
+            " WHERE table_name = UPPER(?)"
 
     fun loadTableInfo(dataSource: HikariDataSource, tableName: String): DatabaseTableInfo? {
         val version: Int? = loadTableVersion(dataSource, tableName)
@@ -56,9 +74,10 @@ object MetaTableInfo {
     }
 
     private fun createPetalVersionTable(dataSource: HikariDataSource): DatabaseTableInfo {
-        dataSource.connection.use {
-            it.prepareStatement(CREATE_META_TABLE_SQL).execute()
+        dataSource.connection.use { connection ->
+            connection.prepareStatement(CREATE_META_TABLE_SQL).execute()
         }
+
         return loadDataForDatabaseTable(dataSource, META_TABLE_NAME) ?: throw IllegalStateException(
             "INTERNAL LIBRARY ERROR: Petal version table should have just been created, something went wrong with" +
                     " table creation if it cannot be loaded.")
@@ -113,12 +132,23 @@ object MetaTableInfo {
     fun updateTableVersionNumber(connection: Connection,
                                           tableName: String,
                                           tableVersion: Int) {
-        connection.prepareStatement(UPDATE_TABLE_VERSION_SQL).use { statement ->
+        connection.prepareStatement(getUpdateTableVersionSql(connection)).use { statement ->
             statement.setString(1, tableName)
             statement.setInt(2, tableVersion)
             statement.setString(3, tableName)
             statement.setInt(4, tableVersion)
             statement.executeUpdate()
+        }
+    }
+
+    private fun getUpdateTableVersionSql(connection: Connection): String {
+        val dbProductName = connection.metaData.databaseProductName
+        val isH2 = dbProductName.equals("H2", ignoreCase = true)
+
+        return if (isH2) {
+            UPDATE_TABLE_VERSION_SQL_H2
+        } else {
+            UPDATE_TABLE_VERSION_SQL
         }
     }
 }

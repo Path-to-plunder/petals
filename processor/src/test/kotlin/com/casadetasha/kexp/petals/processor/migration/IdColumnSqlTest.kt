@@ -11,9 +11,11 @@ import com.casadetasha.kexp.petals.processor.util.compileSources
 import com.tschuchort.compiletesting.SourceFile
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Test
 import java.lang.reflect.Method
 
+@OptIn(ExperimentalCompilerApi::class)
 class IdColumnSqlTest {
 
     @Test

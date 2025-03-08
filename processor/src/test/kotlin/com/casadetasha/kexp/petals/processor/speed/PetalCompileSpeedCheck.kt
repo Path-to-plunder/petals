@@ -10,11 +10,13 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Ignore
 import org.junit.Test
 import java.lang.reflect.Method
 
 @Ignore
+@OptIn(ExperimentalCompilerApi::class)
 class PetalCompileSpeedCheck {
 
     @Test

@@ -9,9 +9,12 @@ import com.casadetasha.kexp.petals.processor.model.PetalClasses.Companion.SUPPOR
 import com.casadetasha.kexp.petals.processor.model.PetalClasses.Companion.SUPPORTED_SCHEMA_ANNOTATIONS
 import com.casadetasha.kexp.petals.processor.outputgenerator.PetalFileGenerator
 import com.google.auto.service.AutoService
+import com.squareup.kotlinpoet.MemberName
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
+import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
+import kotlin.reflect.KClass
 
 @AutoService(Processor::class)
 @SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME)

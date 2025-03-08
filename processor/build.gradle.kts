@@ -13,6 +13,8 @@ val exposedVersion: String by project
 
 val assertKVersion: String by project
 
+val mavenReleaseVersion: String by project
+
 plugins {
     `java-library`
     `maven-publish`
@@ -28,8 +30,8 @@ repositories {
 
 dependencies {
     implementation(project(":annotations"))
-    implementation("com.casadetasha:annotation-parser:0.2.1")
-    implementation("com.casadetasha:kotlin-generation-dsl:0.2.1")
+    implementation("com.casadetasha:annotation-parser:2.1.0-alpha3")
+    implementation("com.casadetasha:kotlin-generation-dsl:2.1.0-alpha1")
 
     implementation("com.google.auto.service:auto-service:$googleAutoServiceVersion")
     kapt("com.google.auto.service:auto-service:$googleAutoServiceVersion")
@@ -48,7 +50,7 @@ dependencies {
     // Escape SQL Strings
     implementation("org.apache.commons:commons-text:1.10.0")
 
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.9")
+    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.6.0")
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:$assertKVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
 }
@@ -86,10 +88,16 @@ val sourcesJar by tasks.registering(Jar::class) {
 publishing {
     repositories {
         maven {
+            name = "local"
+            isAllowInsecureProtocol = true
+            url = uri("http://localhost:8081/repository/maven-local")
+        }
+        maven {
+            name = "sonatype"
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = prop.getProperty("ossrhUsername")
-                password = prop.getProperty("ossrhPassword")
+                username = prop.getProperty("newOssrhUsername")
+                password = prop.getProperty("newOssrhPassword")
             }
         }
     }
@@ -100,7 +108,7 @@ publishing {
 
             group = "com.casadetasha"
             artifactId = "petals-processor"
-            version = "1.6.5-beta"
+            version = mavenReleaseVersion
 
             artifact(sourcesJar.get())
             artifact(javadocJar.get())

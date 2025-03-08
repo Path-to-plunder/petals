@@ -3,9 +3,7 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
-import com.squareup.kotlinpoet.metadata.KotlinPoetMetadataPreview
 
-@OptIn(KotlinPoetMetadataPreview::class)
 internal object DslDataClassFileGenerator {
 
     fun generateFile(accessorClassInfo: AccessorClassInfo) {

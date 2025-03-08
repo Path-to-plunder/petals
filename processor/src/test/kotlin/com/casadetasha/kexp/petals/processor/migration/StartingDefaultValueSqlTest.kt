@@ -10,11 +10,13 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import java.lang.reflect.Method
 
+@OptIn(ExperimentalCompilerApi::class)
 class StartingDefaultValueSqlTest {
 
     @Test
