@@ -36,6 +36,10 @@ annotation class AlterColumn(val renameFrom: String = "")
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
 annotation class VarChar(val charLimit: Int)
 
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+annotation class DoNotExport()
+
 annotation class ReferencedBy(val referencePropertyName: String)
 
 enum class PetalPrimaryKey(val dataType: String?) {

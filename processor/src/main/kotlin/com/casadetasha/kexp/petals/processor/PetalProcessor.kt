@@ -2,19 +2,16 @@ package com.casadetasha.kexp.petals.processor
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.KAPT_KOTLIN_GENERATED_OPTION_NAME
-import com.casadetasha.kexp.petals.annotations.*
+import com.casadetasha.kexp.petals.annotations.Petal
 import com.casadetasha.kexp.petals.processor.inputparser.PetalAnnotationParser
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.model.PetalClasses.Companion.SUPPORTED_PROPERTY_ANNOTATIONS
 import com.casadetasha.kexp.petals.processor.model.PetalClasses.Companion.SUPPORTED_SCHEMA_ANNOTATIONS
 import com.casadetasha.kexp.petals.processor.outputgenerator.PetalFileGenerator
 import com.google.auto.service.AutoService
-import com.squareup.kotlinpoet.MemberName
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
-import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
-import kotlin.reflect.KClass
 
 @AutoService(Processor::class)
 @SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME)

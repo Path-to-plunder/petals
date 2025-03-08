@@ -2,10 +2,7 @@ package com.casadetasha.kexp.petals.processor.model.columns
 
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinValue
-import com.casadetasha.kexp.petals.annotations.AlterColumn
-import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.annotations.ReferencedBy
-import com.casadetasha.kexp.petals.annotations.VarChar
+import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
 import com.casadetasha.kexp.petals.processor.model.ParsedSchemalessPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
@@ -92,6 +89,7 @@ internal sealed class LocalPetalColumn constructor(
     val dataType: String,
     val isMutable: Boolean,
     val alterationInfo: PetalAlteration?,
+    val isExportable: Boolean,
 ) : ParsedPetalColumn(
     parentSchema = parentSchema,
     name = name,
@@ -149,6 +147,7 @@ internal class PetalIdColumn private constructor(
     alterationInfo = null,
     isNullable = false,
     isMutable = false,
+    isExportable = true
 ) {
 
     override val tablePropertyClassName: TypeName = Column::class.asClassName()
@@ -190,6 +189,7 @@ internal class PetalValueColumn private constructor(
     isNullable: Boolean,
     isMutable: Boolean,
     alterationInfo: PetalAlteration?,
+    isExportable: Boolean,
     val defaultValue: DefaultPetalValue,
 ) : LocalPetalColumn(
     parentSchema = parentSchema,
@@ -198,6 +198,7 @@ internal class PetalValueColumn private constructor(
     alterationInfo = alterationInfo,
     isNullable = isNullable,
     isMutable = isMutable,
+    isExportable = isExportable,
 ) {
 
     override val tablePropertyClassName: TypeName = Column::class.asClassName()
@@ -214,6 +215,7 @@ internal class PetalValueColumn private constructor(
         ): PetalValueColumn {
             val name = kotlinProperty.simpleName
             val defaultPetalValue = DefaultPetalValue.parseDefaultValueForValueColumn(kotlinProperty)
+            val isExportable = kotlinProperty.annotatedElement?.getAnnotation(DoNotExport::class.java) == null
             val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
             val alterationInfo: PetalAlteration? = alterColumnAnnotation?.let {
                 val renameFrom = it.renameFrom
@@ -230,7 +232,8 @@ internal class PetalValueColumn private constructor(
                 isNullable = kotlinProperty.isNullable,
                 defaultValue = defaultPetalValue,
                 isMutable = kotlinProperty.isMutable,
-                alterationInfo = alterationInfo
+                alterationInfo = alterationInfo,
+                isExportable = isExportable,
             )
         }
     }
@@ -259,6 +262,7 @@ internal class PetalReferenceColumn private constructor(
     isNullable: Boolean,
     isMutable: Boolean,
     alterationInfo: PetalAlteration?,
+    isExportable: Boolean,
     val columnReferenceInfo: ColumnReference,
 ) : LocalPetalColumn(
     parentSchema = parentSchema,
@@ -267,6 +271,7 @@ internal class PetalReferenceColumn private constructor(
     alterationInfo = alterationInfo,
     isNullable = isNullable,
     isMutable = isMutable,
+    isExportable = isExportable
 ) {
 
     val referencingTableClassName: ClassName = columnReferenceInfo.tableClassName
@@ -293,6 +298,7 @@ internal class PetalReferenceColumn private constructor(
         ): PetalReferenceColumn {
             val name = kotlinProperty.simpleName
 
+            val isExportable = kotlinProperty.annotatedElement?.getAnnotation(DoNotExport::class.java) == null
             val alterColumnAnnotation = kotlinProperty.annotatedElement?.getAnnotation(AlterColumn::class.java)
             val alterationInfo: PetalAlteration? = alterColumnAnnotation?.let {
                 val renameFrom = it.renameFrom
@@ -310,6 +316,7 @@ internal class PetalReferenceColumn private constructor(
                 isNullable = kotlinProperty.isNullable,
                 isMutable = kotlinProperty.isMutable,
                 alterationInfo = alterationInfo,
+                isExportable = isExportable,
             )
         }
     }
@@ -418,10 +425,21 @@ private fun getPetalReferenceIdTypeName(
     petalClasses: Map<ClassName, ParsedSchemalessPetal>,
     typeName: TypeName
 ): String {
-    return petalClasses[typeName.copy(nullable = false)]!!.petalAnnotation.primaryKeyType.dataType
+    return petalClasses[typeName.copy(nullable = false)]!!
+        .petalAnnotation.primaryKeyType.dataType
+        .convertToReferenceId()
         ?: printThenThrowError(
             "INTERNAL LIBRARY ERROR: Type $typeName was left out of new column sql generation block."
         )
+}
+
+private fun String?.convertToReferenceId(): String? {
+    return when (this) {
+        "SERIAL" -> "INT"
+        "BIGSERIAL" -> "BIGINT"
+        "uuid" -> "uuid"
+        else -> null
+    }
 }
 
 private fun getPreviousName(name: String, renameFrom: String?): String? {

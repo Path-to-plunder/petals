@@ -40,7 +40,7 @@ object MetaTableInfo {
     private const val LOAD_TABLE_INFO_SQL: String = "SELECT table_name, column_name, data_type, is_nullable," +
             " character_maximum_length" +
             " FROM information_schema.columns" +
-            " WHERE table_name = UPPER(?)"
+            " WHERE table_name = ?"
 
     fun loadTableInfo(dataSource: HikariDataSource, tableName: String): DatabaseTableInfo? {
         val version: Int? = loadTableVersion(dataSource, tableName)

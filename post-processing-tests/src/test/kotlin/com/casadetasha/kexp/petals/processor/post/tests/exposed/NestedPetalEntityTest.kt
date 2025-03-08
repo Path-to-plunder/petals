@@ -2,11 +2,9 @@ package com.casadetasha.kexp.petals.processor.post.tests.exposed
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import com.casadetasha.kexp.petals.NestedPetalClassEntity
-import com.casadetasha.kexp.petals.ParentPetalClassEntity
+import com.casadetasha.kexp.petals.*
 import com.casadetasha.kexp.petals.annotations.BasePetalMigration
-import com.casadetasha.kexp.petals.migration.`TableMigrations$nested_petal`
-import com.casadetasha.kexp.petals.migration.`TableMigrations$parent_petal`
+import com.casadetasha.kexp.petals.migration.*
 import com.casadetasha.kexp.petals.processor.post.ktx.runForEach
 import com.casadetasha.kexp.petals.processor.post.tests.base.ContainerizedTestBase
 import org.jetbrains.exposed.dao.load
@@ -19,7 +17,11 @@ class NestedPetalEntityTest : ContainerizedTestBase() {
 
     private val tableMigrations: Set<BasePetalMigration> = setOf(
         `TableMigrations$parent_petal`(),
-        `TableMigrations$nested_petal`()
+        `TableMigrations$nested_petal`(),
+        `TableMigrations$int_id_parent_petal`(),
+        `TableMigrations$int_id_nested_petal`(),
+        `TableMigrations$long_id_parent_petal`(),
+        `TableMigrations$long_id_nested_petal`(),
     )
 
     private val tableNames: Set<String> by lazy {
@@ -43,7 +45,7 @@ class NestedPetalEntityTest : ContainerizedTestBase() {
     }
 
     @Test
-    fun `entity can access nested dependencies`() {
+    fun `entity can access nested dependencies for UUID key reference`() {
         val parentPetalId = transaction {
             ParentPetalClassEntity.new {
                 name = "Parenter"
@@ -55,6 +57,40 @@ class NestedPetalEntityTest : ContainerizedTestBase() {
 
         val nestedPetal = transaction {
             ParentPetalClassEntity.findById(parentPetalId)!!.nestedPetal
+        }
+        assertThat(nestedPetal.name).isEqualTo("Nester")
+    }
+
+    @Test
+    fun `entity can access nested dependencies for INT key reference`() {
+        val parentPetalId = transaction {
+            IntIdParentPetalClassEntity.new {
+                name = "Parenter"
+                nestedPetal = IntIdNestedPetalClassEntity.new {
+                    name = "Nester"
+                }
+            }.id
+        }
+
+        val nestedPetal = transaction {
+            IntIdParentPetalClassEntity.findById(parentPetalId)!!.nestedPetal
+        }
+        assertThat(nestedPetal.name).isEqualTo("Nester")
+    }
+
+    @Test
+    fun `entity can access nested dependencies for LONG key reference`() {
+        val parentPetalId = transaction {
+            LongIdParentPetalClassEntity.new {
+                name = "Parenter"
+                nestedPetal = LongIdNestedPetalClassEntity.new {
+                    name = "Nester"
+                }
+            }.id
+        }
+
+        val nestedPetal = transaction {
+            LongIdParentPetalClassEntity.findById(parentPetalId)!!.nestedPetal
         }
         assertThat(nestedPetal.name).isEqualTo("Nester")
     }

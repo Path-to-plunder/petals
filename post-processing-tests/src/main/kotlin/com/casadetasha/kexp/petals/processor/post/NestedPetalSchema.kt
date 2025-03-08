@@ -22,3 +22,39 @@ interface NestedPetalSchema {
     val name: String
     @ReferencedBy("nestedPetal") val parents: ParentPetal
 }
+
+@Petal(tableName = "int_id_parent_petal", className = "IntIdParentPetalClass", primaryKeyType = PetalPrimaryKey.INT)
+interface IntIdParentPetal
+
+@Petal(tableName = "int_id_nested_petal", className = "IntIdNestedPetalClass", primaryKeyType = PetalPrimaryKey.INT)
+interface IntIdNestedPetal
+
+@PetalSchema(petal = IntIdParentPetal::class)
+interface IntIdParentPetalSchema {
+    val name: String
+    val nestedPetal: IntIdNestedPetal
+}
+
+@PetalSchema(petal = IntIdNestedPetal::class)
+interface IntIdNestedPetalSchema {
+    val name: String
+    @ReferencedBy("nestedPetal") val parents: IntIdParentPetal
+}
+
+@Petal(tableName = "long_id_parent_petal", className = "LongIdParentPetalClass", primaryKeyType = PetalPrimaryKey.LONG)
+interface LongIdParentPetal
+
+@Petal(tableName = "long_id_nested_petal", className = "LongIdNestedPetalClass", primaryKeyType = PetalPrimaryKey.LONG)
+interface LongIdNestedPetal
+
+@PetalSchema(petal = LongIdParentPetal::class)
+interface LongIdParentPetalSchema {
+    val name: String
+    val nestedPetal: LongIdNestedPetal
+}
+
+@PetalSchema(petal = LongIdNestedPetal::class)
+interface LongIdNestedPetalSchema {
+    val name: String
+    @ReferencedBy("nestedPetal") val parents: LongIdParentPetal
+}

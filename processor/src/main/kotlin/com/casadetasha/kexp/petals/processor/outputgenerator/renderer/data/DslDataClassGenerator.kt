@@ -30,6 +30,7 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             generatePrimaryConstructor {
                 collectConstructorPropertyTemplates(this@generateClass) {
                     accessorClassInfo.localColumns
+                        .filter { it.isExportable }
                         .map { column -> column.createConstructorProperty() }
                 }
             }
@@ -44,6 +45,7 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
                 generateParenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
                     collectCodeTemplates {
                         accessorClassInfo.localColumns
+                            .filter { it.isExportable }
                             .map { column -> column.entityDataExportCode(accessorClassInfo) }
                     }
                 }
@@ -58,8 +60,9 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             generateMethodBody {
                 generateParenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
                     collectCodeTemplates {
-                        accessorClassInfo.localColumns.map {
-                            CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},")
+                        accessorClassInfo.localColumns
+                            .filter { it.isExportable }
+                            .map { CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},")
                         }
                     }
                 }
