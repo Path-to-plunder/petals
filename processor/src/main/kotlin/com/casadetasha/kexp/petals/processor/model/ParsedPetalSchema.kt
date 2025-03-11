@@ -1,12 +1,11 @@
 package com.casadetasha.kexp.petals.processor.model
 
 import com.casadetasha.kexp.annotationparser.KotlinContainer
-import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
-import com.casadetasha.kexp.petals.annotations.PetalSchema
-import com.casadetasha.kexp.petals.annotations.ExecuteSqlBeforeMigration
+import com.casadetasha.kexp.petals.annotations.*
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ParsedPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalTimestampColumn.Companion.parseTimestampColumn
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.DelicateKotlinPoetApi
 import com.squareup.kotlinpoet.TypeName
@@ -26,6 +25,12 @@ internal class ParsedPetalSchema private constructor(
     val primaryKeyType: PetalPrimaryKey = parsedSchemalessPetal.petalAnnotation.primaryKeyType
     val tableName: String = parsedSchemalessPetal.petalAnnotation.tableName
     val schemaVersion = petalSchemaAnnotation.version
+    val includeExpiration by lazy {
+        petalSchemaClass.getAnnotation(IncludeExpiration::class) != null
+    }
+    val includeTimestamps by lazy {
+        petalSchemaClass.getAnnotation(IncludeTimestamps::class) != null
+    }
 
     private lateinit var _parsedPetalColumns: SortedSet<ParsedPetalColumn>
     val parsedPetalColumns: SortedSet<ParsedPetalColumn>
@@ -78,6 +83,25 @@ internal class ParsedPetalSchema private constructor(
                     add(PetalIdColumn.parseIdColumn(
                         parsedPetalSchema,
                         parsedPetalSchema.primaryKeyType))
+                    if (parsedPetalSchema.includeExpiration) {
+                        add(parseTimestampColumn(
+                            parentSchema = parsedPetalSchema,
+                            name = "expiresAt",
+                            isMutable = true
+                        ))
+                    }
+                    if (parsedPetalSchema.includeTimestamps) {
+                        add(parseTimestampColumn(
+                            parentSchema = parsedPetalSchema,
+                            name = "createdAt",
+                            isMutable = false
+                        ))
+                        add(parseTimestampColumn(
+                            parentSchema = parsedPetalSchema,
+                            name = "updatedAt",
+                            isMutable = true
+                        ))
+                    }
                 }
                 .toSortedSet()
         }

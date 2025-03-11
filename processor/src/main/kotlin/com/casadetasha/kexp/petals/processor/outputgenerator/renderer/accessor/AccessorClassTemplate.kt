@@ -7,6 +7,7 @@ import com.casadetasha.kexp.petals.annotations.PetalAccessorCompanion
 import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.asParameterTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.createNestedPetalPropertyTemplates
+import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.createTimestampPropertyTemplates
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions.*
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions.createEagerLoadFunctionTemplate
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.functions.createStoreDependenciesFunctionTemplate
@@ -21,7 +22,9 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
         generateAccessorConstructor(accessorClassInfo)
         generateAccessorSuperClass(accessorClassInfo)
 
-        collectPropertyTemplates { createNestedPetalPropertyTemplates(accessorClassInfo) }
+        collectPropertyTemplates {
+            createNestedPetalPropertyTemplates(accessorClassInfo)
+        }
 
         collectFunctionTemplates {
             mutableSetOf(
@@ -56,8 +59,10 @@ internal fun FileTemplate.generateAccessorClass(accessorClassInfo: AccessorClass
 internal fun ClassTemplate.generateAccessorConstructor(accessorClassInfo: AccessorClassInfo) {
     generatePrimaryConstructor {
         collectConstructorPropertyTemplates(this@generateAccessorConstructor) {
-            accessorClassInfo.petalValueColumns
-                .map { it.toConstructorPropertyTemplate() }
+            setOf(
+                accessorClassInfo.petalValueColumns.map { it.toConstructorPropertyTemplate() },
+                accessorClassInfo.timestampColumns.map { it.toConstructorPropertyTemplate() },
+            ).flatten()
         }
 
         collectParameterTemplates {

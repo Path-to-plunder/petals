@@ -3,14 +3,15 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.petals.annotations.PetalPrimaryKey
 import com.casadetasha.kexp.petals.processor.model.ParsedPetalSchema
-import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
-import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.templates.toMemberName
 import com.casadetasha.kexp.generationdsl.dsl.CodeTemplate
 import com.casadetasha.kexp.generationdsl.dsl.FileTemplate
 import com.casadetasha.kexp.generationdsl.dsl.PropertyTemplate
+import com.casadetasha.kexp.petals.processor.model.columns.*
+import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
+import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.EXPOSED_TABLE_PACKAGE
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.MemberName
@@ -57,6 +58,7 @@ private fun getColumnInitializationBlock(column: LocalPetalColumn): CodeTemplate
     return when (column) {
         is PetalReferenceColumn -> getReferenceColumnInitializationBlock(column)
         is PetalValueColumn -> getValueColumnInitializationBlock(column)
+        is PetalTimestampColumn -> getValueColumnInitializationBlock(column)
         else -> printThenThrowError("INTERNAL LIBRARY ERROR: only value and reference petal columns allowed. Found ${column.kotlinType} for column ${column.name}.")
     }
 }

@@ -12,14 +12,17 @@ internal class AccessorClassInfo(
     val petalColumns: SortedSet<ParsedPetalColumn>,
     val entityClassName: ClassName,
     val tableClassName: ClassName,
-    val dataClassName: ClassName
+    val dataClassName: ClassName,
     ) {
 
-    val localColumns: SortedSet<LocalPetalColumn> = petalColumns.filterIsInstance<LocalPetalColumn>().toSortedSet()
+    val localColumns: SortedSet<LocalPetalColumn> = petalColumns.filterIsInstance<LocalPetalColumn>().filter{ it !is PetalTimestampColumn }.toSortedSet()
     val petalValueColumns: SortedSet<PetalValueColumn> = localColumns.filterIsInstance<PetalValueColumn>().toSortedSet()
+    val timestampColumns: SortedSet<PetalTimestampColumn> = petalColumns.filterIsInstance<PetalTimestampColumn>().toSortedSet()
     val petalIdColumn: PetalIdColumn = localColumns.filterIsInstance<PetalIdColumn>().first()
     val petalReferenceColumns: SortedSet<PetalReferenceColumn> =
         localColumns.filterIsInstance<PetalReferenceColumn>().toSortedSet()
+
+    val hasTimestamps = timestampColumns.isNotEmpty()
 
     val idKotlinClassName: ClassName by lazy {
         val idColumn: PetalIdColumn? = petalColumns.firstOrNull { it is PetalIdColumn } as PetalIdColumn?

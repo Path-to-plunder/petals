@@ -29,6 +29,11 @@ private fun createCreateFunctionMethodBodyTemplate(accessorClassInfo: AccessorCl
             suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
             endFlowString = "}"
         ) {
+            if (accessorClassInfo.hasTimestamps) {
+                generateCode("val timestamp = clock.instant().toEpochMilli()")
+                generateNewLine()
+            }
+
             generateControlFlowCode("val storeValues: %L.() -> Unit = ", entitySimpleName,
                 endFlowString = "}"
             ) {
@@ -56,6 +61,13 @@ private fun createAssignAccessorValuesCodeBlock(accessorClassInfo: AccessorClass
             accessorClassInfo.petalValueColumns
                 .map { column ->
                     CodeTemplate("this.%L = %L", column.name, column.name)
+                }
+        }
+
+        collectCodeLineTemplates {
+            accessorClassInfo.timestampColumns
+                .map {  column ->
+                    CodeTemplate("this.%L = timestamp", column.name)
                 }
         }
 

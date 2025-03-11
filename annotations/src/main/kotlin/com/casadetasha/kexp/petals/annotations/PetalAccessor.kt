@@ -3,6 +3,7 @@ package com.casadetasha.kexp.petals.annotations
 import com.casadetasha.kexp.petals.annotations.PetalAccessor.Companion.runTransactionStatement
 import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Clock
 import java.util.concurrent.atomic.AtomicBoolean
 
 class OptionalNestedPetalManager<ACCESSOR: PetalAccessor<*, ENTITY, ID>, ENTITY: Entity<ID>, ID: Comparable<ID>>
@@ -85,6 +86,8 @@ abstract class PetalAccessor<ACCESSOR, out ENTITY: Entity<ID>, ID: Comparable<ID
 }
 
 abstract class PetalAccessorCompanion<ACCESSOR: PetalAccessor<*, *, *>> {
+
+    lateinit var clock: Clock
 
     protected abstract fun storeInsideOfTransaction(accessor: ACCESSOR, updateNestedDependencies: Boolean = false): ACCESSOR
 

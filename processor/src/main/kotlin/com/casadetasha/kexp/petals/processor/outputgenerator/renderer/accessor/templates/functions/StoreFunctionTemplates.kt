@@ -43,17 +43,28 @@ private fun createStoreMethodBody(accessorClassInfo: AccessorClassInfo): CodeTem
     }
 
     generateNewLine()
+    generateNewLine()
 
     generateControlFlowCode(
         prefix = "return ${STORE_ACCESSOR_PARAM_NAME}.dbEntity.apply ",
         suffix = ".$EXPORT_PETAL_METHOD_SIMPLE_NAME()",
         endFlowString = "}"
     ) {
+        if (accessorClassInfo.hasTimestamps) {
+            generateCode("val timestamp = clock.instant().toEpochMilli()")
+            generateNewLine()
+        }
+
         collectCodeLines {
-            accessorClassInfo.petalValueColumns.map { column ->
-                val name = column.name
-                "$name = ${STORE_ACCESSOR_PARAM_NAME}.${name}"
-            }
+            setOf(
+                accessorClassInfo.petalValueColumns.map { column ->
+                    val name = column.name
+                    "$name = ${STORE_ACCESSOR_PARAM_NAME}.${name}"
+                },
+                accessorClassInfo.timestampColumns.map { column ->
+                    "${column.name} = timestamp"
+                }
+            ).flatten()
         }
 
         if (accessorClassInfo.petalValueColumns.size > 1) {

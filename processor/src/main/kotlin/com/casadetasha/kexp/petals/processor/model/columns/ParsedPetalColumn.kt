@@ -255,6 +255,54 @@ internal class PetalValueColumn private constructor(
     }
 }
 
+internal class PetalTimestampColumn private constructor(
+    parentSchema: ParsedPetalSchema,
+    name: String,
+    isMutable: Boolean,
+) : LocalPetalColumn(
+    parentSchema = parentSchema,
+    name = name,
+    dataType = "BIGINT",
+    alterationInfo = null,
+    isNullable = false,
+    isMutable = isMutable,
+    isExportable = true,
+) {
+
+    override val tablePropertyClassName: TypeName = Column::class.asClassName()
+        .parameterizedBy(kotlinType.copy(nullable = isNullable))
+
+    companion object {
+
+        fun parseTimestampColumn(
+            parentSchema: ParsedPetalSchema,
+            name: String,
+            isMutable: Boolean,
+        ): PetalTimestampColumn {
+
+            return PetalTimestampColumn(
+                parentSchema = parentSchema,
+                name = name,
+                isMutable = isMutable,
+            )
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PetalTimestampColumn) return false
+
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + PetalValueColumn::class.hashCode()
+        return result
+    }
+}
+
+
 internal class PetalReferenceColumn private constructor(
     parentSchema: ParsedPetalSchema,
     name: String,

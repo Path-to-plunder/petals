@@ -2,11 +2,12 @@ package com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data
 
 import com.casadetasha.kexp.generationdsl.dsl.*
 import com.casadetasha.kexp.petals.annotations.UUIDSerializer
+import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
+import com.casadetasha.kexp.petals.processor.model.columns.*
 import com.casadetasha.kexp.petals.processor.model.columns.LocalPetalColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalIdColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn
-import com.casadetasha.kexp.petals.processor.model.AccessorClassInfo
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.data.DataClassTemplateValues.EXPORT_DATA_METHOD_SIMPLE_NAME
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
@@ -29,9 +30,16 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
         ) {
             generatePrimaryConstructor {
                 collectConstructorPropertyTemplates(this@generateClass) {
-                    accessorClassInfo.localColumns
-                        .filter { it.isExportable }
-                        .map { column -> column.createConstructorProperty() }
+                    setOf(
+                        accessorClassInfo.localColumns
+                            .filter { it.isExportable }
+                            .map { column -> column.createConstructorProperty()
+                            },
+                        accessorClassInfo.timestampColumns
+                            .filter { it.isExportable }
+                            .map { column -> column.createConstructorProperty()
+                            },
+                    ).flatten()
                 }
             }
         }
@@ -44,9 +52,14 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             generateMethodBody {
                 generateParenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
                     collectCodeTemplates {
-                        accessorClassInfo.localColumns
-                            .filter { it.isExportable }
-                            .map { column -> column.entityDataExportCode(accessorClassInfo) }
+                        setOf(
+                            accessorClassInfo.localColumns
+                                .filter { it.isExportable }
+                                .map { column -> column.entityDataExportCode(accessorClassInfo) },
+                            accessorClassInfo.timestampColumns
+                                .filter { it.isExportable }
+                                .map { column -> column.entityDataExportCode(accessorClassInfo) },
+                        ).flatten()
                     }
                 }
             }
@@ -60,10 +73,14 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
             generateMethodBody {
                 generateParenthesizedCodeBlock("return ${accessorClassInfo.dataClassName.simpleName}") {
                     collectCodeTemplates {
-                        accessorClassInfo.localColumns
-                            .filter { it.isExportable }
-                            .map { CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},")
-                        }
+                        setOf(
+                            accessorClassInfo.localColumns
+                                .filter { it.isExportable }
+                                .map { CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},") },
+                            accessorClassInfo.timestampColumns
+                                .filter { it.isExportable }
+                                .map { CodeTemplate("\n  ${it.propertyName} = ${it.propertyName},") }
+                        ).flatten()
                     }
                 }
             }
@@ -73,6 +90,7 @@ internal fun FileTemplate.createDataClassFromTemplate(accessorClassInfo: Accesso
 private fun LocalPetalColumn.entityDataExportCode(accessorClassInfo: AccessorClassInfo): CodeTemplate {
     return when (this) {
         is PetalValueColumn -> CodeTemplate("\n  $name = $name,")
+        is PetalTimestampColumn -> CodeTemplate("\n  $name = $name,")
         is PetalIdColumn -> CodeTemplate("\n  $name = ${name}.value,")
         is PetalReferenceColumn -> {
             val nullableState = if (isNullable) { "?" } else { "" }

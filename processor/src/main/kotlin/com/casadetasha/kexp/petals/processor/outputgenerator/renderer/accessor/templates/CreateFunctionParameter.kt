@@ -19,6 +19,7 @@ internal fun LocalPetalColumn.asCreateFunctionParameterTemplate(): ParameterTemp
             is PetalReferenceColumn -> if (isNullable) {
                 defaultValue { CodeTemplate("null") }
             }
+            is PetalTimestampColumn -> { /* Timestamp columns don't support default values */ }
         }
     }
 }

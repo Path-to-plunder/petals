@@ -23,6 +23,7 @@ private fun createExportFunctionBody(accessorClassInfo: AccessorClassInfo): Code
         ) {
             generateCode("dbEntity = this,")
             collectCodeTemplates { accessorClassInfo.createPetalValueColumnTemplates() }
+            collectCodeTemplates { accessorClassInfo.createPetalTimestampColumnTemplates() }
             collectCodeTemplates { accessorClassInfo.createPetalReferenceColumnTemplates() }
             generateCodeTemplate { accessorClassInfo.createPetalIdColumnTemplate() }
         }
@@ -30,6 +31,11 @@ private fun createExportFunctionBody(accessorClassInfo: AccessorClassInfo): Code
 
 private fun AccessorClassInfo.createPetalValueColumnTemplates(): List<CodeTemplate> =
     petalValueColumns.map {
+        CodeTemplate("\n${it.name} = ${it.name},")
+    }
+
+private fun AccessorClassInfo.createPetalTimestampColumnTemplates(): List<CodeTemplate> =
+    timestampColumns.map {
         CodeTemplate("\n${it.name} = ${it.name},")
     }
 

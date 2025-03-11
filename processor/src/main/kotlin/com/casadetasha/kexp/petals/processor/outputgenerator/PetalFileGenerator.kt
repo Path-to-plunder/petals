@@ -1,5 +1,7 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator
 
+import com.casadetasha.kexp.petals.annotations.IncludeExpiration
+import com.casadetasha.kexp.petals.annotations.IncludeTimestamps
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
@@ -44,6 +46,6 @@ private fun ParsedPetal.getAccessorClassInfo(): AccessorClassInfo {
         entityClassName = ClassName("com.casadetasha.kexp.petals", "${baseSimpleName}Entity"),
         tableClassName = ClassName("com.casadetasha.kexp.petals", "${baseSimpleName}Table"),
         dataClassName = ClassName("com.casadetasha.kexp.petals.data", "${baseSimpleName}Data"),
-        petalColumns = currentSchema!!.parsedPetalColumns
+        petalColumns = currentSchema!!.parsedPetalColumns,
     )
 }
