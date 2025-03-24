@@ -1,7 +1,5 @@
 package com.casadetasha.kexp.petals.processor.outputgenerator
 
-import com.casadetasha.kexp.petals.annotations.IncludeExpiration
-import com.casadetasha.kexp.petals.annotations.IncludeTimestamps
 import com.casadetasha.kexp.petals.processor.model.ParsedPetal
 import com.casadetasha.kexp.petals.processor.model.PetalClasses
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator

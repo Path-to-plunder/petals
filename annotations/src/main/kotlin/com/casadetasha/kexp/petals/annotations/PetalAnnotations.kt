@@ -1,11 +1,6 @@
 package com.casadetasha.kexp.petals.annotations
 
 import kotlin.reflect.KClass
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
@@ -20,10 +15,6 @@ annotation class PetalSchema(val petal: KClass<out Any>, val version: Int = 1)
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS)
 annotation class ExecuteSqlBeforeMigration(val executableSql: String)
-
-@Retention(AnnotationRetention.SOURCE)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
-annotation class IncludeExpiration(val duration: Long, val durationUnit: PetalDuration)
 
 @Retention(AnnotationRetention.SOURCE)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
@@ -59,22 +50,4 @@ enum class PetalPrimaryKey(val dataType: String?) {
     INT("SERIAL"),
     LONG("BIGSERIAL"),
     UUID("uuid")
-}
-
-enum class PetalDuration {
-    DAYS,
-    HOURS,
-    MINUTES,
-    SECONDS,
-    MILLISECONDS
-}
-
-fun Long.toMillis(petalDuration: PetalDuration): Long {
-    return when (petalDuration) {
-        PetalDuration.DAYS -> days.inWholeMilliseconds
-        PetalDuration.HOURS -> hours.inWholeMilliseconds
-        PetalDuration.MINUTES -> minutes.inWholeMilliseconds
-        PetalDuration.SECONDS -> seconds.inWholeMilliseconds
-        PetalDuration.MILLISECONDS -> this
-    }
 }
