@@ -90,7 +90,7 @@ internal fun createStoreDependenciesFunctionTemplate(accessorClassInfo: Accessor
                 accessorClassInfo.petalReferenceColumns
                     .map {
                         val name = it.name + it.getNullabilityExtension()
-                        CodeTemplate("${name}.let { %M.store(it, performInsideStandaloneTransaction = false) }", it.referencingAccessorClassName.toMemberName())
+                        CodeTemplate("${name}.let { %M.store(it, performInsideStandaloneTransaction = false) }\n", it.referencingAccessorClassName.toMemberName())
                     }
             }
         }

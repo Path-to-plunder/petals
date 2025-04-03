@@ -58,3 +58,22 @@ interface LongIdNestedPetalSchema {
     val name: String
     @ReferencedBy("nestedPetal") val parents: LongIdParentPetal
 }
+
+@Petal(tableName = "parent_petal_one_to_many", className = "ParentPetalOneToManyClass", primaryKeyType = PetalPrimaryKey.UUID)
+interface ParentPetalOneToMany
+
+@Petal(tableName = "nested_petal_one_to_many", className = "NestedPetalOneToManyClass", primaryKeyType = PetalPrimaryKey.UUID)
+interface NestedPetalOneToMany
+
+@PetalSchema(petal = ParentPetalOneToMany::class)
+interface ParentPetalOneToManySchema {
+    val name: String
+    @ReferencedBy("parentPetal") val nestedPetals: List<NestedPetalOneToMany>
+}
+
+@PetalSchema(petal = NestedPetalOneToMany::class)
+interface NestedPetalOneToManySchema {
+    val name: String
+    val parentPetal: ParentPetalOneToMany
+}
+

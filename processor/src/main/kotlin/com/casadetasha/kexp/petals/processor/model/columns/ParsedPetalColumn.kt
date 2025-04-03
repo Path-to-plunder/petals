@@ -1,5 +1,6 @@
 package com.casadetasha.kexp.petals.processor.model.columns
 
+import com.casadetasha.kexp.annotationparser.AnnotationParser
 import com.casadetasha.kexp.annotationparser.AnnotationParser.printThenThrowError
 import com.casadetasha.kexp.annotationparser.KotlinValue
 import com.casadetasha.kexp.petals.annotations.*
@@ -10,12 +11,9 @@ import com.casadetasha.kexp.petals.processor.model.columns.PetalReferenceColumn.
 import com.casadetasha.kexp.petals.processor.model.columns.PetalValueColumn.Companion.parseValueColumn
 import com.casadetasha.kexp.petals.processor.model.columns.ReferencedByPetalColumn.Companion.parseReferencedByColumn
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.accessor.AccessorClassFileGenerator
+import com.squareup.kotlinpoet.*
 import com.casadetasha.kexp.petals.processor.outputgenerator.renderer.exposed.ExposedClassesFileGenerator.Companion.PACKAGE_NAME as EXPOSED_TABLE_PACKAGE_NAME
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asClassName
-import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Column
 import java.util.*
@@ -55,6 +53,14 @@ internal sealed class ParsedPetalColumn(
         ): ParsedPetalColumn {
             val referencedBy = kotlinProperty.annotatedElement?.getAnnotation(ReferencedBy::class.java)
             val denulledTypeName = kotlinProperty.typeName.copy(nullable = false)
+            val isListReference = denulledTypeName is ParameterizedTypeName &&
+                        denulledTypeName.rawType == List::class.asClassName()
+            val referencedType = when {
+                isListReference -> {
+                    (denulledTypeName as ParameterizedTypeName).typeArguments.first().copy(nullable = false)
+                }
+                else -> denulledTypeName
+            }
 
             return when {
                 referencedBy != null -> {
@@ -62,7 +68,8 @@ internal sealed class ParsedPetalColumn(
                         parentSchema,
                         kotlinProperty,
                         referencedBy,
-                        petalClasses[denulledTypeName]
+                        petalClasses[referencedType],
+                        isListReference = isListReference,
                     )
                 }
                 petalClasses.containsKey(denulledTypeName) -> {
@@ -388,7 +395,8 @@ internal class ReferencedByPetalColumn private constructor(
     parentSchema: ParsedPetalSchema,
     name: String,
     isNullable: Boolean,
-    val referencedByColumn: ReferencedByColumn
+    val referencedByColumn: ReferencedByColumn,
+    val isListReference: Boolean
 ) : ParsedPetalColumn(
     parentSchema = parentSchema,
     name = name,
@@ -400,7 +408,8 @@ internal class ReferencedByPetalColumn private constructor(
             parentSchema: ParsedPetalSchema,
             kotlinProperty: KotlinValue.KotlinProperty,
             referencedBy: ReferencedBy,
-            referencedOnPetal: ParsedSchemalessPetal?
+            referencedOnPetal: ParsedSchemalessPetal?,
+            isListReference: Boolean,
         ): ReferencedByPetalColumn {
             checkNotNull(referencedOnPetal) {
                 "ReferencedBy annotated column type must be a class or interface annotated with @Petal. Found" +
@@ -417,6 +426,7 @@ internal class ReferencedByPetalColumn private constructor(
                 name = name,
                 isNullable = kotlinProperty.isNullable,
                 referencedByColumn = referencedByColumn,
+                isListReference = isListReference,
             )
         }
 

@@ -25,12 +25,16 @@ plugins {
 }
 
 repositories {
+    maven {
+        isAllowInsecureProtocol = true
+        url = uri("http://localhost:8081/repository/maven-local/")
+    }
     mavenCentral()
 }
 
 dependencies {
     implementation(project(":annotations"))
-    implementation("com.casadetasha:annotation-parser:2.1.0-alpha3")
+    implementation("com.casadetasha:annotation-parser:2.1.0-alpha4")
     implementation("com.casadetasha:kotlin-generation-dsl:2.1.0-alpha1")
 
     implementation("com.google.auto.service:auto-service:$googleAutoServiceVersion")

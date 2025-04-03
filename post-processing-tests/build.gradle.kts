@@ -13,6 +13,10 @@ plugins {
 }
 
 repositories {
+    maven {
+        isAllowInsecureProtocol = true
+        url = uri("http://localhost:8081/repository/maven-local/")
+    }
     mavenCentral()
 }
 
